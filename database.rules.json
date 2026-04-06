@@ -1,0 +1,45 @@
+{
+  "rules": {
+    "users": {
+      ".read": "root.child('users').child(auth.uid).child('role').val() === 'developer' || (query.orderByChild == 'ownerId' && query.equalTo == root.child('users').child(auth.uid).child('ownerId').val() && auth.uid != null)",
+      ".indexOn": ["ownerId"],
+      "$uid": {
+        ".read": "auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'developer' || (data.exists() && root.child('users').child(auth.uid).child('ownerId').val() === data.child('ownerId').val())",
+        ".write": "auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'developer' || (newData.exists() && root.child('users').child(auth.uid).child('ownerId').val() === newData.child('ownerId').val())"
+      }
+    },
+    "owner": {
+      "$ownerId": {
+        ".read": "root.child('users').child(auth.uid).child('ownerId').val() === $ownerId || root.child('users').child(auth.uid).child('role').val() === 'developer'",
+        ".write": "root.child('users').child(auth.uid).child('role').val() === 'developer'",
+        "aiConfig": {
+          ".write": "root.child('users').child(auth.uid).child('ownerId').val() === $ownerId || root.child('users').child(auth.uid).child('role').val() === 'developer'"
+        }
+      }
+    },
+    "owner_data": {
+      "$ownerId": {
+        ".read": "root.child('users').child(auth.uid).child('ownerId').val() === $ownerId || root.child('users').child(auth.uid).child('role').val() === 'developer'",
+        ".write": "root.child('users').child(auth.uid).child('ownerId').val() === $ownerId || root.child('users').child(auth.uid).child('role').val() === 'developer'",
+        "invites": {
+          ".indexOn": ["hash"]
+        },
+        "expenses": {
+          ".indexOn": ["date", "amount", "userId", "status"]
+        }
+      }
+    },
+    "line_api_pool": {
+      ".read": "auth != null",
+      ".write": "root.child('users').child(auth.uid).child('role').val() === 'developer'"
+    },
+    "stripe_config": {
+      ".read": "auth != null",
+      ".write": "root.child('users').child(auth.uid).child('role').val() === 'developer'"
+    },
+    "versions": {
+      ".read": "auth != null",
+      ".write": "root.child('users').child(auth.uid).child('role').val() === 'developer'"
+    }
+  }
+}

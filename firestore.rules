@@ -1,0 +1,72 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Funções de auxílio
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isDeveloper() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'developer';
+    }
+    
+    function belongsToOwner(ownerId) {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.ownerId == ownerId;
+    }
+
+    // Coleções Globais
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isDeveloper());
+      allow write: if isDeveloper();
+    }
+
+    match /owner/{ownerId} {
+      allow read: if isAuthenticated() && (belongsToOwner(ownerId) || isDeveloper());
+      allow write: if isDeveloper();
+
+      // Subcoleções Blindadas por Owner
+      match /lineUsers/{document=**} {
+        allow read, write: if isAuthenticated() && (belongsToOwner(ownerId) || isDeveloper());
+      }
+      
+      match /invites/{document=**} {
+        allow read, write: if isAuthenticated() && (belongsToOwner(ownerId) || isDeveloper());
+      }
+      
+      match /expenses/{document=**} {
+        allow read, write: if isAuthenticated() && (belongsToOwner(ownerId) || isDeveloper());
+      }
+      
+      match /projects/{projectId} {
+        allow read, write: if isAuthenticated() && (belongsToOwner(ownerId) || isDeveloper());
+        
+        // Centro de custos dentro de Projetos
+        match /costcenter/{document=**} {
+          allow read, write: if isAuthenticated() && (belongsToOwner(ownerId) || isDeveloper());
+        }
+      }
+    }
+
+    match /line_api_pool/{document=**} {
+      allow read: if isAuthenticated(); // Necessário para Webhooks e Configuração
+      allow write: if isDeveloper();
+    }
+
+    match /stripe_config/{document=**} {
+      allow read: if isAuthenticated();
+      allow write: if isDeveloper();
+    }
+
+    match /versions/{document=**} {
+      allow read: if isAuthenticated();
+      allow write: if isDeveloper();
+    }
+    
+    match /logs/{document=**} {
+      allow create: if isAuthenticated();
+      allow read: if isDeveloper();
+    }
+  }
+}

@@ -1,0 +1,89 @@
+functions/src/index.ts(2,36): error TS2307: Cannot find module 'firebase-functions/v2/https' or its corresponding type declarations.
+functions/src/index.ts(3,24): error TS2307: Cannot find module 'resend' or its corresponding type declarations.
+functions/src/index.ts(104,10): error TS7006: Parameter 'request' implicitly has an 'any' type.
+scripts/list-models.ts(1,36): error TS2307: Cannot find module '@google/generative-ai' or its corresponding type declarations.
+src/ai/direct-extract.ts(1,36): error TS2307: Cannot find module '@google/generative-ai' or its corresponding type declarations.
+src/ai/flows/categorize-expense-flow.ts(61,3): error TS2345: Argument of type '(input: { expenseDescription: string; apiKey?: string | undefined; }) => Promise<{ category: string; }>' is not assignable to parameter of type 'FlowFn<ZodObject<{ expenseDescription: ZodString; apiKey: ZodOptional<ZodString>; }, "strip", ZodTypeAny, { expenseDescription: string; apiKey?: string | undefined; }, { ...; }>, ZodObject<...>, ZodTypeAny>'.
+  Type 'Promise<{ category: string; }>' is not assignable to type '{ category: "Food" | "Transport" | "Utilities" | "Shopping" | "Entertainment" | "Groceries" | "Rent/Mortgage" | "Healthcare" | "Education" | "Travel" | "Work" | "Miscellaneous"; } | Promise<...>'.
+    Type 'Promise<{ category: string; }>' is not assignable to type 'Promise<{ category: "Food" | "Transport" | "Utilities" | "Shopping" | "Entertainment" | "Groceries" | "Rent/Mortgage" | "Healthcare" | "Education" | "Travel" | "Work" | "Miscellaneous"; }>'.
+      Type '{ category: string; }' is not assignable to type '{ category: "Food" | "Transport" | "Utilities" | "Shopping" | "Entertainment" | "Groceries" | "Rent/Mortgage" | "Healthcare" | "Education" | "Travel" | "Work" | "Miscellaneous"; }'.
+        Types of property 'category' are incompatible.
+          Type 'string' is not assignable to type '"Food" | "Transport" | "Utilities" | "Shopping" | "Entertainment" | "Groceries" | "Rent/Mortgage" | "Healthcare" | "Education" | "Travel" | "Work" | "Miscellaneous"'.
+src/ai/flows/extract-expense-details-flow.ts(5,10): error TS2305: Module '"@genkit-ai/google-genai"' has no exported member 'gemini15Flash'.
+src/ai/genkit.ts(2,19): error TS2305: Module '"@genkit-ai/google-genai"' has no exported member 'gemini15Flash'.
+src/app/api/debug/invites/route.ts(6,30): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/app/api/stripe/admin/config/route.ts(3,10): error TS2305: Module '"@/lib/admin-auth"' has no exported member 'adminAuth'.
+src/app/api/stripe/admin/subscriptions/route.ts(46,35): error TS2339: Property 'current_period_start' does not exist on type 'Subscription'.
+src/app/api/stripe/admin/subscriptions/route.ts(47,33): error TS2339: Property 'current_period_end' does not exist on type 'Subscription'.
+src/app/api/stripe/webhook/route.ts(79,31): error TS2552: Cannot find name 'stripe'. Did you mean 'Stripe'?
+src/app/api/stripe/webhook/route.ts(152,31): error TS2339: Property 'current_period_end' does not exist on type 'Subscription'.
+src/app/api/stripe/webhook/route.ts(190,41): error TS2339: Property 'current_period_end' does not exist on type 'Subscription'.
+src/app/dashboard/components/ExpensesTab.tsx(274,60): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Query | null'.
+src/app/dashboard/components/ExpensesTab.tsx(275,59): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Query | null'.
+src/app/dashboard/components/ExpensesTab.tsx(276,53): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Query | null'.
+src/app/dashboard/components/ExpensesTab.tsx(397,39): error TS2322: Type 'string | number' is not assignable to type 'number'.
+  Type 'string' is not assignable to type 'number'.
+src/app/dashboard/components/HomeTab.tsx(79,122): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'className' does not exist in type 'Partial<unknown> & Attributes'.
+src/app/dashboard/components/LineApiPoolTab.tsx(21,44): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Query | null'.
+src/app/dashboard/components/LineUsersTab.tsx(46,44): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Query | null'.
+src/app/dashboard/components/LineUsersTab.tsx(48,49): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Query | null'.
+src/app/dashboard/components/LineUsersTab.tsx(49,50): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Query | null'.
+src/app/dashboard/components/LineUsersTab.tsx(50,48): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Query | null'.
+src/app/dashboard/components/ManagementTab.tsx(52,78): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Query | null'.
+src/app/dashboard/components/ManagementTab.tsx(53,49): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Query | null'.
+src/app/dashboard/components/ManagementTab.tsx(210,126): error TS7006: Parameter 'id' implicitly has an 'any' type.
+src/app/dashboard/components/SettingsTab.tsx(50,48): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Query | null'.
+src/app/superadmin/page.tsx(44,46): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Query | null'.
+src/app/superadmin/page.tsx(45,44): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Query | null'.
+src/components/stripe-admin-panel.tsx(225,61): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(input: string | URL | Request, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Type '{ Authorization?: undefined; } | { Authorization: string; }' is not assignable to type 'HeadersInit | undefined'.
+      Type '{ Authorization?: undefined; }' is not assignable to type 'HeadersInit | undefined'.
+        Type '{ Authorization?: undefined; }' is not assignable to type 'Record<string, string>'.
+          Property 'Authorization' is incompatible with index signature.
+            Type 'undefined' is not assignable to type 'string'.
+  Overload 2 of 2, '(input: URL | RequestInfo, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Type '{ Authorization?: undefined; } | { Authorization: string; }' is not assignable to type 'HeadersInit | undefined'.
+      Type '{ Authorization?: undefined; }' is not assignable to type 'HeadersInit | undefined'.
+        Type '{ Authorization?: undefined; }' is not assignable to type 'Record<string, string>'.
+          Property 'Authorization' is incompatible with index signature.
+            Type 'undefined' is not assignable to type 'string'.
+src/components/stripe-admin-panel.tsx(278,74): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(input: string | URL | Request, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Type '{ Authorization: string; } | { Authorization?: undefined; }' is not assignable to type 'HeadersInit | undefined'.
+      Type '{ Authorization?: undefined; }' is not assignable to type 'HeadersInit | undefined'.
+        Type '{ Authorization?: undefined; }' is not assignable to type 'Record<string, string>'.
+          Property 'Authorization' is incompatible with index signature.
+            Type 'undefined' is not assignable to type 'string'.
+  Overload 2 of 2, '(input: URL | RequestInfo, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Type '{ Authorization: string; } | { Authorization?: undefined; }' is not assignable to type 'HeadersInit | undefined'.
+      Type '{ Authorization?: undefined; }' is not assignable to type 'HeadersInit | undefined'.
+        Type '{ Authorization?: undefined; }' is not assignable to type 'Record<string, string>'.
+          Property 'Authorization' is incompatible with index signature.
+            Type 'undefined' is not assignable to type 'string'.
+src/components/stripe-admin-panel.tsx(292,90): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(input: string | URL | Request, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Type '{ Authorization: string; } | { Authorization?: undefined; }' is not assignable to type 'HeadersInit | undefined'.
+      Type '{ Authorization?: undefined; }' is not assignable to type 'HeadersInit | undefined'.
+        Type '{ Authorization?: undefined; }' is not assignable to type 'Record<string, string>'.
+          Property 'Authorization' is incompatible with index signature.
+            Type 'undefined' is not assignable to type 'string'.
+  Overload 2 of 2, '(input: URL | RequestInfo, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Type '{ Authorization: string; } | { Authorization?: undefined; }' is not assignable to type 'HeadersInit | undefined'.
+      Type '{ Authorization?: undefined; }' is not assignable to type 'HeadersInit | undefined'.
+        Type '{ Authorization?: undefined; }' is not assignable to type 'Record<string, string>'.
+          Property 'Authorization' is incompatible with index signature.
+            Type 'undefined' is not assignable to type 'string'.
+src/components/stripe-admin-panel.tsx(347,11): error TS2322: Type '(modeOverride?: string) => Promise<void>' is not assignable to type 'MouseEventHandler<HTMLButtonElement>'.
+  Types of parameters 'modeOverride' and 'event' are incompatible.
+    Type 'MouseEvent<HTMLButtonElement, MouseEvent>' is not assignable to type 'string'.
+src/components/stripe-admin-panel.tsx(405,113): error TS2339: Property 'border' does not exist on type '{ label: string; value: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; color: string; bg: string; }'.
+src/components/ui/calendar.tsx(57,9): error TS2353: Object literal may only specify known properties, and 'IconLeft' does not exist in type 'Partial<CustomComponents>'.
+src/components/ui/calendar.tsx(57,22): error TS7031: Binding element 'className' implicitly has an 'any' type.
+src/components/ui/calendar.tsx(60,23): error TS7031: Binding element 'className' implicitly has an 'any' type.
+src/firebase/client-provider.tsx(21,7): error TS2322: Type '{ children: ReactNode; firebaseApp: FirebaseApp; auth: Auth; firestore: null; database: Database; storage: FirebaseStorage; }' is not assignable to type 'IntrinsicAttributes & FirebaseProviderProps'.
+  Property 'firestore' does not exist on type 'IntrinsicAttributes & FirebaseProviderProps'.
+src/firebase/provider.tsx(79,22): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/lib/stripe.ts(38,5): error TS2322: Type '"2024-04-10"' is not assignable to type '"2026-03-25.dahlia"'.

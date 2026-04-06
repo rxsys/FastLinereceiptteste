@@ -1,0 +1,40 @@
+# Next.js
+.next/
+out/
+build/
+
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Production
+.env
+.env.local
+.env.production
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Firebase
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+*.local
+
+# IDX
+.idx/
+
+# Agents
+.agents/
+
+# Env
+.env*
+!.env.example

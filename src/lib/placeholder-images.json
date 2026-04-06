@@ -1,0 +1,28 @@
+{
+  "placeholderImages": [
+    {
+      "id": "line-input",
+      "description": "Usuário enviando foto de recibo no LINE",
+      "imageUrl": "/img-line-chat.png",
+      "imageHint": "mobile chat"
+    },
+    {
+      "id": "ai-extraction",
+      "description": "IA Gemini extraindo dados do recibo",
+      "imageUrl": "/img-placeholder.svg",
+      "imageHint": "artificial intelligence"
+    },
+    {
+      "id": "dashboard-analysis",
+      "description": "Administrador analisando custos no Dashboard",
+      "imageUrl": "/img-placeholder.svg",
+      "imageHint": "data dashboard"
+    },
+    {
+      "id": "construction-site",
+      "description": "Canteiro de obras sendo monitorado",
+      "imageUrl": "/img-placeholder.svg",
+      "imageHint": "construction site"
+    }
+  ]
+}

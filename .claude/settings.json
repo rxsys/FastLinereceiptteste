@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(firebase functions:secrets:set RESEND_API_KEY)",
+      "Bash(git commit -m ':*)"
+    ]
+  }
+}

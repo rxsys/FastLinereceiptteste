@@ -1,0 +1,232 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user interacting with the LINE Expense Bot, storing non-authentication related information and linking to LINE's unique user ID.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "lineUserId": {
+          "type": "string",
+          "description": "The unique identifier provided by the LINE messaging platform for this user."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name as provided by LINE, for display purposes. This field is optional and may not always be available."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the user profile was first created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the user profile was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "lineUserId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Category": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Category",
+      "type": "object",
+      "description": "Defines categories for expenses, which can be system-defined or user-created for better organization.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Category entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The descriptive name of the category (e.g., 'Food', 'Transport', 'Utilities')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description or example usage for the category."
+        },
+        "isSystemDefined": {
+          "type": "boolean",
+          "description": "Indicates whether this category is a predefined system category (true) or a custom user-created one (false)."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the UserProfile who created this category, if it's not system-defined. (Relationship: UserProfile 1:N Category)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the category was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the category was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "isSystemDefined",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Expense": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Expense",
+      "type": "object",
+      "description": "Stores individual expense records made by users, including details like amount, description, date, and categorization.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Expense entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the UserProfile who recorded this expense. (Relationship: UserProfile 1:N Expense)"
+        },
+        "amount": {
+          "type": "number",
+          "description": "The monetary value of the expense."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency code for the expense (e.g., 'USD', 'BRL', 'JPY')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the expense, usually parsed from the user's message or provided manually."
+        },
+        "date": {
+          "type": "string",
+          "description": "The specific date when the expense occurred.",
+          "format": "date"
+        },
+        "categoryId": {
+          "type": "string",
+          "description": "Reference to the Category entity assigned to this expense. (Relationship: Category 1:N Expense)"
+        },
+        "originalMessage": {
+          "type": "string",
+          "description": "The full, original LINE message from which the expense details were extracted, for auditing or re-processing."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the expense record was first created in the system.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the expense record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "amount",
+        "currency",
+        "description",
+        "date",
+        "categoryId",
+        "originalMessage",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/userProfiles/{userProfileId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores non-authentication related user profile information. The `userProfileId` matches the Firebase Authentication UID (`request.auth.uid`). Authorization relies on `userProfileId` matching `request.auth.uid`.",
+          "params": [
+            {
+              "name": "userProfileId",
+              "description": "The unique identifier of the user, matching `request.auth.uid`."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/categories/{categoryId}",
+        "definition": {
+          "entityName": "Category",
+          "schema": {
+            "$ref": "#/backend/entities/Category"
+          },
+          "description": "Stores custom categories defined by a specific user. Includes denormalized `userId` for authorization independence and `isSystemDefined: false`. Authorization relies on the path's `userId` matching `request.auth.uid`.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns this category, matching `request.auth.uid`."
+            },
+            {
+              "name": "categoryId",
+              "description": "The unique identifier for the user's custom category."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/categories_system/{categoryId}",
+        "definition": {
+          "entityName": "Category",
+          "schema": {
+            "$ref": "#/backend/entities/Category"
+          },
+          "description": "Stores system-defined categories available to all users. These categories have `isSystemDefined: true`. Read access is typically granted to all authenticated users, while write access is restricted to backend services or admin roles.",
+          "params": [
+            {
+              "name": "categoryId",
+              "description": "The unique identifier for the system-defined category."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/expenses/{expenseId}",
+        "definition": {
+          "entityName": "Expense",
+          "schema": {
+            "$ref": "#/backend/entities/Expense"
+          },
+          "description": "Stores individual expense records for a specific user. Includes denormalized `userId` for authorization independence. Authorization relies on the path's `userId` matching `request.auth.uid`.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who recorded this expense, matching `request.auth.uid`."
+            },
+            {
+              "name": "expenseId",
+              "description": "The unique identifier for the expense record."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The proposed Firestore data structure prioritizes Authorization Independence and Structural Segregation to ensure robust, debuggable security rules and efficient queries.User profiles are stored in a top-level collection `/userProfiles/{userProfileId}` where `userProfileId` is the Firebase `request.auth.uid`. This makes user profile data directly accessible and secured based on the authenticated user's ID.User-specific entities like `Expense` and user-defined `Category` are nested under a user's unique path: `/users/{userId}/expenses/{expenseId}` and `/users/{userId}/categories/{categoryId}` respectively. This hierarchical structure inherently links these documents to their owner, making authorization rules straightforward (e.g., `allow read, write: if request.auth.uid == userId;`). This fulfills the 'Private Data' and 'Hierarchical Paths for User-Owned Data' access modeling mandates.For system-defined categories, a separate top-level collection `/categories_system/{categoryId}` is created. This collection adheres to the Structural Segregation principle by separating globally accessible read-only data (for users to select from) from user-specific data. Rules for this collection would typically allow `read` for all authenticated users, while `write` operations would be restricted to backend services or specific admin roles (if implemented).Authorization Independence is achieved by mandating that `userId` (representing the owner) is a field directly within `Expense` and user-defined `Category` documents. This denormalization means that security rules evaluating access to an expense or a category do not need to perform a `get()` operation on a parent `UserProfile` or `/users/{userId}` document. The `userId` embedded in the document, matching the `userId` in the path, directly provides the authorization context. This eliminates the complexities associated with `get()` calls in rules, enhancing transaction atomicity and debugging ease.Queryable Authorization Patterns (QAPs) are supported by this design. For example, to retrieve all expenses for a user, a query like `db.collection('users').doc(request.auth.uid).collection('expenses').get()` implicitly filters by the authenticated user's ID, and the security rules ensure that only data belonging to `request.auth.uid` can be read from that path. Similarly, listing user-defined categories or reading system categories is inherently secure and efficient due to the clear structural segregation and embedded authorization fields."
+  }
+}

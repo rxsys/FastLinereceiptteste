@@ -1,0 +1,6 @@
+
+{
+  "cloudFunctions": {
+    "runtime": "nodejs20"
+  }
+}
