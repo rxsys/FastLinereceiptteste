@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { CloudUpload, X, Loader2, Receipt, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Eye } from 'lucide-react';
+import { CloudUpload, X, Loader2, Receipt, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Eye, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -108,11 +108,13 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
       }
 
       const advRef = push(ref(database, `owner_data/${ownerId}/lineUsers/${user.id}/wallet/advances`));
+      const receiptId = advRef.key;
       await set(advRef, {
         amount: Number(creditAmount),
         description: creditDesc,
         ...(imageUrl ? { imageUrl } : {}),
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        signed: false
       });
 
       // Refresh advances
@@ -122,10 +124,11 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
       advList.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
       setAdvances(advList);
 
-      // LINE push notification
+      // LINE push notification with Signature Link
       const lineId = user.lineUserId || user.id;
-      if (lineId) {
-        notifyWalletCredit(ownerId, lineId, Number(creditAmount), creditDesc).catch(() => {});
+      if (lineId && receiptId) {
+        const signUrl = `${window.location.origin}/sign/${ownerId}_${user.id}_${receiptId}`;
+        notifyWalletCredit(ownerId, lineId, Number(creditAmount), creditDesc, signUrl).catch(() => {});
       }
 
       setCreditAmount('');
@@ -281,8 +284,8 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
               </div>
               <div className="flex gap-2 pt-1">
                 <Button onClick={handleSaveCredit} disabled={saving || !creditAmount}
-                  className="flex-1 h-9 rounded-xl font-black text-xs bg-emerald-500 hover:bg-emerald-600 text-white">
-                  {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : '保存する'}
+                  className="flex-1 h-9 rounded-xl font-black text-xs bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20">
+                  {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : '送信して署名を依頼'}
                 </Button>
                 <Button variant="ghost" onClick={() => setShowCreditForm(false)}
                   className="h-9 rounded-xl font-black text-xs text-slate-400 hover:text-white">
@@ -369,14 +372,19 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
                              </Button>
                           </div>
 
-                          <div className="flex items-center gap-1.5 shrink-0 pl-10" onClick={() => setEditingAdv({ ...adv, viewOnly: true })}>
-                            <span className="text-sm font-black text-blue-600">¥{Number(adv.amount || 0).toLocaleString()}</span>
-                            {adv.imageUrl && (
-                               <div className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center">
-                                 <Receipt className="w-2.5 h-2.5 text-blue-500" />
-                               </div>
-                            )}
-                          </div>
+                           <div className="flex items-center gap-1.5 shrink-0" onClick={() => setEditingAdv({ ...adv, viewOnly: true })}>
+                              <span className="text-sm font-black text-blue-600">¥{Number(adv.amount || 0).toLocaleString()}</span>
+                              {adv.signed && (
+                                 <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center" title="有効な署名あり">
+                                   <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                                 </div>
+                              )}
+                              {adv.imageUrl && !adv.signed && (
+                                 <div className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center">
+                                   <Receipt className="w-2.5 h-2.5 text-blue-500" />
+                                 </div>
+                              )}
+                            </div>
                         </div>
                       ))}
                     </div>

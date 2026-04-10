@@ -50,7 +50,7 @@ export async function notifyUserApproval(ownerId: string, lineId: string, lang: 
 /**
  * Server Action para notificar o usuário LINE quando a empresa adiciona crédito na carteira.
  */
-export async function notifyWalletCredit(ownerId: string, lineUserId: string, amount: number, description: string) {
+export async function notifyWalletCredit(ownerId: string, lineUserId: string, amount: number, description: string, signUrl?: string) {
   try {
     const ownerData = await getOwnerCredentials(ownerId);
     if (!ownerData) return { success: false, error: 'Owner not found' };
@@ -59,21 +59,101 @@ export async function notifyWalletCredit(ownerId: string, lineUserId: string, am
     if (!accessToken) return { success: false, error: 'Access token missing' };
 
     const lineClient = getLineClient(accessToken);
-
     const desc = description?.trim() ? `\n摘要：${description.trim()}` : '';
-    await lineClient.pushMessage({
-      to: lineUserId,
-      messages: [
-        {
-          type: 'text',
-          text: `💰 会社よりお振込みがございました。\n金額：¥${amount.toLocaleString('ja-JP')}${desc}\n\nご不明な点がございましたら、担当者までお問い合わせくださいませ。`
-        }
-      ]
-    });
+
+    console.log(`[NotifyWalletCredit] Iniciando envio para ${lineUserId} | URL: ${signUrl}`);
+
+    if (signUrl) {
+      // Mensagem Flex Formal para Recibo
+      try {
+        await lineClient.pushMessage({
+          to: lineUserId,
+          messages: [
+            {
+              type: 'flex',
+              altText: '【重要】領収書への署名依頼',
+              contents: {
+                type: 'bubble',
+                header: {
+                  type: 'box',
+                  layout: 'vertical',
+                  contents: [{ type: 'text', text: '領収書 (デジタル)', weight: 'bold', color: '#ffffff', size: 'sm' }],
+                  backgroundColor: '#0f172a'
+                },
+                body: {
+                  type: 'box',
+                  layout: 'vertical',
+                  contents: [
+                    { type: 'text', text: 'お振込み内容の確認', weight: 'bold', size: 'xl', color: '#111827' },
+                    {
+                      type: 'box',
+                      layout: 'vertical',
+                      margin: 'lg',
+                      spacing: 'sm',
+                      contents: [
+                        {
+                          type: 'box',
+                          layout: 'baseline',
+                          spacing: 'sm',
+                          contents: [
+                            { type: 'text', text: '金額', color: '#aaaaaa', size: 'sm', flex: 1 },
+                            { type: 'text', text: `¥${amount.toLocaleString('ja-JP')}`, wrap: true, color: '#111827', size: 'md', weight: 'bold', flex: 4 }
+                          ]
+                        },
+                        {
+                          type: 'box',
+                          layout: 'baseline',
+                          spacing: 'sm',
+                          contents: [
+                            { type: 'text', text: '摘要', color: '#aaaaaa', size: 'sm', flex: 1 },
+                            { type: 'text', text: description || '---', wrap: true, color: '#111827', size: 'sm', flex: 4 }
+                          ]
+                        }
+                      ]
+                    },
+                    { type: 'text', text: '上記内容をご確認いただき、以下のボタンより署名をお願いいたします。', color: '#666666', size: 'xs', wrap: true, margin: 'xl' }
+                  ]
+                },
+                footer: {
+                  type: 'box',
+                  layout: 'vertical',
+                  spacing: 'sm',
+                  contents: [
+                    {
+                      type: 'button',
+                      style: 'primary',
+                      height: 'sm',
+                      color: '#2563eb',
+                      action: { type: 'uri', label: '確認・署名する', uri: signUrl }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        });
+        console.log('[NotifyWalletCredit] Flex Message enviada com sucesso');
+      } catch (flexErr: any) {
+        console.error('[NotifyWalletCredit] Erro ao enviar Flex:', flexErr.response?.data || flexErr);
+        throw flexErr;
+      }
+    } else {
+      // Fallback para mensagem de texto simples
+      await lineClient.pushMessage({
+        to: lineUserId,
+        messages: [
+          {
+            type: 'text',
+            text: `💰 会社よりお振込みがございました。\n金額：¥${amount.toLocaleString('ja-JP')}${desc}\n\nご不明な点がございましたら、担当者までお問い合わせくださいませ。`
+          }
+        ]
+      });
+      console.log('[NotifyWalletCredit] Texto simples enviado');
+    }
 
     return { success: true };
-  } catch (error) {
-    console.error('[NotifyWalletCredit] Error:', error);
+  } catch (error: any) {
+    console.error('[NotifyWalletCredit] Global Error:', error?.response?.data || error);
     return { success: false, error: String(error) };
   }
 }
