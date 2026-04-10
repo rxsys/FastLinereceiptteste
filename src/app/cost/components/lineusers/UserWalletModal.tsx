@@ -117,12 +117,8 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
         signed: false
       });
 
-      // Refresh advances
-      const advSnap = await get(ref(database, `owner_data/${ownerId}/lineUsers/${user.id}/wallet/advances`));
-      const advList: any[] = [];
-      advSnap.forEach((c: any) => advList.push({ id: c.key, ...c.val() }));
-      advList.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-      setAdvances(advList);
+      // O listener onValue já atualiza advances automaticamente após o set().
+      // Refresh manual causava race condition e sumiço temporário de itens.
 
       // LINE push notification with Signature Link
       const lineId = (user.lineUserId?.startsWith('U') ? user.lineUserId : null) ||
@@ -147,20 +143,30 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
           console.warn('[WalletDebug] Falha ao buscar liffSignId, usando URL direta.');
         }
         const result = await notifyWalletCredit(ownerId, lineId, Number(creditAmount), creditDesc, signUrl);
+        setCreditAmount('');
+        setCreditDesc('');
+        setCreditFile(null);
+        setShowCreditForm(false);
         if (!result.success) {
-          toast({ 
-            variant: 'destructive', 
-            title: '通知エラー (LINE)', 
-            description: `ERRO: ${result.error || 'LINE IDが無効か、通信エラーです。'}` 
+          toast({
+            variant: 'destructive',
+            title: 'クレジット追加OK / LINE通知NG',
+            description: `ERRO: ${result.error || 'LINE IDが無効か、通信エラーです。'}`
           });
+        } else {
+          toast({ title: 'クレジットを追加いたしました', description: 'LINE通知を送信しました' });
         }
+      } else {
+        setCreditAmount('');
+        setCreditDesc('');
+        setCreditFile(null);
+        setShowCreditForm(false);
+        toast({
+          variant: 'destructive',
+          title: 'クレジット追加OK / LINE通知NG',
+          description: 'LINE IDが見つかりません (lineUserId missing)'
+        });
       }
-
-      setCreditAmount('');
-      setCreditDesc('');
-      setCreditFile(null);
-      setShowCreditForm(false);
-      toast({ title: 'クレジットを追加いたしました' });
     } catch (e) {
       toast({ variant: 'destructive', title: 'エラー', description: String(e) });
     } finally {
