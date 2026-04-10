@@ -9,6 +9,7 @@
       }
     },
     "owner": {
+      ".read": "root.child('users').child(auth.uid).child('role').val() === 'developer'",
       "$ownerId": {
         ".read": "root.child('users').child(auth.uid).child('ownerId').val() === $ownerId || root.child('users').child(auth.uid).child('role').val() === 'developer'",
         ".write": "root.child('users').child(auth.uid).child('role').val() === 'developer'",
@@ -18,6 +19,7 @@
       }
     },
     "owner_data": {
+      ".read": "root.child('users').child(auth.uid).child('role').val() === 'developer'",
       "$ownerId": {
         ".read": "root.child('users').child(auth.uid).child('ownerId').val() === $ownerId || root.child('users').child(auth.uid).child('role').val() === 'developer'",
         ".write": "root.child('users').child(auth.uid).child('ownerId').val() === $ownerId || root.child('users').child(auth.uid).child('role').val() === 'developer'",
