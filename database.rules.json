@@ -33,7 +33,8 @@
     },
     "line_api_pool": {
       ".read": "auth != null",
-      ".write": "root.child('users').child(auth.uid).child('role').val() === 'developer'"
+      ".write": "root.child('users').child(auth.uid).child('role').val() === 'developer'",
+      ".indexOn": ["ownerId"]
     },
     "stripe_config": {
       ".read": "auth != null",
