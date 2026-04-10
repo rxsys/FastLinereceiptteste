@@ -26,10 +26,10 @@ export const translations = {
     build: "ビルド",
     modules: {
       receipt: {
-        title: "レシート管理",
-        fullTitle: "📄 レシート管理 — 経費精算",
-        desc: "LINEで即時に経費精算. AIが金額・日付・品目を自動抽出. インボイス制度対応.",
-        items: ["✓ 現場からLINEで送るだけ", "✓ AIが領収書を99%自動読み取り", "✓ 会計ソフト用CSV出力", "✓ 多言語対応 (4言語)"],
+        title: "コスト管理",
+        fullTitle: "💴 コスト管理 — 経費・精算",
+        desc: "LINEで領収書を送るだけ。AIが自動読み取り・NTA認証・重複検知まで完全自動化。複数プロジェクトの予算と実績をリアルタイムで管理。",
+        items: ["✓ LINE連携でその場で送信", "✓ AIが領収書を99%自動読み取り", "✓ 国税庁（NTA）適格請求書認証", "✓ 会計レポートCSV出力"],
         badge: "稼働中"
       },
       career: {
@@ -552,10 +552,10 @@ export const translations = {
     build: "Build",
     modules: {
       receipt: {
-        title: "Receipts",
-        fullTitle: "📄 Receipt Management",
-        desc: "Instant expense settlement via LINE. AI automatically extracts amounts, dates, and items. Invoice system compliant.",
-        items: ["✓ Send directly from site via LINE", "✓ 99% AI recognition accuracy", "✓ CSV export for accounting", "✓ Multi-language support (4 langs)"],
+        title: "Cost Management",
+        fullTitle: "💴 Cost Management — Expenses",
+        desc: "Just send receipts via LINE. AI auto-reads, NTA verification, duplicate detection — fully automated. Manage budgets vs actuals in real time.",
+        items: ["✓ Send instantly via LINE", "✓ 99% AI recognition accuracy", "✓ NTA invoice authentication", "✓ Accounting report CSV export"],
         badge: "ACTIVE"
       },
       career: {
@@ -1100,10 +1100,10 @@ export const translations = {
     build: "Build",
     modules: {
       receipt: {
-        title: "Recibos",
-        fullTitle: "📄 Gestão de Recibos",
-        desc: "Reembolso instantâneo via LINE. IA extrai valores, datas e itens. Compatível com Invoice System.",
-        items: ["✓ Envie direto da obra via LINE", "✓ 99% de precisão na leitura por IA", "✓ Exportação CSV para contabilidade", "✓ Suporte multilíngue (4 idiomas)"],
+        title: "Gestão de Custos",
+        fullTitle: "💴 Gestão de Custos — Despesas",
+        desc: "Envie recibos pelo LINE. IA lê automaticamente, autentica na NTA e detecta duplicatas. Gerencie orçamento vs realizado em tempo real.",
+        items: ["✓ Envie via LINE no local", "✓ 99% de precisão na leitura por IA", "✓ Autenticação NTA (Nota Fiscal)", "✓ Exportação de relatórios contábeis"],
         badge: "ATIVO"
       },
       career: {

@@ -310,7 +310,7 @@ export default function LandingPage() {
                       className="flex items-center px-4 h-9 rounded-xl bg-[#ff6b35]/15 border border-[#ff6b35]/40 hover:bg-[#ff6b35]/30 hover:scale-105 active:scale-95 transition-all shadow-[0_0_12px_#ff6b3530]"
                     >
                       <span className="text-base">📄</span>
-                      <span className="text-[10px] font-black tracking-tight text-[#ff6b35] ml-2">FastLineレシート管理</span>
+                      <span className="text-[10px] font-black tracking-tight text-[#ff6b35] ml-2">FastLineコスト管理</span>
                       <ArrowRight className="w-3 h-3 ml-2 text-[#ff6b35]" />
                     </button>
                     <button onClick={() => signOut(auth!)} className="p-2.5 text-white/30 hover:text-red-400 transition-colors" title="Logout"><LogOut className="w-5 h-5" /></button>
@@ -347,13 +347,18 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-8 w-full max-w-[1000px] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-x-8 gap-y-12 pb-24">
-            <ModuleIcon 
-              emoji="📄" id="receipt" title={t.modules.receipt.title} color="#ff6b35" active 
-              priceId={currentPriceId} 
-              isSubscribed={activeModules.includes('receipt')}
-              onModuleClick={handleModuleClick} 
-              tooltip={<div className="space-y-3"><p className="font-black text-[14px]">{t.modules.receipt.fullTitle}</p><p className="text-[10px] leading-relaxed text-white/70">{t.modules.receipt.desc}</p></div>} 
-            />
+            <div className="flex flex-col items-center gap-2">
+              <Link href="/cost" className="px-3 py-1 rounded-full bg-[#22c55e]/10 border border-[#22c55e]/30 text-[9px] font-black text-[#22c55e] hover:bg-[#22c55e]/20 transition-all tracking-widest whitespace-nowrap">
+                詳細はこちら →
+              </Link>
+              <ModuleIcon
+                emoji="💴" id="receipt" title={t.modules.receipt.title} color="#22c55e" active
+                priceId={currentPriceId}
+                isSubscribed={activeModules.includes('receipt')}
+                onModuleClick={handleModuleClick}
+                tooltip={<div className="space-y-3"><p className="font-black text-[14px]">{t.modules.receipt.fullTitle}</p><p className="text-[10px] leading-relaxed text-white/70">{t.modules.receipt.desc}</p></div>}
+              />
+            </div>
             <ModuleIcon emoji="📁" id="project" title={t.modules.project.title} color="#6366f1" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('project')} badge={t.modules.project.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.project.desc}</p>} />
             <ModuleIcon emoji="👥" id="staff" title={t.modules.staff.title} color="#00c48c" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('staff')} badge={t.modules.staff.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.staff.desc}</p>} />
             <ModuleIcon emoji="📋" id="career" title={t.modules.career.title} color="#f59e0b" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('career')} badge={t.modules.career.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.career.desc}</p>} />
