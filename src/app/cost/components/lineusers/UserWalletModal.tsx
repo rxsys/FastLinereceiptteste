@@ -41,10 +41,17 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
   const [editingAdv, setEditingAdv] = useState<any | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [ownerName, setOwnerName] = useState('');
+  const [projects, setProjects] = useState<any[]>([]);
 
   useEffect(() => {
     if (!isOpen || !database || !ownerId) return;
     get(ref(database, `owner/${ownerId}/name`)).then(s => setOwnerName(s.val() || '')).catch(() => {});
+    get(ref(database, `owner_data/${ownerId}/projects`)).then(s => {
+      if (!s.exists()) return;
+      const list: any[] = [];
+      s.forEach(child => list.push({ id: child.key, ...child.val() }));
+      setProjects(list);
+    }).catch(() => {});
   }, [isOpen, database, ownerId]);
 
   useEffect(() => {
@@ -387,22 +394,48 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
                     <p className="text-[11px] text-slate-300 font-bold italic text-center py-8">支出なし</p>
                   ) : (
                     <div className="space-y-2">
-                      {expenses.map(exp => (
+                      {expenses.map(exp => {
+                        // Resolve project + costcenter from fetched projects
+                        const allCcs = projects.flatMap(p =>
+                          p.costcenters
+                            ? Object.entries(p.costcenters).map(([id, d]: [string, any]) => ({ id, projectId: p.id, projectName: p.name, ...d }))
+                            : []
+                        );
+                        const cc = allCcs.find(c => c.id === exp.costcenterId);
+                        const proj = projects.find(p => p.id === (exp.projectId || cc?.projectId));
+                        const projectName = proj?.name || null;
+                        const ccName = exp.costcenterName || cc?.name || null;
+                        return (
                         <button
                           key={exp.id}
                           onClick={() => onOpenExpense?.(exp)}
                           className="w-full text-left flex items-center justify-between gap-2 p-3 rounded-2xl hover:bg-slate-50 transition-colors group border border-transparent hover:border-slate-100"
                         >
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <p className="text-[9px] font-bold text-slate-400">{fmtDate(exp.date || exp.createdAt)}</p>
                             <p className="text-xs font-black text-slate-700 truncate">{exp.description || '---'}</p>
+                            {(projectName || ccName) && (
+                              <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                                {projectName && (
+                                  <span className="text-[8px] font-black bg-indigo-50 text-indigo-500 border border-indigo-100 px-1.5 py-0.5 rounded-full truncate max-w-[80px]">
+                                    {projectName}
+                                  </span>
+                                )}
+                                {ccName && (
+                                  <span className="text-[8px] font-black bg-slate-100 text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded-full truncate max-w-[80px]">
+                                    {ccName}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
                             <span className="text-sm font-black text-red-500">¥{Number(exp.amount || 0).toLocaleString()}</span>
                             <Receipt className="w-3 h-3 text-slate-300 group-hover:text-slate-500 transition-colors" />
                           </div>
                         </button>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
