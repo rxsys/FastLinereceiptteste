@@ -350,7 +350,7 @@ export default function LandingPage() {
             <div className="flex flex-col items-center gap-2 relative z-10">
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); router.push('/cost'); }}
+                onClick={(e) => { e.stopPropagation(); router.push('/modulo-custo'); }}
                 className="px-3 py-1 rounded-full bg-[#22c55e]/10 border border-[#22c55e]/30 text-[9px] font-black text-[#22c55e] hover:bg-[#22c55e]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
               >
                 詳細はこちら →
