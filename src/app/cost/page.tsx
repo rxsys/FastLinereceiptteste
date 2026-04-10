@@ -86,36 +86,36 @@ export default function CostLandingPage() {
 
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-[#060610]/80 backdrop-blur-xl border-b border-white/5">
-        <Link href="/" className="flex items-center gap-2 text-white/50 hover:text-white transition-colors text-sm font-bold">
-          <ArrowLeft className="w-4 h-4" />
+        <Link href="/" className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-base font-bold">
+          <ArrowLeft className="w-5 h-5" />
           トップに戻る
         </Link>
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-[#22c55e] rounded-md flex items-center justify-center text-white font-black text-sm shadow-[0_0_12px_rgba(34,197,94,0.4)]">F</div>
-          <span className="font-black text-sm"><span className="text-white">Fast</span><span className="text-[#22c55e]">Line</span></span>
+          <div className="w-7 h-7 bg-[#22c55e] rounded-md flex items-center justify-center text-white font-black text-base shadow-[0_0_12px_rgba(34,197,94,0.4)]">F</div>
+          <span className="font-black text-base"><span className="text-white">Fast</span><span className="text-[#22c55e]">Line</span></span>
         </div>
-        <Link href="/" className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#22c55e] text-white text-xs font-black hover:bg-[#16a34a] transition-all shadow-lg shadow-[#22c55e]/20">
-          ログイン <ArrowRight className="w-3 h-3" />
+        <Link href="/" className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#22c55e] text-white text-sm font-black hover:bg-[#16a34a] transition-all shadow-lg shadow-[#22c55e]/20">
+          ログイン <ArrowRight className="w-4 h-4" />
         </Link>
       </nav>
 
       {/* Hero */}
       <section className="pt-32 pb-20 px-6 flex flex-col items-center text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#22c55e]/10 border border-[#22c55e]/20 text-[#22c55e] text-[11px] font-black tracking-widest mb-8">
+        <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-[#22c55e]/10 border border-[#22c55e]/20 text-[#22c55e] text-sm font-black tracking-widest mb-8">
           💴 COST MANAGEMENT MODULE — 稼働中
         </div>
         <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight max-w-4xl">
           経費管理を、<span className="text-[#22c55e]">もっとシンプルに。</span>
         </h1>
-        <p className="mt-6 text-white/50 max-w-2xl text-base leading-relaxed font-medium">
+        <p className="mt-6 text-white/50 max-w-2xl text-lg leading-relaxed font-medium">
           LINEで領収書を送るだけ。AIが自動読み取り・国税庁認証・重複検知まで完全自動化。<br />
           複数プロジェクトの予算と実績をリアルタイムで一元管理します。
         </p>
         <div className="mt-10 flex flex-col sm:flex-row gap-4">
-          <Link href="/" className="px-8 py-4 rounded-2xl bg-[#22c55e] text-white font-black text-sm hover:bg-[#16a34a] transition-all shadow-xl shadow-[#22c55e]/25 flex items-center gap-2">
-            無料で始める <ArrowRight className="w-4 h-4" />
+          <Link href="/" className="px-8 py-4 rounded-2xl bg-[#22c55e] text-white font-black text-base hover:bg-[#16a34a] transition-all shadow-xl shadow-[#22c55e]/25 flex items-center gap-2">
+            無料で始める <ArrowRight className="w-5 h-5" />
           </Link>
-          <a href="#features" className="px-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-white/70 font-black text-sm hover:bg-white/10 transition-all">
+          <a href="#features" className="px-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-white/70 font-black text-base hover:bg-white/10 transition-all">
             機能一覧を見る
           </a>
         </div>
@@ -125,8 +125,8 @@ export default function CostLandingPage() {
       <section className="py-8 border-y border-white/5 bg-white/[0.02] overflow-x-auto">
         <div className="flex items-center gap-10 px-8 min-w-max mx-auto">
           {highlights.map((h, i) => (
-            <div key={i} className="flex items-center gap-2 text-[12px] font-bold text-white/50 whitespace-nowrap">
-              <Check className="w-3.5 h-3.5 text-[#22c55e] shrink-0" />
+            <div key={i} className="flex items-center gap-2 text-sm font-bold text-white/60 whitespace-nowrap">
+              <Check className="w-4 h-4 text-[#22c55e] shrink-0" />
               {h}
             </div>
           ))}
@@ -136,16 +136,16 @@ export default function CostLandingPage() {
       {/* Features grid */}
       <section id="features" className="py-24 px-6 max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <p className="text-[11px] font-black text-[#22c55e] tracking-widest uppercase mb-3">主な機能</p>
+          <p className="text-sm font-black text-[#22c55e] tracking-widest uppercase mb-3">主な機能</p>
           <h2 className="text-3xl md:text-4xl font-black tracking-tighter">コスト管理モジュールの全機能</h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {features.map((f, i) => (
-            <div key={i} className="p-6 rounded-2xl bg-white/[0.03] border border-white/8 hover:border-[#22c55e]/20 hover:bg-white/[0.05] transition-all group">
-              <div className="text-3xl mb-4">{f.icon}</div>
-              <h3 className="font-black text-sm text-white mb-2 group-hover:text-[#22c55e] transition-colors">{f.title}</h3>
-              <p className="text-[12px] text-white/40 leading-relaxed">{f.desc}</p>
+            <div key={i} className="p-7 rounded-2xl bg-white/[0.03] border border-white/8 hover:border-[#22c55e]/20 hover:bg-white/[0.05] transition-all group">
+              <div className="text-4xl mb-4">{f.icon}</div>
+              <h3 className="font-black text-base text-white mb-3 group-hover:text-[#22c55e] transition-colors">{f.title}</h3>
+              <p className="text-sm text-white/50 leading-relaxed">{f.desc}</p>
             </div>
           ))}
         </div>
@@ -154,7 +154,7 @@ export default function CostLandingPage() {
       {/* LINE flow visual */}
       <section className="py-20 px-6 bg-white/[0.02] border-y border-white/5">
         <div className="max-w-3xl mx-auto text-center">
-          <p className="text-[11px] font-black text-[#22c55e] tracking-widest uppercase mb-3">ワークフロー</p>
+          <p className="text-sm font-black text-[#22c55e] tracking-widest uppercase mb-3">ワークフロー</p>
           <h2 className="text-3xl font-black tracking-tighter mb-12">領収書提出から承認まで</h2>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             {[
@@ -165,11 +165,11 @@ export default function CostLandingPage() {
               { step: '05', icon: '📊', label: '集計・レポート出力' },
             ].map((s, i) => (
               <div key={i} className="flex items-center gap-4">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-14 h-14 rounded-2xl bg-[#22c55e]/10 border border-[#22c55e]/20 flex items-center justify-center text-2xl">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-16 h-16 rounded-2xl bg-[#22c55e]/10 border border-[#22c55e]/20 flex items-center justify-center text-3xl">
                     {s.icon}
                   </div>
-                  <p className="text-[10px] font-black text-white/60 text-center leading-tight max-w-[80px]">{s.label}</p>
+                  <p className="text-xs font-black text-white/60 text-center leading-snug max-w-[90px]">{s.label}</p>
                 </div>
                 {i < 4 && <div className="hidden sm:block w-8 h-px bg-[#22c55e]/20 shrink-0" />}
               </div>
@@ -180,9 +180,9 @@ export default function CostLandingPage() {
 
       {/* Integrations */}
       <section className="py-20 px-6 max-w-4xl mx-auto text-center">
-        <p className="text-[11px] font-black text-[#22c55e] tracking-widest uppercase mb-3">統合予定</p>
+        <p className="text-sm font-black text-[#22c55e] tracking-widest uppercase mb-3">統合予定</p>
         <h2 className="text-3xl font-black tracking-tighter mb-4">他モジュールと連携予定</h2>
-        <p className="text-white/40 text-sm mb-10">コスト管理は単独でも強力ですが、他のFastLineモジュールと統合することで経営全体を一元管理できます。</p>
+        <p className="text-white/50 text-base mb-10">コスト管理は単独でも強力ですが、他のFastLineモジュールと統合することで経営全体を一元管理できます。</p>
         <div className="flex flex-wrap justify-center gap-3">
           {[
             { icon: '👥', name: 'スタッフ管理', status: '開発中' },
@@ -191,10 +191,10 @@ export default function CostLandingPage() {
             { icon: '📋', name: 'Career（採用・人事）', status: '近日公開' },
             { icon: '🆔', name: 'ID管理', status: '近日公開' },
           ].map((m, i) => (
-            <div key={i} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/8 text-sm">
-              <span>{m.icon}</span>
-              <span className="font-bold text-white/60">{m.name}</span>
-              <span className="text-[9px] font-black text-white/30 bg-white/5 px-2 py-0.5 rounded-full">{m.status}</span>
+            <div key={i} className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/[0.03] border border-white/8 text-base">
+              <span className="text-xl">{m.icon}</span>
+              <span className="font-bold text-white/70">{m.name}</span>
+              <span className="text-xs font-black text-white/40 bg-white/5 px-2 py-0.5 rounded-full">{m.status}</span>
             </div>
           ))}
         </div>
@@ -205,22 +205,22 @@ export default function CostLandingPage() {
         <h2 className="text-3xl md:text-4xl font-black tracking-tighter mb-4">
           今すぐ<span className="text-[#22c55e]">無料</span>でお試しください
         </h2>
-        <p className="text-white/40 text-sm mb-8">クレジットカード不要。LINEアカウントがあればすぐに始められます。</p>
-        <Link href="/" className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl bg-[#22c55e] text-white font-black hover:bg-[#16a34a] transition-all shadow-xl shadow-[#22c55e]/25">
-          無料で始める <ArrowRight className="w-4 h-4" />
+        <p className="text-white/50 text-base mb-8">クレジットカード不要。LINEアカウントがあればすぐに始められます。</p>
+        <Link href="/" className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl bg-[#22c55e] text-white font-black text-base hover:bg-[#16a34a] transition-all shadow-xl shadow-[#22c55e]/25">
+          無料で始める <ArrowRight className="w-5 h-5" />
         </Link>
       </section>
 
       {/* Footer */}
       <footer className="py-8 px-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 bg-[#22c55e] rounded-md flex items-center justify-center text-white font-black text-xs">F</div>
-          <span className="text-sm font-black text-white/30"><span className="text-white/50">Fast</span><span className="text-[#22c55e]/70">Line</span> コスト管理</span>
+          <div className="w-6 h-6 bg-[#22c55e] rounded-md flex items-center justify-center text-white font-black text-sm">F</div>
+          <span className="text-base font-black text-white/40"><span className="text-white/60">Fast</span><span className="text-[#22c55e]/80">Line</span> コスト管理</span>
         </div>
         <div className="flex gap-6">
-          <Link href="/tokushoho" className="text-[11px] text-white/20 hover:text-white/50 transition-colors">特定商取引法に基づく表記</Link>
-          <Link href="/privacy" className="text-[11px] text-white/20 hover:text-white/50 transition-colors">プライバシーポリシー</Link>
-          <Link href="/terms" className="text-[11px] text-white/20 hover:text-white/50 transition-colors">利用規約</Link>
+          <Link href="/tokushoho" className="text-sm text-white/30 hover:text-white/60 transition-colors">特定商取引法に基づく表記</Link>
+          <Link href="/privacy" className="text-sm text-white/30 hover:text-white/60 transition-colors">プライバシーポリシー</Link>
+          <Link href="/terms" className="text-sm text-white/30 hover:text-white/60 transition-colors">利用規約</Link>
         </div>
       </footer>
     </div>
