@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useDatabase, useStorage } from '@/firebase';
-import { ref, push, set, get, onValue } from 'firebase/database';
+import { ref, push, set, get, onValue, update, remove } from 'firebase/database';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { notifyWalletCredit } from '@/app/actions/line-notify';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -356,20 +356,20 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
                             <p className="text-xs font-black text-slate-700 truncate">{adv.description || '---'}</p>
                           </div>
                           
-                          {/* Actions on hover */}
-                          <div className="absolute inset-0 flex items-center justify-end px-3 gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-50/90 rounded-2xl">
-                             <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-white text-blue-500" onClick={() => setEditingAdv({ ...adv, viewOnly: true })}>
+                          {/* Actions on hover - Adjusting layout to not cover value completely */}
+                          <div className="absolute inset-y-0 right-0 flex items-center px-4 gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-l from-blue-50 via-blue-50/95 to-transparent rounded-r-2xl">
+                             <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-white text-blue-500 shadow-sm" onClick={() => setEditingAdv({ ...adv, viewOnly: true })}>
                                <Eye className="w-3.5 h-3.5" />
                              </Button>
-                             <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-white text-slate-600" onClick={() => setEditingAdv(adv)}>
+                             <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-white text-slate-600 shadow-sm" onClick={() => setEditingAdv(adv)}>
                                <Edit2 className="w-3.5 h-3.5" />
                              </Button>
-                             <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-red-50 text-red-500" onClick={() => setShowDeleteConfirm(adv.id)}>
+                             <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-red-50 text-red-500 shadow-sm" onClick={() => setShowDeleteConfirm(adv.id)}>
                                <Trash2 className="w-3.5 h-3.5" />
                              </Button>
                           </div>
 
-                          <div className="flex items-center gap-1.5 shrink-0" onClick={() => setEditingAdv({ ...adv, viewOnly: true })}>
+                          <div className="flex items-center gap-1.5 shrink-0 pl-10" onClick={() => setEditingAdv({ ...adv, viewOnly: true })}>
                             <span className="text-sm font-black text-blue-600">¥{Number(adv.amount || 0).toLocaleString()}</span>
                             {adv.imageUrl && (
                                <div className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center">
