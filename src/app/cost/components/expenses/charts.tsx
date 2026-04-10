@@ -107,7 +107,7 @@ export const CategoryPieChart = ({ categories }: { categories: any }) => {
       
       {/* Dynamic Hover Detail */}
       {data.length > 0 && (
-        <div className="hidden group-hover:flex flex-col absolute -top-20 right-0 bg-white/95 backdrop-blur-md border border-slate-100 p-2 rounded-2xl shadow-2xl z-50 min-w-[120px]">
+        <div className="hidden group-hover:flex flex-col absolute -top-20 left-0 bg-white/95 backdrop-blur-md border border-slate-100 p-2 rounded-2xl shadow-2xl z-50 min-w-[120px]">
           <p className="text-[8px] font-black text-slate-400 mb-1 border-b border-slate-50 pb-1">上位支出項目</p>
           {topCategories.map((item, i) => (
             <div key={i} className="flex items-center justify-between gap-2 py-0.5">

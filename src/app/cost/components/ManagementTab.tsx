@@ -135,9 +135,9 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
                 {project.costcenters && Object.entries(project.costcenters).map(([id, cc]: [string, any]) => {
                   const ccStats = expensesByCc[id] || { total: 0, categories: {} };
                   return (
-                  <div key={id} className="p-5 border rounded-[2rem] flex justify-between items-start hover:bg-slate-50 transition-all group">
+                  <div key={id} className="p-5 border rounded-[2rem] flex justify-between items-start hover:bg-slate-50 transition-all group relative">
                      {/* Esquerda: info */}
-                     <div className="space-y-2 min-w-0 flex-1">
+                     <div className="space-y-2 min-w-0 flex-1 pr-16">
                         <h4 className="font-black text-sm text-slate-700">{cc.name}</h4>
                         <Badge className={cn("text-[8px] border-none font-black", (PROJECT_STATUS as any)[cc.status]?.color)}>{(PROJECT_STATUS as any)[cc.status]?.label}</Badge>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">予算上限: ¥{(cc.totalValue || 0).toLocaleString()}</p>
@@ -156,11 +156,11 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
                      </div>
                      {/* Direita: gráficos + ações */}
                      <div className="flex flex-col items-end gap-2 shrink-0 ml-3">
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity mb-1">
-                           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl hover:bg-indigo-50" onClick={() => setEditingCC({...cc, id, projectId: project.id})}><Edit2 className="w-3.5 h-3.5 text-indigo-500"/></Button>
-                           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl hover:bg-red-50" onClick={() => handleDelete(`projects/${project.id}/costcenters/${id}`)}><Trash2 className="w-3.5 h-3.5 text-red-400"/></Button>
+                        <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl hover:bg-indigo-50" onClick={(e) => { e.stopPropagation(); setEditingCC({...cc, id, projectId: project.id}) }}><Edit2 className="w-3.5 h-3.5 text-indigo-500"/></Button>
+                           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl hover:bg-red-50" onClick={(e) => { e.stopPropagation(); handleDelete(`projects/${project.id}/costcenters/${id}`) }}><Trash2 className="w-3.5 h-3.5 text-red-400"/></Button>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 mt-6">
                            <BudgetSpeedometer totalExpense={ccStats.total} budgetLimit={Number(cc.totalValue) || 0} />
                            {Object.keys(ccStats.categories).length > 0 && (
                              <CategoryPieChart categories={ccStats.categories} />
