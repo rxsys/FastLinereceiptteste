@@ -183,7 +183,7 @@ export default function LandingPage() {
     if (!user) { setIsLoginOpen(true); } 
     else {
       const snap = await get(ref(database!, `owner/${ownerId || user.uid}`));
-      if (snap.val()?.subscriptions?.[moduleId]?.status === 'active') router.push('/dashboard');
+      if (snap.val()?.subscriptions?.[moduleId]?.status === 'active') router.push('/cost');
       else setIsCheckoutOpen(true);
     }
   };
@@ -306,7 +306,7 @@ export default function LandingPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <button 
-                      onClick={() => router.push('/dashboard')} 
+                      onClick={() => router.push('/cost')} 
                       className="flex items-center px-4 h-9 rounded-xl bg-[#ff6b35]/15 border border-[#ff6b35]/40 hover:bg-[#ff6b35]/30 hover:scale-105 active:scale-95 transition-all shadow-[0_0_12px_#ff6b3530]"
                     >
                       <span className="text-base">📄</span>

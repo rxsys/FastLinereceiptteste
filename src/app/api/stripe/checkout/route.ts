@@ -36,8 +36,8 @@ export async function POST(req: Request) {
           moduleId: moduleId || 'basic'
         }
       },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?checkout=success&module=${moduleId || ''}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?checkout=cancel`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/cost?checkout=success&module=${moduleId || ''}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cost?checkout=cancel`,
       locale: 'ja',
       customer_email: email,
       client_reference_id: userId,

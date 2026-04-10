@@ -17,7 +17,7 @@ import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
-import { LineApiPoolTab } from '@/app/dashboard/components/LineApiPoolTab';
+import { LineApiPoolTab } from '@/app/cost/components/LineApiPoolTab';
 
 const SUBSCRIPTION_STATUS = {
   active:    { label: '利用中 (Active)',     color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
