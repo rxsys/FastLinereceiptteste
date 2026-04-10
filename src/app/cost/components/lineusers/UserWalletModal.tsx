@@ -414,7 +414,7 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
                     onClick={onClose}
                     className="rounded-2xl h-11 px-8 font-black bg-slate-100 text-slate-600 hover:bg-slate-200"
                   >
-                    闭じる
+                    閉じる
                   </Button>
                 </div>
               </div>
