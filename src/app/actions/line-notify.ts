@@ -153,8 +153,13 @@ export async function notifyWalletCredit(ownerId: string, lineUserId: string, am
 
     return { success: true };
   } catch (error: any) {
-    console.error('[NotifyWalletCredit] Global Error:', error?.response?.data || error);
-    return { success: false, error: String(error) };
+    const details = error?.originalError?.response?.data
+      || error?.response?.data
+      || error?.message
+      || String(error);
+    const msg = typeof details === 'string' ? details : JSON.stringify(details);
+    console.error('[NotifyWalletCredit] Global Error:', msg, error);
+    return { success: false, error: msg };
   }
 }
 
