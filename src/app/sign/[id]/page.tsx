@@ -3,8 +3,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { getSignReceipt, saveSignature } from '@/app/actions/sign';
+import { ReceiptLayout } from '@/components/receipt-layout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, CheckCircle2, PenTool, Eraser, X, Shield } from 'lucide-react';
 import Script from 'next/script';
 
@@ -25,6 +25,8 @@ export default function SignReceiptPage() {
   const { id } = useParams();
 
   const [receipt, setReceipt] = useState<any>(null);
+  const [ownerName, setOwnerName] = useState('');
+  const [userName, setUserName] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -45,6 +47,8 @@ export default function SignReceiptPage() {
         const result = await getSignReceipt(id as string);
         if (result.success && result.receipt) {
           setReceipt(result.receipt);
+          setOwnerName(result.ownerName || '');
+          setUserName(result.userName || '');
           setLiffSignId(result.liffSignId || null);
         }
       } catch (err) {
@@ -216,76 +220,53 @@ export default function SignReceiptPage() {
     <>
       <Script src="https://static.line-scdn.net/liff/edge/2/sdk.js" onLoad={initLiff} />
 
-      <div className="min-h-screen bg-slate-50 pb-10">
+      <div className="min-h-screen bg-slate-100 pb-10">
         {/* Header */}
-        <div className="bg-slate-900 text-white px-6 py-10 rounded-b-[3rem] shadow-2xl">
-          <h1 className="text-2xl font-black tracking-tight text-center">領収書への署名</h1>
-          <p className="text-[10px] uppercase font-black text-slate-400 text-center mt-2 tracking-widest">Digital Receipt — Signature Required</p>
+        <div className="bg-slate-900 text-white px-6 py-8 shadow-2xl">
+          <h1 className="text-xl font-black tracking-tight text-center">領収書への署名</h1>
+          <p className="text-[10px] uppercase font-black text-slate-400 text-center mt-1 tracking-widest">Digital Receipt — Signature Required</p>
         </div>
 
-        <div className="max-w-md mx-auto px-6 -mt-8">
-          <Card className="rounded-[2.5rem] border-none shadow-2xl overflow-hidden mb-6">
-            <CardContent className="p-8 space-y-6">
+        <div className="max-w-md mx-auto px-4 mt-6 space-y-4">
+          {/* Receipt formal layout */}
+          <ReceiptLayout
+            ownerName={ownerName}
+            userName={userName}
+            amount={Number(receipt.amount || 0)}
+            description={receipt.description}
+            createdAt={receipt.createdAt}
+            status={receipt.status || 'pending_signature'}
+            evidenceUrl={receipt.imageUrl}
+          />
 
-              {/* Receipt details */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-start border-b border-slate-100 pb-4">
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">金額</p>
-                    <p className="text-4xl font-black text-slate-900">¥{Number(receipt.amount).toLocaleString()}</p>
-                  </div>
-                  <div className="bg-amber-50 text-amber-600 border border-amber-200 px-3 py-1 rounded-full text-[10px] font-black uppercase">
-                    署名待ち
-                  </div>
-                </div>
+          {/* Signature canvas card */}
+          <div className="bg-white rounded-[1.5rem] border border-slate-200 p-6 shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-black text-slate-400 uppercase flex items-center gap-2">
+                <PenTool className="w-3 h-3" />署名エリア
+              </p>
+              <button onClick={clearCanvas} className="text-[10px] font-black text-red-400 flex items-center gap-1 hover:text-red-500 transition-colors">
+                <Eraser className="w-3 h-3" />リセット
+              </button>
+            </div>
 
-                {receipt.description && (
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">摘要</p>
-                    <p className="text-sm font-bold text-slate-700 leading-relaxed mt-1">{receipt.description}</p>
-                  </div>
-                )}
+            <div className={`w-full aspect-[4/3] border-2 rounded-2xl overflow-hidden touch-none shadow-inner transition-colors ${hasDrawn ? 'bg-white border-slate-200' : 'bg-slate-50 border-dashed border-slate-200'}`}>
+              <canvas ref={canvasRef} width={600} height={450} className="w-full h-full cursor-crosshair" />
+            </div>
 
-                {receipt.imageUrl && (
-                  <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 border border-slate-100">
-                    <img src={receipt.imageUrl} className="w-full h-full object-contain" alt="証憑" />
-                  </div>
-                )}
-              </div>
+            {!hasDrawn && (
+              <p className="text-center text-[11px] text-slate-300 font-bold">指またはスタイラスで署名してください</p>
+            )}
 
-              {/* Signature canvas */}
-              <div className="pt-2 space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-black text-slate-400 uppercase flex items-center gap-2">
-                    <PenTool className="w-3 h-3" />署名エリア
-                  </p>
-                  <button onClick={clearCanvas} className="text-[10px] font-black text-red-400 flex items-center gap-1 hover:text-red-500 transition-colors">
-                    <Eraser className="w-3 h-3" />リセット
-                  </button>
-                </div>
-
-                <div className={`w-full aspect-[4/3] border-2 rounded-3xl overflow-hidden touch-none shadow-inner transition-colors ${hasDrawn ? 'bg-white border-slate-200' : 'bg-slate-50 border-dashed border-slate-200'}`}>
-                  <canvas ref={canvasRef} width={600} height={450} className="w-full h-full cursor-crosshair" />
-                </div>
-
-                {!hasDrawn && (
-                  <p className="text-center text-[11px] text-slate-300 font-bold">指またはスタイラスで署名してください</p>
-                )}
-              </div>
-
-              {/* Submit */}
-              <div className="pt-2">
-                <Button
-                  onClick={handleSaveSignature}
-                  disabled={saving || !hasDrawn}
-                  className="w-full h-14 rounded-2xl font-black text-sm shadow-xl transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={{ background: hasDrawn ? '#1d4ed8' : '#94a3b8' }}
-                >
-                  {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : '署名を確定する'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            <Button
+              onClick={handleSaveSignature}
+              disabled={saving || !hasDrawn}
+              className="w-full h-14 rounded-2xl font-black text-sm shadow-xl transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed mt-3"
+              style={{ background: hasDrawn ? '#1d4ed8' : '#94a3b8' }}
+            >
+              {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : '署名を確定する'}
+            </Button>
+          </div>
 
           <p className="text-center text-[10px] text-slate-400 font-bold leading-relaxed px-4">
             「署名を確定する」をタップすることで、上記内容の領収書に同意したことになります。

@@ -10,9 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { CloudUpload, X, Loader2, Receipt, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Eye, CheckCircle2 } from 'lucide-react';
+import { CloudUpload, X, Loader2, Receipt, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Eye, CheckCircle2, PenTool, Printer, FileSignature } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { ReceiptLayout, statusMeta, type ReceiptStatus } from '@/components/receipt-layout';
 
 interface UserWalletModalProps {
   isOpen: boolean;
@@ -39,6 +40,12 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
   const [saving, setSaving] = useState(false);
   const [editingAdv, setEditingAdv] = useState<any | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [ownerName, setOwnerName] = useState('');
+
+  useEffect(() => {
+    if (!isOpen || !database || !ownerId) return;
+    get(ref(database, `owner/${ownerId}/name`)).then(s => setOwnerName(s.val() || '')).catch(() => {});
+  }, [isOpen, database, ownerId]);
 
   useEffect(() => {
     if (!isOpen || !database || !ownerId || !user?.id) return;
@@ -91,22 +98,32 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
     ? { text: '🔴 要精算', cls: 'bg-red-100 text-red-700 border-red-200' }
     : { text: '✅ 精算済み', cls: 'bg-emerald-100 text-emerald-700 border-emerald-200' };
 
-  const handleSaveCredit = async () => {
+  const uploadEvidence = async (): Promise<string | undefined> => {
+    if (!creditFile || !storage) return undefined;
+    try {
+      const path = `owners/${ownerId}/wallet/${user.id}/${Date.now()}_${creditFile.name}`;
+      const sRef = storageRef(storage, path);
+      const snap = await uploadBytes(sRef, creditFile);
+      return await getDownloadURL(snap.ref);
+    } catch (uploadErr) {
+      console.warn('[WalletCredit] upload failed:', uploadErr);
+      return undefined;
+    }
+  };
+
+  const resetCreditForm = () => {
+    setCreditAmount('');
+    setCreditDesc('');
+    setCreditFile(null);
+    setShowCreditForm(false);
+  };
+
+  // Botão A — 手書き領収書で登録 (manual, no LINE)
+  const handleSaveManual = async () => {
     if (!database || !ownerId || !user?.id || !creditAmount) return;
     setSaving(true);
     try {
-      let imageUrl: string | undefined;
-      if (creditFile && storage) {
-        try {
-          const path = `owners/${ownerId}/wallet/${user.id}/${Date.now()}_${creditFile.name}`;
-          const sRef = storageRef(storage, path);
-          const snap = await uploadBytes(sRef, creditFile);
-          imageUrl = await getDownloadURL(snap.ref);
-        } catch (uploadErr) {
-          console.warn('[WalletCredit] upload failed, saving without image:', uploadErr);
-        }
-      }
-
+      const imageUrl = await uploadEvidence();
       const advRef = push(ref(database, `owner_data/${ownerId}/lineUsers/${user.id}/wallet/advances`));
       const receiptId = advRef.key;
       await set(advRef, {
@@ -114,58 +131,73 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
         description: creditDesc,
         ...(imageUrl ? { imageUrl } : {}),
         createdAt: new Date().toISOString(),
-        signed: false
+        signed: true,
+        status: 'manual',
+      });
+      resetCreditForm();
+      toast({
+        title: '手書き領収書を登録しました',
+        description: '印刷ボタンから印刷できます',
+        action: receiptId ? (
+          <Button
+            size="sm"
+            variant="outline"
+            className="rounded-xl font-black text-[10px]"
+            onClick={() => window.open(`/print/${ownerId}_${user.id}_${receiptId}`, '_blank')}
+          >
+            <Printer className="w-3 h-3 mr-1" /> 印刷
+          </Button>
+        ) : undefined,
+      });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'エラー', description: String(e) });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Botão B — LINEで署名依頼 (current flow)
+  const handleSaveWithLine = async () => {
+    if (!database || !ownerId || !user?.id || !creditAmount) return;
+    setSaving(true);
+    try {
+      const imageUrl = await uploadEvidence();
+      const advRef = push(ref(database, `owner_data/${ownerId}/lineUsers/${user.id}/wallet/advances`));
+      const receiptId = advRef.key;
+      const createdAt = new Date().toISOString();
+      await set(advRef, {
+        amount: Number(creditAmount),
+        description: creditDesc,
+        ...(imageUrl ? { imageUrl } : {}),
+        createdAt,
+        signed: false,
+        status: 'pending_signature',
       });
 
-      // O listener onValue já atualiza advances automaticamente após o set().
-      // Refresh manual causava race condition e sumiço temporário de itens.
-
-      // LINE push notification with Signature Link
       const lineId = (user.lineUserId?.startsWith('U') ? user.lineUserId : null) ||
                      (user.id?.startsWith('U') ? user.id : null) ||
                      user.lineUserId ||
                      user.id;
 
-      console.log('[WalletDebug] Verificação de ID do LINE:', { lineId, user, receiptId });
-
       if (lineId && receiptId) {
-        // Fetch LIFF ID from owner config — build LIFF URL if configured
         const token = `${ownerId}_${user.id}_${receiptId}`;
         let signUrl = `${window.location.origin}/sign/${token}`;
         try {
           const ownerSnap = await get(ref(database!, `owner/${ownerId}`));
           const liffSignId = ownerSnap.val()?.liffSignId;
-          if (liffSignId) {
-            signUrl = `https://liff.line.me/${liffSignId}/${token}`;
-            console.log('[WalletDebug] Usando URL LIFF:', signUrl);
-          }
-        } catch (e) {
-          console.warn('[WalletDebug] Falha ao buscar liffSignId, usando URL direta.');
-        }
-        const result = await notifyWalletCredit(ownerId, lineId, Number(creditAmount), creditDesc, signUrl);
-        setCreditAmount('');
-        setCreditDesc('');
-        setCreditFile(null);
-        setShowCreditForm(false);
+          if (liffSignId) signUrl = `https://liff.line.me/${liffSignId}/${token}`;
+        } catch {}
+        const userName = user.name || user.fullName || user.displayName || '';
+        const result = await notifyWalletCredit(ownerId, lineId, Number(creditAmount), creditDesc, signUrl, { userName, createdAt });
+        resetCreditForm();
         if (!result.success) {
-          toast({
-            variant: 'destructive',
-            title: 'クレジット追加OK / LINE通知NG',
-            description: `ERRO: ${result.error || 'LINE IDが無効か、通信エラーです。'}`
-          });
+          toast({ variant: 'destructive', title: 'クレジット追加OK / LINE通知NG', description: `ERRO: ${result.error || '通信エラー'}` });
         } else {
           toast({ title: 'クレジットを追加いたしました', description: 'LINE通知を送信しました' });
         }
       } else {
-        setCreditAmount('');
-        setCreditDesc('');
-        setCreditFile(null);
-        setShowCreditForm(false);
-        toast({
-          variant: 'destructive',
-          title: 'クレジット追加OK / LINE通知NG',
-          description: 'LINE IDが見つかりません (lineUserId missing)'
-        });
+        resetCreditForm();
+        toast({ variant: 'destructive', title: 'クレジット追加OK / LINE通知NG', description: 'LINE IDが見つかりません' });
       }
     } catch (e) {
       toast({ variant: 'destructive', title: 'エラー', description: String(e) });
@@ -313,13 +345,19 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
                   )}
                 </label>
               </div>
-              <div className="flex gap-2 pt-1">
-                <Button onClick={handleSaveCredit} disabled={saving || !creditAmount}
-                  className="flex-1 h-9 rounded-xl font-black text-xs bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20">
-                  {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : '送信して署名を依頼'}
-                </Button>
+              <div className="space-y-2 pt-1">
+                <div className="grid grid-cols-2 gap-2">
+                  <Button onClick={handleSaveManual} disabled={saving || !creditAmount}
+                    className="h-10 rounded-xl font-black text-[11px] bg-slate-100 hover:bg-white text-slate-900 shadow-lg gap-1.5">
+                    {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Printer className="w-3.5 h-3.5" />手書き領収書で登録</>}
+                  </Button>
+                  <Button onClick={handleSaveWithLine} disabled={saving || !creditAmount}
+                    className="h-10 rounded-xl font-black text-[11px] bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 gap-1.5">
+                    {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><FileSignature className="w-3.5 h-3.5" />LINEで署名依頼</>}
+                  </Button>
+                </div>
                 <Button variant="ghost" onClick={() => setShowCreditForm(false)}
-                  className="h-9 rounded-xl font-black text-xs text-slate-400 hover:text-white">
+                  className="w-full h-8 rounded-xl font-black text-[10px] text-slate-400 hover:text-white">
                   キャンセル
                 </Button>
               </div>
@@ -382,19 +420,34 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
                     <p className="text-[11px] text-slate-300 font-bold italic text-center py-8">受取なし</p>
                   ) : (
                     <div className="space-y-2">
-                      {advances.map(adv => (
+                      {advances.map(adv => {
+                        const status: ReceiptStatus =
+                          adv.status || (adv.signed ? 'signed' : 'pending_signature');
+                        const meta = statusMeta[status];
+                        return (
                         <div key={adv.id}
                           className="group relative flex items-center justify-between gap-2 p-3 rounded-2xl border border-blue-50 bg-blue-50/30 hover:bg-blue-50 transition-all">
-                          <div className="min-w-0 cursor-pointer" onClick={() => setEditingAdv({ ...adv, viewOnly: true })}>
-                            <p className="text-[9px] font-bold text-slate-400">{fmtDate(adv.createdAt)}</p>
+                          <div className="min-w-0 cursor-pointer flex-1" onClick={() => setEditingAdv({ ...adv, viewOnly: true })}>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-[9px] font-bold text-slate-400">{fmtDate(adv.createdAt)}</p>
+                              <span className={cn('text-[8px] font-black px-1.5 py-0.5 rounded-full border uppercase tracking-wider', meta.cls)}>
+                                {meta.label}
+                              </span>
+                            </div>
                             <p className="text-xs font-black text-slate-700 truncate">{adv.description || '---'}</p>
                           </div>
-                          
-                          {/* Actions on hover - Adjusting layout to not cover value completely */}
+
+                          {/* Actions on hover */}
                           <div className="absolute inset-y-0 right-0 flex items-center px-4 gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-l from-blue-50 via-blue-50/95 to-transparent rounded-r-2xl">
                              <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-white text-blue-500 shadow-sm" onClick={() => setEditingAdv({ ...adv, viewOnly: true })}>
                                <Eye className="w-3.5 h-3.5" />
                              </Button>
+                             {status === 'manual' && (
+                               <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-white text-slate-700 shadow-sm" title="印刷"
+                                 onClick={() => window.open(`/print/${ownerId}_${user.id}_${adv.id}`, '_blank')}>
+                                 <Printer className="w-3.5 h-3.5" />
+                               </Button>
+                             )}
                              <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-white text-slate-600 shadow-sm" onClick={() => setEditingAdv(adv)}>
                                <Edit2 className="w-3.5 h-3.5" />
                              </Button>
@@ -405,19 +458,15 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
 
                            <div className="flex items-center gap-1.5 shrink-0" onClick={() => setEditingAdv({ ...adv, viewOnly: true })}>
                               <span className="text-sm font-black text-blue-600">¥{Number(adv.amount || 0).toLocaleString()}</span>
-                              {adv.signed && (
-                                 <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center" title="有効な署名あり">
+                              {status === 'signed' && (
+                                 <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center" title="署名済み">
                                    <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                                 </div>
-                              )}
-                              {adv.imageUrl && !adv.signed && (
-                                 <div className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center">
-                                   <Receipt className="w-2.5 h-2.5 text-blue-500" />
                                  </div>
                               )}
                             </div>
                         </div>
-                      ))}
+                      );
+                      })}
                     </div>
                   )}
                 </div>
@@ -465,34 +514,48 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
 
       {/* Edit/View Advance Dialog */}
       <Dialog open={!!editingAdv} onOpenChange={(open) => !open && setEditingAdv(null)}>
-        <DialogContent className="rounded-[2.5rem] max-w-lg p-0 overflow-hidden bg-white border-none shadow-2xl">
-          <div className="bg-slate-900 text-white px-8 py-6 flex items-center justify-between">
-            <h3 className="font-black tracking-tight">{editingAdv?.viewOnly ? '証憑確認' : '受取情報の編集'}</h3>
-            <Button variant="ghost" size="icon" onClick={() => setEditingAdv(null)} className="text-white/50 hover:text-white rounded-full">
-               <X className="w-5 h-5" />
-            </Button>
+        <DialogContent className="rounded-[2.5rem] max-w-2xl max-h-[92vh] overflow-hidden p-0 bg-white border-none shadow-2xl flex flex-col">
+          <div className="bg-slate-900 text-white px-8 py-5 flex items-center justify-between shrink-0">
+            <h3 className="font-black tracking-tight text-sm">{editingAdv?.viewOnly ? '領収書の確認' : '受取情報の編集'}</h3>
+            <div className="flex items-center gap-2">
+              {editingAdv?.viewOnly && (editingAdv?.status === 'manual' || editingAdv?.status === 'signed') && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="rounded-xl h-9 px-3 font-black text-[10px] bg-white/10 border-white/20 text-white hover:bg-white/20 gap-1.5"
+                  onClick={() => window.open(`/print/${ownerId}_${user.id}_${editingAdv.id}`, '_blank')}
+                >
+                  <Printer className="w-3.5 h-3.5" /> 印刷
+                </Button>
+              )}
+              <Button variant="ghost" size="icon" onClick={() => setEditingAdv(null)} className="text-white/50 hover:text-white rounded-full">
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
-          
-          <div className="p-8 space-y-6">
-            {editingAdv?.imageUrl && (
-              <div className="aspect-[4/3] rounded-3xl overflow-hidden bg-slate-100 border border-slate-100 relative group/img">
-                <img src={editingAdv.imageUrl} className="w-full h-full object-contain" alt="Receipt" />
-                <a href={editingAdv.imageUrl} target="_blank" rel="noopener noreferrer" 
-                   className="absolute top-4 right-4 bg-white/90 backdrop-blur shadow-lg p-3 rounded-2xl opacity-0 group-hover/img:opacity-100 transition-opacity">
-                  <span className="text-[10px] font-black text-slate-900">画像を表示 ↗</span>
-                </a>
-              </div>
-            )}
 
-            {!editingAdv?.viewOnly && (
-              <div className="space-y-4">
+          <div className="flex-1 overflow-y-auto p-8 bg-slate-50">
+            {editingAdv?.viewOnly ? (
+              <ReceiptLayout
+                ownerName={ownerName}
+                userName={user?.name || user?.fullName || user?.displayName || ''}
+                amount={Number(editingAdv?.amount || 0)}
+                description={editingAdv?.description}
+                createdAt={editingAdv?.createdAt}
+                status={(editingAdv?.status as ReceiptStatus) || (editingAdv?.signed ? 'signed' : 'pending_signature')}
+                signatureUrl={editingAdv?.signatureUrl}
+                signedAt={editingAdv?.signedAt}
+                evidenceUrl={editingAdv?.imageUrl}
+              />
+            ) : (
+              <div className="space-y-4 bg-white p-6 rounded-3xl border border-slate-100">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-tight">金額</Label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400">¥</span>
-                    <Input 
-                      type="number" 
-                      value={editingAdv?.amount || ''} 
+                    <Input
+                      type="number"
+                      value={editingAdv?.amount || ''}
                       onChange={e => setEditingAdv(p => ({ ...p, amount: e.target.value }))}
                       className="pl-8 h-12 rounded-2xl font-bold bg-slate-50 border-transparent focus:bg-white transition-all shadow-sm"
                     />
@@ -500,35 +563,31 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-tight">摘要</Label>
-                  <Input 
-                    value={editingAdv?.description || ''} 
+                  <Input
+                    value={editingAdv?.description || ''}
                     onChange={e => setEditingAdv(p => ({ ...p, description: e.target.value }))}
                     className="h-12 rounded-2xl font-bold bg-slate-50 border-transparent focus:bg-white transition-all shadow-sm"
                   />
                 </div>
                 <Button onClick={handleUpdateAdv} disabled={saving}
-                   className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm shadow-xl shadow-blue-200 transition-all">
+                  className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm shadow-xl shadow-blue-200 transition-all">
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : '更新を保存する'}
                 </Button>
               </div>
             )}
-            
-            {editingAdv?.viewOnly && (
-              <div className="space-y-4">
-                 <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl">
-                    <span className="text-xs font-bold text-slate-400">金額</span>
-                    <span className="text-lg font-black text-slate-900">¥{Number(editingAdv.amount).toLocaleString()}</span>
-                 </div>
-                 <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl">
-                    <span className="text-xs font-bold text-slate-400">摘要</span>
-                    <span className="text-sm font-black text-slate-700">{editingAdv.description || '---'}</span>
-                 </div>
-                 <Button onClick={() => setEditingAdv(p => ({ ...p, viewOnly: false }))} variant="outline" className="w-full h-12 rounded-2xl font-black text-xs border-slate-200">
-                    内容を編集する
-                 </Button>
-              </div>
-            )}
           </div>
+
+          {editingAdv?.viewOnly && (
+            <div className="shrink-0 border-t border-slate-100 px-8 py-4 bg-white flex justify-end">
+              <Button
+                onClick={() => setEditingAdv(p => ({ ...p, viewOnly: false }))}
+                variant="outline"
+                className="rounded-2xl font-black text-xs border-slate-200 gap-2"
+              >
+                <Edit2 className="w-3.5 h-3.5" /> 内容を編集する
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

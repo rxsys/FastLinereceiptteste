@@ -21,13 +21,21 @@ export async function getSignReceipt(token: string) {
   const { oId, uId, rId } = parsed;
 
   try {
-    const [snap, ownerSnap] = await Promise.all([
+    const [advSnap, ownerSnap, userSnap] = await Promise.all([
       rtdb.ref(`owner_data/${oId}/lineUsers/${uId}/wallet/advances/${rId}`).get(),
-      rtdb.ref(`owner/${oId}/liffSignId`).get(),
+      rtdb.ref(`owner/${oId}`).get(),
+      rtdb.ref(`owner_data/${oId}/lineUsers/${uId}`).get(),
     ]);
-    if (!snap.exists()) return { success: false, error: 'Recibo não encontrado' };
-    const liffSignId = ownerSnap.val() || null;
-    return { success: true, receipt: { ...snap.val(), oId, uId, rId }, liffSignId };
+    if (!advSnap.exists()) return { success: false, error: 'Recibo não encontrado' };
+    const ownerData = ownerSnap.val() || {};
+    const userData = userSnap.val() || {};
+    return {
+      success: true,
+      receipt: { ...advSnap.val(), oId, uId, rId },
+      liffSignId: ownerData.liffSignId || null,
+      ownerName: ownerData.name || '',
+      userName: userData.name || userData.fullName || userData.displayName || '',
+    };
   } catch (err: any) {
     console.error('[getSignReceipt] Error:', err);
     return { success: false, error: String(err?.message || err) };
@@ -58,7 +66,7 @@ export async function saveSignature(token: string, dataUrl: string) {
 
     // 3. Atualizar RTDB
     const signedAt = new Date().toISOString();
-    await advRef.update({ signed: true, signatureUrl, signedAt });
+    await advRef.update({ signed: true, signatureUrl, signedAt, status: 'signed' });
 
     // 4. Notificar LINE (buscar lineUserId do perfil)
     try {

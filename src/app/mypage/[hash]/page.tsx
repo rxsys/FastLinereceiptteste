@@ -4,12 +4,13 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { useDatabase } from '@/firebase';
+import { useDatabase, useUser } from '@/firebase/provider';
 import { ref, onValue } from 'firebase/database';
-import { Loader2, Home, Clock, DollarSign, FileText, Building2 } from 'lucide-react';
+import { Loader2, Home, Clock, DollarSign, FileText, Building2, User as UserIcon } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import { HomeTab } from '../components/HomeTab';
 import { AttendanceTab } from '../components/AttendanceTab';
@@ -41,6 +42,7 @@ export default function MyPageHash() {
   const params = useParams();
   const hash = params?.hash as string;
   const database = useDatabase();
+  const { user, role } = useUser();
 
   const [lang, setLang] = useState('ja');
   const [hasMounted, setHasMounted] = useState(false);
@@ -84,7 +86,10 @@ export default function MyPageHash() {
 
   if (!member) return (
     <div className="min-h-screen flex items-center justify-center bg-[#f0f4ff] text-slate-400 font-bold text-lg">
-      {t.notFound}
+      <div className="text-center space-y-4">
+        <p>{t.notFound}</p>
+        <p className="text-[10px] text-slate-300">FastLine v{APP_VERSION}</p>
+      </div>
     </div>
   );
 
@@ -98,6 +103,22 @@ export default function MyPageHash() {
 
   return (
     <div className="min-h-screen bg-[#f0f4ff] text-slate-900">
+      {user && (
+        <div className="sticky top-0 z-50 w-full bg-white/40 backdrop-blur-md border-b border-white/50 px-4 py-2 flex justify-end items-center gap-3">
+          <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm px-3 py-1 rounded-full border border-white/50 shadow-sm">
+            <span className="text-[9px] font-black text-slate-600 uppercase tracking-tight">
+              {user.displayName || user.email?.split('@')[0]}
+            </span>
+            <Avatar className="h-5 w-5 border border-white shadow-sm">
+              <AvatarImage src={user.photoURL || undefined} />
+              <AvatarFallback className="bg-blue-500 text-white text-[8px] font-bold">
+                {user.displayName?.charAt(0) || user.email?.charAt(0) || <UserIcon size={10} />}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-[7px] font-black text-blue-500/50 uppercase tracking-widest">{role || 'USER'}</span>
+          </div>
+        </div>
+      )}
       <div className="max-w-2xl mx-auto px-4 pt-8 pb-24 space-y-6">
 
         {/* Header */}

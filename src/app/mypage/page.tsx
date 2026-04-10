@@ -4,10 +4,12 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Home, Clock, DollarSign, FileText, Building2, Settings } from 'lucide-react';
+import { Loader2, Home, Clock, DollarSign, FileText, Building2, Settings, User as UserIcon } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useUser } from '@/firebase/provider';
 
 import { HomeTab } from './components/HomeTab';
 import { AttendanceTab } from './components/AttendanceTab';
@@ -73,6 +75,7 @@ const LANGUAGES = [
 
 export default function MyPageIndex() {
   const router = useRouter();
+  const { user, role } = useUser();
   const [lang, setLang] = useState('ja');
   const [hasMounted, setHasMounted] = useState(false);
 
@@ -93,19 +96,45 @@ export default function MyPageIndex() {
   const t = LANGS[lang] || LANGS.ja;
 
   return (
-    <div className="min-h-screen bg-[#f0f4ff] flex flex-col items-center justify-center px-6">
-      <div className="w-full max-w-md space-y-8 text-center">
-        <div className="flex justify-end">
+    <div className="min-h-screen bg-[#f0f4ff] flex flex-col items-center justify-center px-6 relative">
+      <div className="w-full max-w-md space-y-8 text-center bg-white/40 backdrop-blur-md p-8 md:p-12 rounded-[2.5rem] border border-white/50 shadow-2xl shadow-blue-500/5">
+        
+        {/* Header Actions */}
+        <div className="flex justify-between items-center bg-white/60 backdrop-blur-sm p-1.5 rounded-2xl border border-white/50 shadow-sm">
+          {user ? (
+            <div className="flex items-center gap-2 pl-2">
+              <Avatar className="h-7 w-7 border-2 border-white shadow-sm ring-1 ring-slate-100">
+                <AvatarImage src={user.photoURL || undefined} />
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-[10px] font-black uppercase">
+                  {user.displayName?.charAt(0) || user.email?.charAt(0) || <UserIcon size={12} />}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col items-start pr-4">
+                <span className="text-[10px] font-black text-slate-800 tracking-tight leading-none uppercase">
+                  {user.displayName || user.email?.split('@')[0]}
+                </span>
+                <span className="text-[8px] font-black text-blue-500/80 uppercase tracking-widest mt-0.5">
+                  {role || 'Standard'}
+                </span>
+              </div>
+            </div>
+          ) : (
+             <div className="flex items-center gap-2 pl-3">
+                <div className="w-2 h-2 rounded-full bg-slate-200 animate-pulse" />
+                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Guest</span>
+             </div>
+          )}
+
           <Select value={lang} onValueChange={handleLangChange}>
-            <SelectTrigger className="w-[110px] h-9 bg-white border-slate-200 text-slate-700 rounded-xl text-[11px] font-bold shadow-sm">
+            <SelectTrigger className="w-[100px] h-9 bg-white border-0 text-slate-700 rounded-xl text-[11px] font-black shadow-none hover:bg-slate-50 transition-all">
               <div className="flex items-center gap-2">
                 <span>{LANGUAGES.find(l => l.code === lang)?.flag}</span>
                 <span>{lang.toUpperCase()}</span>
               </div>
             </SelectTrigger>
-            <SelectContent className="bg-white border-slate-200 rounded-2xl shadow-xl">
+            <SelectContent className="bg-white border-slate-100 rounded-2xl shadow-2xl border-none p-1">
               {LANGUAGES.map(l => (
-                <SelectItem key={l.code} value={l.code} className="text-[11px] font-bold rounded-xl">
+                <SelectItem key={l.code} value={l.code} className="text-[10px] font-black rounded-xl hover:bg-blue-50 transition-colors">
                   <div className="flex items-center gap-2"><span>{l.flag}</span><span>{l.name}</span></div>
                 </SelectItem>
               ))}
@@ -113,17 +142,28 @@ export default function MyPageIndex() {
           </Select>
         </div>
 
-        <div className="space-y-4">
-          <div className="w-20 h-20 mx-auto rounded-3xl flex items-center justify-center text-4xl shadow-lg" style={{ background: 'linear-gradient(135deg, #0ea5e9, #0284c7)' }}>
-            🪪
+        <div className="space-y-6">
+          <div className="relative inline-block">
+            <div className="absolute inset-0 bg-blue-400/20 blur-2xl rounded-full" />
+            <div className="relative w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-5xl shadow-2xl ring-4 ring-white" style={{ background: 'linear-gradient(135deg, #0ea5e9, #0284c7)' }}>
+              🪪
+            </div>
           </div>
-          <h1 className="text-3xl font-black text-slate-900">{t.title}</h1>
-          <p className="text-slate-400 font-medium">{t.noHash}</p>
+          <div className="space-y-2">
+            <h1 className="text-4xl font-black text-slate-900 tracking-tight">{t.title}</h1>
+            <p className="text-slate-400 font-bold group">
+              {t.noHash}
+              <span className="block h-1 w-8 bg-blue-400/30 mx-auto mt-3 rounded-full group-hover:w-16 transition-all duration-500" />
+            </p>
+          </div>
         </div>
 
-        <div className="p-6 rounded-3xl bg-white border border-slate-100 shadow-sm text-left space-y-3">
-          <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest">FastLine Platform</p>
-          <p className="text-[13px] text-slate-500">
+        <div className="p-8 rounded-[2rem] bg-gradient-to-b from-white to-slate-50/50 border border-white shadow-xl shadow-blue-500/5 text-left space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+            <p className="text-[10px] font-black text-blue-500/50 uppercase tracking-[0.2em]">FastLine Platform</p>
+          </div>
+          <p className="text-[13px] leading-relaxed text-slate-500 font-medium">
             {lang === 'ja' && 'このページはQRコードを通じてアクセスする個人ポータルです。管理者にQRコードの発行を依頼してください。'}
             {lang === 'en' && 'This page is a personal portal accessed via QR code. Ask your manager to issue your QR code.'}
             {lang === 'pt' && 'Esta página é um portal pessoal acessado via QR code. Peça ao seu gestor para emitir seu QR code.'}
@@ -133,7 +173,11 @@ export default function MyPageIndex() {
           </p>
         </div>
 
-        <p className="text-[10px] text-slate-300 font-bold">v{APP_VERSION}</p>
+        <div className="flex items-center justify-center gap-3">
+          <div className="h-[1px] w-8 bg-slate-100" />
+          <p className="text-[10px] text-slate-300 font-black tracking-widest">v{APP_VERSION}</p>
+          <div className="h-[1px] w-8 bg-slate-100" />
+        </div>
       </div>
     </div>
   );
