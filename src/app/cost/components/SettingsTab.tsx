@@ -1,16 +1,13 @@
 'use client';
 
-import { useRTDBCollection, useRTDBDoc } from '@/firebase/rtdb';
+import { useRTDBCollection } from '@/firebase/rtdb';
 import { useMemoFirebase, useUser, useDatabase } from '@/firebase';
-import { ref, update, set, push, remove, query, orderByChild, equalTo, get } from 'firebase/database';
+import { ref, update, set, push, remove, query, orderByChild, equalTo } from 'firebase/database';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Settings, Save, Trash2, ShieldCheck, UserPlus, Edit2, Users, Loader2, Mail, Lock, Bot, MessageSquare, LayoutDashboard, Sparkles, BarChart2, Smartphone } from "lucide-react";
-import { OwnerAIUsagePanel } from '@/components/owner-ai-usage-panel';
-import { Textarea } from "@/components/ui/textarea";
+import { UserPlus, Edit2, Users, Loader2, Mail, Lock, ShieldCheck, Trash2 } from "lucide-react";
 import { useState, useMemo } from 'react';
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -18,108 +15,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-function LiffSettingsCard({ ownerId, database }: { ownerId: string; database: any }) {
-  const [liffSignId, setLiffSignId] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const { toast } = useToast();
-
-  useMemo(() => {
-    if (!ownerId || !database) return;
-    get(ref(database, `owner/${ownerId}/liffSignId`)).then(snap => {
-      if (snap.val()) setLiffSignId(snap.val());
-      setLoaded(true);
-    });
-  }, [ownerId, database]);
-
-  const handleSave = async () => {
-    if (!ownerId || !database) return;
-    setSaving(true);
-    try {
-      await update(ref(database, `owner/${ownerId}`), { liffSignId: liffSignId.trim() });
-      toast({ title: 'LIFF IDを保存しました' });
-    } catch {
-      toast({ variant: 'destructive', title: '保存に失敗しました' });
-    } finally { setSaving(false); }
-  };
-
-  return (
-    <Card className="rounded-[2.5rem] border shadow-sm overflow-hidden bg-white">
-      <CardHeader className="bg-slate-50 border-b p-8">
-        <CardTitle className="text-xl font-black flex items-center gap-2">
-          <Smartphone className="text-blue-500" /> LINE LIFF設定
-        </CardTitle>
-        <p className="text-xs text-slate-400 mt-1">署名ページをLINE内で開くためのLIFF IDを設定します</p>
-      </CardHeader>
-      <CardContent className="p-8 space-y-6">
-        <div className="p-5 rounded-2xl bg-blue-50 border border-blue-100 space-y-2">
-          <p className="text-[11px] font-black text-blue-700 uppercase tracking-widest">設定方法</p>
-          <ol className="text-[12px] text-blue-600 space-y-1 leading-relaxed list-decimal list-inside">
-            <li>LINE Developers コンソールでLIFFアプリを作成</li>
-            <li>エンドポイントURLを <code className="bg-blue-100 px-1 rounded text-[11px]">{typeof window !== 'undefined' ? window.location.origin : 'https://your-app.com'}/sign</code> に設定</li>
-            <li>取得したLIFF IDを下記に入力して保存</li>
-          </ol>
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">LIFF ID（署名ページ用）</Label>
-          <div className="flex gap-3">
-            <Input
-              value={liffSignId}
-              onChange={e => setLiffSignId(e.target.value)}
-              placeholder="1234567890-xxxxxxxxx"
-              className="h-12 rounded-2xl bg-slate-50 border-slate-200 font-mono text-sm"
-            />
-            <Button onClick={handleSave} disabled={saving} className="h-12 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black shrink-0">
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            </Button>
-          </div>
-          <p className="text-[11px] text-slate-400">
-            設定後、署名依頼のLINEメッセージが <code className="bg-slate-100 px-1 rounded">liff.line.me/{liffSignId || 'LIFF_ID'}</code> 経由で開きます
-          </p>
-        </div>
-
-        {!liffSignId && loaded && (
-          <div className="p-4 rounded-xl bg-amber-50 border border-amber-100">
-            <p className="text-[11px] text-amber-700 font-bold">
-              ⚠ LIFF IDが未設定です。署名ページはLINE内ブラウザで直接開きます（LIFF機能なし）。
-            </p>
-          </div>
-        )}
-        {liffSignId && (
-          <div className="p-4 rounded-xl bg-green-50 border border-green-100">
-            <p className="text-[11px] text-green-700 font-bold">
-              ✅ LIFF有効 — 署名はLINEアプリ内のミニアプリとして開きます。
-            </p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
 export function SettingsTab({ version, hideUserManagement = false, t }: { version: string, hideAddOwner?: boolean, hideUserManagement?: boolean, t: any }) {
   const { user, ownerId, role } = useUser();
   const database = useDatabase();
   const { toast } = useToast();
 
-  // AI config
-  const aiConfigPath = ownerId ? `owner/${ownerId}/aiConfig` : null;
-  const { data: aiConfig } = useRTDBDoc(aiConfigPath);
-  const [isSavingAi, setIsSavingAi] = useState(false);
-  const [systemPromptDraft, setSystemPromptDraft] = useState('');
-  const [isSavingPrompt, setIsSavingPrompt] = useState(false);
-
-  const handleAiToggle = async (field: 'lineAiEnabled' | 'dashboardAiEnabled', value: boolean) => {
-    if (!database || !ownerId) return;
-    setIsSavingAi(true);
-    try {
-      await update(ref(database, `owner/${ownerId}/aiConfig`), { [field]: value });
-      toast({ title: value ? "AIアシスタントを有効にしました" : "AIアシスタントを無効にしました" });
-    } catch { toast({ variant: "destructive", title: "保存に失敗いたしました" }); }
-    finally { setIsSavingAi(false); }
-  };
-  
   const usersRef = useMemoFirebase(() => {
     if (!database) return null;
     if (role === 'developer') return ref(database, 'users'); // Desenvolvedores podem ler todos os usuários
@@ -271,106 +171,6 @@ export function SettingsTab({ version, hideUserManagement = false, t }: { versio
           </CardContent>
         </Card>
       )}
-
-      <Card className="rounded-[2.5rem] border shadow-sm overflow-hidden bg-white">
-        <CardHeader className="bg-slate-50 border-b p-8">
-          <CardTitle className="text-xl font-black flex items-center gap-2">
-            <Bot className="text-violet-500"/> AIアシスタント設定
-          </CardTitle>
-          <p className="text-xs text-slate-400 mt-1">各チャネルのAIアシスタントを個別に管理いたします</p>
-        </CardHeader>
-        <CardContent className="p-8 space-y-6">
-          <div className="flex items-center justify-between p-5 rounded-2xl border border-slate-100 bg-slate-50/50">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 text-green-600"/>
-              </div>
-              <div>
-                <p className="font-black text-sm text-slate-800">LINEアシスタント</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">LINEユーザーへのAI自動応答を有効にします</p>
-              </div>
-            </div>
-            <Switch
-              checked={!!aiConfig?.lineAiEnabled}
-              onCheckedChange={(v) => handleAiToggle('lineAiEnabled', v)}
-              disabled={isSavingAi}
-            />
-          </div>
-
-          <div className="flex items-center justify-between p-5 rounded-2xl border border-slate-100 bg-slate-50/50">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
-                <LayoutDashboard className="w-5 h-5 text-violet-600"/>
-              </div>
-              <div>
-                <p className="font-black text-sm text-slate-800">ダッシュボードアシスタント</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">管理画面内のAIチャットアシスタントを有効にします</p>
-              </div>
-            </div>
-            <Switch
-              checked={!!aiConfig?.dashboardAiEnabled}
-              onCheckedChange={(v) => handleAiToggle('dashboardAiEnabled', v)}
-              disabled={isSavingAi}
-            />
-          </div>
-
-          {(aiConfig?.lineAiEnabled || aiConfig?.dashboardAiEnabled) && (
-            <div className="p-4 rounded-2xl bg-violet-50 border border-violet-100">
-              <p className="text-[10px] font-black text-violet-600 uppercase tracking-widest mb-1">AI使用状況</p>
-              <p className="text-xs text-violet-500">AIアシスタントが有効です。使用量はトークン単位で計測されます。</p>
-            </div>
-          )}
-
-          {/* Script de personalidade configurável */}
-          <div className="space-y-3 pt-2 border-t border-slate-100">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-violet-500"/>
-              <p className="font-black text-sm text-slate-800">AIの個性・対応スクリプト</p>
-            </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              AIがユーザーに対してどのように振る舞うかを自由に設定できます。空白の場合はデフォルト設定が使用されます。
-            </p>
-            <Textarea
-              value={systemPromptDraft || aiConfig?.systemPrompt || ''}
-              onChange={e => setSystemPromptDraft(e.target.value)}
-              placeholder={`例: あなたは株式会社○○の経費管理アシスタントです。社員の質問に丁寧かつ親しみやすく対応してください。経費以外の質問にも積極的に答えてください。`}
-              className="min-h-[120px] text-sm rounded-2xl bg-slate-50 border-slate-200 resize-none"
-            />
-            <Button
-              onClick={async () => {
-                if (!database || !ownerId) return;
-                setIsSavingPrompt(true);
-                try {
-                  await update(ref(database, `owner/${ownerId}/aiConfig`), { systemPrompt: systemPromptDraft });
-                  toast({ title: "AIスクリプトを保存しました" });
-                } catch { toast({ variant: "destructive", title: "保存に失敗しました" }); }
-                finally { setIsSavingPrompt(false); }
-              }}
-              disabled={isSavingPrompt}
-              className="rounded-xl h-10 gap-2 bg-violet-600 hover:bg-violet-700 text-white"
-            >
-              {isSavingPrompt ? <Loader2 className="w-4 h-4 animate-spin"/> : <Save className="w-4 h-4"/>}
-              スクリプトを保存
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* AI Token Usage */}
-      <Card className="rounded-[2.5rem] border shadow-sm overflow-hidden">
-        <CardHeader className="p-6 bg-white border-b border-slate-100">
-          <CardTitle className="text-base font-black text-slate-800 flex items-center gap-2">
-            <BarChart2 className="text-violet-500 w-5 h-5"/> AI使用量・トークン
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <OwnerAIUsagePanel />
-        </CardContent>
-      </Card>
-
-      {/* LIFF Settings */}
-      <LiffSettingsCard ownerId={ownerId || ''} database={database} />
-
       <div className="flex items-center justify-between p-6 bg-slate-900 rounded-[2rem] text-slate-400">
         <div className="flex items-center gap-2">
           <ShieldCheck className="text-emerald-400 w-4 h-4"/>
