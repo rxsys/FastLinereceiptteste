@@ -406,22 +406,7 @@ export default function LandingPage() {
           </div>
         </main>
 
-        {/* Floating Bottom Nav */}
-        <footer className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pb-8 px-6 pointer-events-none">
-          <div className="w-full max-w-4xl px-8 py-5 bg-[#0c0c14]/90 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-2xl flex items-center justify-between pointer-events-auto">
-            <div className="flex items-center gap-8">
-              <div className="p-3 bg-[#ff6b35] rounded-2xl shadow-[0_0_25px_rgba(255,107,53,0.3)]"><span className="text-xl">🧾</span></div>
-              <div className="w-[1px] h-8 bg-white/10" />
-              <div className="flex items-center gap-6 opacity-40 grayscale">
-                <span className="text-lg">📋</span><span className="text-lg">🪪</span><span className="text-lg">🏢</span><span className="text-lg">👥</span>
-              </div>
-            </div>
-            <div className="hidden sm:flex items-center gap-3">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#ff6b35] animate-pulse shadow-[0_0_10px_#ff6b35]" />
-              <p className="text-[11px] font-black tracking-[0.2em] text-white/50 uppercase">Live Console v{APP_VERSION}</p>
-            </div>
-          </div>
-        </footer>
+
 
         {/* Login/Register Modal */}
         <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
