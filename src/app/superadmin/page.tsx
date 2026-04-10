@@ -41,8 +41,8 @@ export default function SuperAdminPage() {
   const poolRef = useMemoFirebase(() => database ? ref(database, 'line_api_pool') : null, [database]);
   const usersRef = useMemoFirebase(() => database ? ref(database, 'users') : null, [database]);
 
-  const { data: owners } = useRTDBCollection(ownersRef);
-  const { data: pool } = useRTDBCollection(poolRef);
+  const { data: owners, isLoading: isOwnersLoading, error: ownersError } = useRTDBCollection(ownersRef);
+  const { data: pool, isLoading: isPoolLoading, error: poolError } = useRTDBCollection(poolRef);
 
   useEffect(() => {
     if (!isUserLoading && role !== 'developer') router.push('/');
@@ -126,7 +126,17 @@ export default function SuperAdminPage() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="p-6 rounded-[2rem] bg-slate-900 text-white"><p className="text-xs font-black opacity-50 uppercase">Total Tenants</p><p className="text-5xl font-black mt-2">{owners?.length || 0}</p></Card>
+          <Card className="p-6 rounded-[2rem] bg-slate-900 text-white group overflow-hidden relative">
+            <div className="relative z-10">
+              <p className="text-xs font-black opacity-50 uppercase">Total Tenants</p>
+              <div className="flex items-center gap-3">
+                <p className="text-5xl font-black mt-2">{owners?.length || 0}</p>
+                {isOwnersLoading && <Loader2 className="w-6 h-6 animate-spin opacity-30 mt-3" />}
+              </div>
+            </div>
+            {ownersError && <p className="text-[10px] text-red-400 mt-2 font-bold select-all">ERR: {ownersError.message}</p>}
+            <Building2 className="absolute -right-4 -bottom-4 w-24 h-24 opacity-5 group-hover:opacity-10 transition-opacity" />
+          </Card>
         </div>
 
         <Card className="rounded-[2.5rem] border shadow-xl overflow-hidden bg-white">
@@ -143,7 +153,7 @@ export default function SuperAdminPage() {
                     </TableCell>
                     <TableCell>
                       <Badge className={cn("text-[9px] border-none font-black", (SUBSCRIPTION_STATUS as any)[o.subscriptionStatus]?.color)}>
-                        {(SUBSCRIPTION_STATUS as any)[o.subscriptionStatus]?.label}
+                        {(SUBSCRIPTION_STATUS as any)[o.subscriptionStatus]?.label || o.subscriptionStatus}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-xs font-bold">
@@ -162,6 +172,17 @@ export default function SuperAdminPage() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {!isOwnersLoading && (!owners || owners.length === 0) && (
+                  <TableRow>
+                     <TableCell colSpan={5} className="py-20 text-center">
+                        <div className="flex flex-col items-center gap-4 text-slate-400 font-bold italic">
+                           <AlertTriangle className="w-8 h-8 opacity-20" />
+                           <p>Nenhum Tenant encontrado no caminho "/owner"</p>
+                           <p className="text-[10px] uppercase opacity-50">Tente cadastrar uma nova empresa acima</p>
+                        </div>
+                     </TableCell>
+                  </TableRow>
+                )}
              </TableBody>
           </Table>
         </Card>
