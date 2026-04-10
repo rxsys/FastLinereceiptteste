@@ -98,6 +98,19 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
   const projectsRef = useMemoFirebase(() => effectiveOwnerId && database ? ref(database, `owner_data/${effectiveOwnerId}/projects`) : null, [database, effectiveOwnerId]);
   const ownerPath = effectiveOwnerId ? `owner/${effectiveOwnerId}` : null;
   const { data: owner } = useRTDBDoc(ownerPath);
+  const { data: projects } = useRTDBCollection<any>(projectsRef);
+
+  const costCenters = useMemo(() => {
+    const ccs: any[] = [];
+    projects?.forEach(p => {
+      if (p.costcenters) {
+        Object.entries(p.costcenters).forEach(([id, data]: [string, any]) => {
+          ccs.push({ id, projectId: p.id, ...data });
+        });
+      }
+    });
+    return ccs;
+  }, [projects]);
 
   const poolRef = useMemoFirebase(() => database ? ref(database, 'line_api_pool') : null, [database]);
   const { data: pool } = useRTDBCollection(poolRef);
