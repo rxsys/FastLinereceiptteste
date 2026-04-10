@@ -40,30 +40,43 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
 
   useEffect(() => {
     if (!isOpen || !database || !ownerId || !user?.id) return;
+
+    // Reset components to avoid showing old data
+    setExpenses([]);
+    setAdvances([]);
+    setLoading(true);
+
     const advRef = ref(database, `owner_data/${ownerId}/lineUsers/${user.id}/wallet/advances`);
     const expRef = ref(database, `owner_data/${ownerId}/expenses`);
 
-    const unsubAdv = onValue(advRef, (snap: any) => {
-      const advList: any[] = [];
-      snap.forEach((c: any) => advList.push({ id: c.key, ...c.val() }));
-      advList.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-      setAdvances(advList);
+    // Listener para Créditos (Recebimentos)
+    const unsubAdv = onValue(advRef, (snap) => {
+      const list: any[] = [];
+      snap.forEach((child) => {
+        list.push({ id: child.key, ...child.val() });
+      });
+      list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+      setAdvances(list);
     });
 
-    const unsubExp = onValue(expRef, (snap: any) => {
-      const expList: any[] = [];
-      snap.forEach((c: any) => {
-        const e = c.val();
-        if (e.userId === user.id || (user.lineUserId && e.userId === user.lineUserId)) {
-          expList.push({ id: c.key, ...e });
+    // Listener para Débitos (Despesas)
+    const unsubExp = onValue(expRef, (snap) => {
+      const list: any[] = [];
+      snap.forEach((child) => {
+        const val = child.val();
+        if (val.userId === user.id || (user.lineUserId && val.userId === user.lineUserId)) {
+          list.push({ id: child.key, ...val });
         }
       });
-      expList.sort((a, b) => (b.date || b.createdAt || '').localeCompare(a.date || a.createdAt || ''));
-      setExpenses(expList);
+      list.sort((a, b) => (b.date || b.createdAt || '').localeCompare(a.date || a.createdAt || ''));
+      setExpenses(list);
       setLoading(false);
     });
 
-    return () => { unsubAdv(); unsubExp(); };
+    return () => {
+      unsubAdv();
+      unsubExp();
+    };
   }, [isOpen, database, ownerId, user?.id, user?.lineUserId]);
 
   const totalAdvances = advances.reduce((s, a) => s + (Number(a.amount) || 0), 0);
