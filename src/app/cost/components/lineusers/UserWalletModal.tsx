@@ -128,7 +128,14 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
       const lineId = user.lineUserId || user.id;
       if (lineId && receiptId) {
         const signUrl = `${window.location.origin}/sign/${ownerId}_${user.id}_${receiptId}`;
-        notifyWalletCredit(ownerId, lineId, Number(creditAmount), creditDesc, signUrl).catch(() => {});
+        const result = await notifyWalletCredit(ownerId, lineId, Number(creditAmount), creditDesc, signUrl);
+        if (!result.success) {
+          toast({ 
+            variant: 'destructive', 
+            title: '通知エラー (LINE)', 
+            description: 'LINEへの通知が送信できませんでした。設定を確認してください。' 
+          });
+        }
       }
 
       setCreditAmount('');
