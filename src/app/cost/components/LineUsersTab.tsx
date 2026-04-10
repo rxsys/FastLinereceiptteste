@@ -2,7 +2,7 @@
 
 import { useRTDBCollection, useRTDBDoc } from '@/firebase/rtdb';
 import { useMemoFirebase, useUser, useDatabase } from '@/firebase';
-import { ref, update, remove, get, push, set } from 'firebase/database';
+import { ref, update, remove, get, push, set, onValue } from 'firebase/database';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,28 +24,36 @@ import { Expense } from '@/types';
 
 function UserBalanceBadge({ userId, lineUserId, ownerId }: { userId: string; lineUserId?: string; ownerId: string }) {
   const database = useDatabase();
-  const [balance, setBalance] = useState<number | null>(null);
+  const [advances, setAdvances] = useState<number>(0);
+  const [expenses, setExpenses] = useState<number>(0);
 
   useEffect(() => {
     if (!database || !ownerId || !userId) return;
-    Promise.all([
-      get(ref(database, `owner_data/${ownerId}/lineUsers/${userId}/wallet/advances`)),
-      get(ref(database, `owner_data/${ownerId}/expenses`))
-    ]).then(([advSnap, expSnap]) => {
-      let advances = 0;
-      advSnap.forEach((c: any) => { advances += Number(c.val().amount) || 0; });
-      let expenses = 0;
-      expSnap.forEach((c: any) => {
+
+    const advRef = ref(database, `owner_data/${ownerId}/lineUsers/${userId}/wallet/advances`);
+    const expRef = ref(database, `owner_data/${ownerId}/expenses`);
+
+    const unsubAdv = onValue(advRef, (snap: any) => {
+      let total = 0;
+      snap.forEach((c: any) => { total += Number(c.val().amount) || 0; });
+      setAdvances(total);
+    });
+
+    const unsubExp = onValue(expRef, (snap: any) => {
+      let total = 0;
+      snap.forEach((c: any) => {
         const e = c.val();
         if (e.userId === userId || (lineUserId && e.userId === lineUserId)) {
-          expenses += Number(e.amount) || 0;
+          total += Number(e.amount) || 0;
         }
       });
-      setBalance(advances - expenses);
-    }).catch(() => {});
+      setExpenses(total);
+    });
+
+    return () => { unsubAdv(); unsubExp(); };
   }, [database, ownerId, userId, lineUserId]);
 
-  if (balance === null) return null;
+  const balance = advances - expenses;
   const isUserPositive = balance < 0; // Usuário tem a receber (Vermelho)
   const isCompanyPositive = balance > 0; // Empresa tem saldo com o usuário (Azul)
 

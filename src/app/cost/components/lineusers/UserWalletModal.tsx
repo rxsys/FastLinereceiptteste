@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useDatabase, useStorage } from '@/firebase';
-import { ref, push, set, get } from 'firebase/database';
+import { ref, push, set, get, onValue } from 'firebase/database';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { notifyWalletCredit } from '@/app/actions/line-notify';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -40,27 +40,30 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
 
   useEffect(() => {
     if (!isOpen || !database || !ownerId || !user?.id) return;
-    setLoading(true);
-    Promise.all([
-      get(ref(database, `owner_data/${ownerId}/lineUsers/${user.id}/wallet/advances`)),
-      get(ref(database, `owner_data/${ownerId}/expenses`))
-    ]).then(([advSnap, expSnap]) => {
-      const advList: any[] = [];
-      advSnap.forEach((c: any) => advList.push({ id: c.key, ...c.val() }));
-      advList.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    const advRef = ref(database, `owner_data/${ownerId}/lineUsers/${user.id}/wallet/advances`);
+    const expRef = ref(database, `owner_data/${ownerId}/expenses`);
 
+    const unsubAdv = onValue(advRef, (snap: any) => {
+      const advList: any[] = [];
+      snap.forEach((c: any) => advList.push({ id: c.key, ...c.val() }));
+      advList.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+      setAdvances(advList);
+    });
+
+    const unsubExp = onValue(expRef, (snap: any) => {
       const expList: any[] = [];
-      expSnap.forEach((c: any) => {
+      snap.forEach((c: any) => {
         const e = c.val();
         if (e.userId === user.id || (user.lineUserId && e.userId === user.lineUserId)) {
           expList.push({ id: c.key, ...e });
         }
       });
       expList.sort((a, b) => (b.date || b.createdAt || '').localeCompare(a.date || a.createdAt || ''));
-
-      setAdvances(advList);
       setExpenses(expList);
-    }).catch(() => {}).finally(() => setLoading(false));
+      setLoading(false);
+    });
+
+    return () => { unsubAdv(); unsubExp(); };
   }, [isOpen, database, ownerId, user?.id, user?.lineUserId]);
 
   const totalAdvances = advances.reduce((s, a) => s + (Number(a.amount) || 0), 0);
