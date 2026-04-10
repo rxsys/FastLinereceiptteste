@@ -515,7 +515,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
         onClose={() => setWalletUser(null)}
         user={walletUser}
         ownerId={effectiveOwnerId || ''}
-        onOpenExpense={(exp) => setWalletExpenseToEdit(exp)}
+        onOpenExpense={(exp) => setEditingExpense(exp)}
       />
 
       {/* MODAL DE EDIÇÃO DE USUÁRIO */}
