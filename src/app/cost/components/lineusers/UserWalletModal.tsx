@@ -125,18 +125,21 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
       setAdvances(advList);
 
       // LINE push notification with Signature Link
-      const lineId = user.lineUserId || user.id;
-      console.log('[WalletDebug] Tentando notificar:', { lineId, user, receiptId });
+      const lineId = (user.lineUserId?.startsWith('U') ? user.lineUserId : null) || 
+                     (user.id?.startsWith('U') ? user.id : null) || 
+                     user.lineUserId || 
+                     user.id;
+      
+      console.log('[WalletDebug] Verificação de ID do LINE:', { lineId, user, receiptId });
       
       if (lineId && receiptId) {
         const signUrl = `${window.location.origin}/sign/${ownerId}_${user.id}_${receiptId}`;
-        console.log('[WalletDebug] Enviando para Server Action:', { signUrl });
         const result = await notifyWalletCredit(ownerId, lineId, Number(creditAmount), creditDesc, signUrl);
         if (!result.success) {
           toast({ 
             variant: 'destructive', 
             title: '通知エラー (LINE)', 
-            description: 'LINEへの通知が送信できませんでした。設定を確認してください。' 
+            description: `ERRO: ${result.error || 'LINE IDが無効か、通信エラーです。'}` 
           });
         }
       }
