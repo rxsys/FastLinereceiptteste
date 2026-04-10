@@ -126,8 +126,11 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
 
       // LINE push notification with Signature Link
       const lineId = user.lineUserId || user.id;
+      console.log('[WalletDebug] Tentando notificar:', { lineId, user, receiptId });
+      
       if (lineId && receiptId) {
         const signUrl = `${window.location.origin}/sign/${ownerId}_${user.id}_${receiptId}`;
+        console.log('[WalletDebug] Enviando para Server Action:', { signUrl });
         const result = await notifyWalletCredit(ownerId, lineId, Number(creditAmount), creditDesc, signUrl);
         if (!result.success) {
           toast({ 

@@ -177,15 +177,22 @@ export default function LandingPage() {
     }
   };
 
+  const MODULE_ROUTES: Record<string, string> = {
+    receipt: '/cost',
+    member: '/member',
+    mypage: '/mypage',
+  };
+
+  const FREE_MODULES = ['mypage'];
+
   const handleModuleClick = async (moduleId: string, priceId?: string, isActive?: boolean) => {
     if (!isActive) { toast({ title: "近日公開", description: "公開予定です。" }); return; }
+    if (!user) { setSelectedModule({ id: moduleId, priceId: priceId || '' }); setIsLoginOpen(true); return; }
+    if (FREE_MODULES.includes(moduleId)) { router.push(MODULE_ROUTES[moduleId] || '/'); return; }
     setSelectedModule({ id: moduleId, priceId: priceId || '' });
-    if (!user) { setIsLoginOpen(true); } 
-    else {
-      const snap = await get(ref(database!, `owner/${ownerId || user.uid}`));
-      if (snap.val()?.subscriptions?.[moduleId]?.status === 'active') router.push('/cost');
-      else setIsCheckoutOpen(true);
-    }
+    const snap = await get(ref(database!, `owner/${ownerId || user.uid}`));
+    if (snap.val()?.subscriptions?.[moduleId]?.status === 'active') router.push(MODULE_ROUTES[moduleId] || '/cost');
+    else setIsCheckoutOpen(true);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -361,6 +368,41 @@ export default function LandingPage() {
                 isSubscribed={activeModules.includes('receipt')}
                 onModuleClick={handleModuleClick}
                 tooltip={<div className="space-y-3"><p className="font-black text-[14px]">{t.modules.receipt.fullTitle}</p><p className="text-[10px] leading-relaxed text-white/70">{t.modules.receipt.desc}</p></div>}
+              />
+            </div>
+            <div className="flex flex-col items-center gap-2 relative z-10">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); router.push('/member'); }}
+                className="px-3 py-1 rounded-full bg-[#6366f1]/10 border border-[#6366f1]/30 text-[9px] font-black text-[#6366f1] hover:bg-[#6366f1]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
+              >
+                詳細はこちら →
+              </button>
+              <ModuleIcon
+                emoji="🧑‍💼" id="member" title={t.modules.member.title} color="#6366f1" active
+                priceId={currentPriceId}
+                isSubscribed={activeModules.includes('member')}
+                onModuleClick={handleModuleClick}
+                badge={t.modules.member.badge}
+                badgeColor="bg-[#6366f1]/20"
+                tooltip={<div className="space-y-3"><p className="font-black text-[14px]">{t.modules.member.fullTitle}</p><p className="text-[10px] leading-relaxed text-white/70">{t.modules.member.desc}</p></div>}
+              />
+            </div>
+            <div className="flex flex-col items-center gap-2 relative z-10">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); router.push('/mypage'); }}
+                className="px-3 py-1 rounded-full bg-[#0ea5e9]/10 border border-[#0ea5e9]/30 text-[9px] font-black text-[#0ea5e9] hover:bg-[#0ea5e9]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
+              >
+                詳細はこちら →
+              </button>
+              <ModuleIcon
+                emoji="🪪" id="mypage" title={t.modules.mypage.title} color="#0ea5e9" active
+                isSubscribed={activeModules.includes('mypage')}
+                onModuleClick={handleModuleClick}
+                badge={t.modules.mypage.badge}
+                badgeColor="bg-[#0ea5e9]/20"
+                tooltip={<div className="space-y-3"><p className="font-black text-[14px]">{t.modules.mypage.fullTitle}</p><p className="text-[10px] leading-relaxed text-white/70">{t.modules.mypage.desc}</p></div>}
               />
             </div>
             <ModuleIcon emoji="📁" id="project" title={t.modules.project.title} color="#6366f1" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('project')} badge={t.modules.project.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.project.desc}</p>} />
