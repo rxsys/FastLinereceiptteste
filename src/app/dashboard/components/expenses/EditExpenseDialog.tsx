@@ -80,6 +80,7 @@ export const EditExpenseDialog = ({
       notifyReviewStatus(ownerId, lineUserId, newStatus, expense.description || '', Number(expense.amount)).catch(() => {});
     }
     onSave(updatedExpense);
+    onClose();
   };
 
   return (

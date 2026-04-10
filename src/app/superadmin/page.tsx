@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, ShieldCheck, Calendar, Building2, AlertTriangle, Edit2, Loader2, ArrowLeft, Trash2 } from "lucide-react";
+import { Plus, ShieldCheck, Calendar, Building2, AlertTriangle, Edit2, Loader2, ArrowLeft, Trash2, Check } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -76,9 +76,37 @@ export default function SuperAdminPage() {
   const handleUpdateLicense = async () => {
     if (!database || !editingOwner) return;
     const { id, ...data } = editingOwner;
-    await update(ref(database, `owner/${id}`), { ...data, updatedAt: new Date().toISOString() });
-    setEditingOwner(null);
-    toast({ title: '更新完了' });
+    try {
+      await update(ref(database, `owner/${id}`), { ...data, updatedAt: new Date().toISOString() });
+      await update(ref(database, `line_api_pool/${id}`), { ownerName: data.name });
+      setEditingOwner(null);
+      toast({ title: '更新完了' });
+    } catch (e: any) { toast({ variant: 'destructive', title: 'エラー', description: e.message }); }
+  };
+
+  const handleDeleteOwner = async (id: string, name: string) => {
+    if (!database || !confirm(`Remover permanentemente o tenant "${name}"?`)) return;
+    try {
+      await remove(ref(database, `owner/${id}`));
+      await update(ref(database, `line_api_pool/${id}`), { status: 'available', ownerId: null, ownerName: null });
+      toast({ title: 'Tenant removido com sucesso' });
+    } catch (e: any) { toast({ variant: 'destructive', title: 'Erro ao remover', description: e.message }); }
+  };
+
+  const toggleSubscription = (moduleId: string) => {
+    if (!editingOwner) return;
+    const currentSubs = editingOwner.subscriptions || {};
+    const isCurrentlyActive = currentSubs[moduleId]?.status === 'active';
+    
+    const newSubs = {
+      ...currentSubs,
+      [moduleId]: {
+        status: isCurrentlyActive ? 'inactive' : 'active',
+        updatedAt: new Date().toISOString()
+      }
+    };
+    
+    setEditingOwner({ ...editingOwner, subscriptions: newSubs });
   };
 
   if (isUserLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
@@ -107,10 +135,31 @@ export default function SuperAdminPage() {
              <TableBody>
                 {owners?.map(o => (
                   <TableRow key={o.id}>
-                    <TableCell className="pl-10 font-black">{o.name}<p className="text-[9px] font-mono opacity-30">{o.id}</p></TableCell>
-                    <TableCell><Badge className={cn("text-[9px] border-none", (SUBSCRIPTION_STATUS as any)[o.subscriptionStatus]?.color)}>{(SUBSCRIPTION_STATUS as any)[o.subscriptionStatus]?.label}</Badge></TableCell>
-                    <TableCell className="text-xs font-bold">{o.validUntil || "S/ Data"}</TableCell>
-                    <TableCell className="text-right pr-10"><Button variant="ghost" size="icon" onClick={() => setEditingOwner(o)}><Edit2 className="w-4 h-4"/></Button></TableCell>
+                    <TableCell className="pl-10 font-black">
+                      <div className="flex flex-col">
+                        <span>{o.name}</span>
+                        <span className="text-[9px] font-mono opacity-30 mt-1">ID: {o.id}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={cn("text-[9px] border-none font-black", (SUBSCRIPTION_STATUS as any)[o.subscriptionStatus]?.color)}>
+                        {(SUBSCRIPTION_STATUS as any)[o.subscriptionStatus]?.label}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs font-bold">
+                      {o.validUntil ? format(new Date(o.validUntil), 'yyyy/MM/dd') : "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1 max-w-[200px]">
+                        {Object.entries(o.subscriptions || {}).filter(([, s]: any) => s.status === 'active').map(([id]) => (
+                          <Badge key={id} variant="outline" className="text-[8px] uppercase border-emerald-200 text-emerald-600 bg-emerald-50 px-1">{id}</Badge>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right pr-10 space-x-2">
+                      <Button variant="ghost" size="icon" onClick={() => setEditingOwner(o)} className="h-9 w-9 rounded-xl hover:bg-slate-100"><Edit2 className="w-4 h-4"/></Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDeleteOwner(o.id, o.name)} className="h-9 w-9 rounded-xl hover:bg-red-50 text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4"/></Button>
+                    </TableCell>
                   </TableRow>
                 ))}
              </TableBody>
@@ -120,14 +169,114 @@ export default function SuperAdminPage() {
         <LineApiPoolTab t={{}} />
       </div>
 
+      <Dialog open={!!editingOwner} onOpenChange={() => setEditingOwner(null)}>
+        <DialogContent className="rounded-[2.5rem] max-w-2xl overflow-hidden p-0 border-none shadow-2xl">
+          <div className="bg-slate-900 p-8 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-black flex items-center gap-3">
+                <Edit2 className="text-primary w-6 h-6"/> Editar Tenant
+              </DialogTitle>
+              <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-1">Configuração de Licenciamento</p>
+            </DialogHeader>
+          </div>
+          
+          <div className="p-8 space-y-8 bg-white max-h-[70vh] overflow-y-auto">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Nome da Empresa</Label>
+                <Input value={editingOwner?.name || ""} onChange={e => setEditingOwner({...editingOwner, name: e.target.value})} className="h-12 rounded-2xl border-slate-100 bg-slate-50 font-bold focus:ring-primary/20" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Vencimento da Licença</Label>
+                <Input type="date" value={editingOwner?.validUntil || ""} onChange={e => setEditingOwner({...editingOwner, validUntil: e.target.value})} className="h-12 rounded-2xl border-slate-100 bg-slate-50 font-bold" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Status Global</Label>
+              <Select value={editingOwner?.subscriptionStatus || "trial"} onValueChange={v => setEditingOwner({...editingOwner, subscriptionStatus: v})}>
+                <SelectTrigger className="h-12 rounded-2xl border-slate-100 bg-slate-50 font-bold">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-slate-100 shadow-xl">
+                  {Object.entries(SUBSCRIPTION_STATUS).map(([key, value]) => (
+                    <SelectItem key={key} value={key} className="font-bold py-3">{value.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-slate-50">
+              <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Módulos Contratados (Licenças Individualizadas)</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {['receipt', 'project', 'staff', 'career', 'id', 'kaigyo', 'attendance', 'assets', 'sales', 'docs', 'settings'].map(modId => {
+                  const isActive = editingOwner?.subscriptions?.[modId]?.status === 'active';
+                  return (
+                    <div 
+                      key={modId} 
+                      onClick={() => toggleSubscription(modId)}
+                      className={cn(
+                        "flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer group hover:scale-[1.02] active:scale-[0.98]",
+                        isActive ? "bg-emerald-50 border-emerald-100 shadow-sm" : "bg-slate-50 border-transparent opacity-60 hover:opacity-100"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center font-bold", isActive ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-400")}>
+                          {modId.charAt(0).toUpperCase()}
+                        </div>
+                        <span className={cn("text-xs font-black uppercase tracking-tight", isActive ? "text-emerald-700" : "text-slate-400")}>{modId}</span>
+                      </div>
+                      <div className={cn("w-5 h-5 rounded-full flex items-center justify-center border-2", isActive ? "bg-emerald-500 border-emerald-500 text-white" : "border-slate-300")}>
+                        {isActive && <Check className="w-3 h-3 text-white" strokeWidth={4}/>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="p-8 bg-slate-50 border-t border-slate-100">
+            <Button variant="ghost" onClick={() => setEditingOwner(null)} className="h-12 rounded-2xl font-black text-slate-400">Cancelar</Button>
+            <Button onClick={handleUpdateLicense} className="h-12 rounded-2xl font-black px-8 bg-slate-900 group relative overflow-hidden">
+              <span className="relative z-10">Salvar Alterações</span>
+              <div className="absolute inset-0 bg-primary translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300" />
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="rounded-[2rem]">
-           <DialogHeader><DialogTitle>Registrar Empresa</DialogTitle></DialogHeader>
-           <div className="space-y-4 py-4">
-              <Label>Nome da Empresa</Label><Input value={newOwner.name} onChange={e => setNewOwner({...newOwner, name: e.target.value})} />
-              <Label>Expiração</Label><Input type="date" value={newOwner.validUntil} onChange={e => setNewOwner({...newOwner, validUntil: e.target.value})} />
+        <DialogContent className="rounded-[2rem] max-w-md">
+           <DialogHeader>
+             <DialogTitle className="text-xl font-black">Nova Empresa (Tenant)</DialogTitle>
+             <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Registrar novo cliente no sistema</p>
+           </DialogHeader>
+           <div className="space-y-5 py-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Nome da Empresa</Label>
+                <Input value={newOwner.name} onChange={e => setNewOwner({...newOwner, name: e.target.value})} placeholder="Ex: Construtora Fast" className="h-12 rounded-2xl border-slate-100 bg-slate-50 font-bold" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Vencimento da Licença</Label>
+                <Input type="date" value={newOwner.validUntil} onChange={e => setNewOwner({...newOwner, validUntil: e.target.value})} className="h-12 rounded-2xl border-slate-100 bg-slate-50 font-bold" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Status Inicial</Label>
+                <Select value={newOwner.subscriptionStatus} onValueChange={v => setNewOwner({...newOwner, subscriptionStatus: v})}>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-100 bg-slate-50 font-bold">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border-slate-100 shadow-xl">
+                    {Object.entries(SUBSCRIPTION_STATUS).map(([key, value]) => (
+                      <SelectItem key={key} value={key} className="font-bold py-3">{value.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
            </div>
-           <DialogFooter><Button onClick={handleAddOwner} className="w-full h-12 rounded-xl font-black">Criar Tenant</Button></DialogFooter>
+           <DialogFooter>
+             <Button onClick={handleAddOwner} className="w-full h-12 rounded-2xl font-black bg-slate-900 shadow-lg shadow-slate-200">Criar Tenant & Alocar API</Button>
+           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

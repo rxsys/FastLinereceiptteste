@@ -29,6 +29,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useUser, useAuth, useDatabase } from '@/firebase';
 import { ref, get, set } from 'firebase/database';
 import { useRouter } from 'next/navigation';
@@ -67,7 +74,7 @@ const ModulePrice = ({ priceId, defaultPrice }: { priceId: string, defaultPrice:
 };
 
 const ModuleIcon = ({ 
-  emoji, title, color, badge, badgeColor, active, tooltip, id, priceId, onModuleClick 
+  emoji, title, color, badge, badgeColor, active, tooltip, id, priceId, onModuleClick, isSubscribed 
 }: any) => (
   <Tooltip>
     <TooltipTrigger asChild>
@@ -87,9 +94,15 @@ const ModuleIcon = ({
         <div className="text-center space-y-1">
           <p className="text-[11px] font-black text-white/40 group-hover:text-white transition-colors tracking-tight whitespace-nowrap">{title}</p>
           {active ? (
-            <p className="text-[10px] font-bold text-[#ff6b35]">
-              <ModulePrice priceId={priceId} defaultPrice="¥10,000" />
-            </p>
+            isSubscribed ? (
+              <p className="text-[10px] font-bold text-[#00c48c] drop-shadow-[0_0_8px_rgba(0,196,140,0.3)] flex items-center justify-center gap-1">
+                <span>✅</span> 利用中
+              </p>
+            ) : (
+              <p className="text-[10px] font-bold text-[#ff6b35]">
+                <ModulePrice priceId={priceId} defaultPrice="¥10,000" />
+              </p>
+            )
           ) : (
             <p className="text-[9px] font-black text-white/20 tracking-widest uppercase">近日公開</p>
           )}
@@ -334,17 +347,23 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-8 w-full max-w-[1000px] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-x-8 gap-y-12 pb-24">
-            <ModuleIcon emoji="📄" id="receipt" title={t.modules.receipt.title} color="#ff6b35" active priceId={currentPriceId} onModuleClick={handleModuleClick} tooltip={<div className="space-y-3"><p className="font-black text-[14px]">{t.modules.receipt.fullTitle}</p><p className="text-[10px] leading-relaxed text-white/70">{t.modules.receipt.desc}</p></div>} />
-            <ModuleIcon emoji="📁" id="project" title={t.modules.project.title} color="#6366f1" onModuleClick={handleModuleClick} badge={t.modules.project.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.project.desc}</p>} />
-            <ModuleIcon emoji="👥" id="staff" title={t.modules.staff.title} color="#00c48c" onModuleClick={handleModuleClick} badge={t.modules.staff.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.staff.desc}</p>} />
-            <ModuleIcon emoji="📋" id="career" title={t.modules.career.title} color="#f59e0b" onModuleClick={handleModuleClick} badge={t.modules.career.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.career.desc}</p>} />
-            <ModuleIcon emoji="🆔" id="id" title={t.modules.id.title} color="#3b82f6" onModuleClick={handleModuleClick} badge={t.modules.id.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.id.desc}</p>} />
-            <ModuleIcon emoji="🔧" id="assets" title={t.modules.assets.title} color="#ef4444" onModuleClick={handleModuleClick} tooltip={<p className="text-xs font-bold text-white/50">{t.modules.assets.desc}</p>} />
-            <ModuleIcon emoji="💰" id="sales" title={t.modules.sales.title} color="#10b981" onModuleClick={handleModuleClick} tooltip={<p className="text-xs font-bold text-white/50">{t.modules.sales.desc}</p>} />
-            <ModuleIcon emoji="⏱️" id="attendance" title={t.modules.attendance.title} color="#8b5cf6" onModuleClick={handleModuleClick} tooltip={<p className="text-xs font-bold text-white/50">{t.modules.attendance.desc}</p>} />
-            <ModuleIcon emoji="🏢" id="kaigyo" title={t.modules.kaigyo.title} color="#f43f5e" onModuleClick={handleModuleClick} badge={t.modules.kaigyo.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.kaigyo.desc}</p>} />
-            <ModuleIcon emoji="📑" id="docs" title={t.modules.docs.title} color="#71717a" onModuleClick={handleModuleClick} tooltip={<p className="text-xs font-bold text-white/50">{t.modules.docs.desc}</p>} />
-            <ModuleIcon emoji="⚙️" id="setup" title={t.modules.settings.title} color="#64748b" onModuleClick={handleModuleClick} tooltip={<p className="text-xs font-bold text-white/50">{t.modules.settings.desc}</p>} />
+            <ModuleIcon 
+              emoji="📄" id="receipt" title={t.modules.receipt.title} color="#ff6b35" active 
+              priceId={currentPriceId} 
+              isSubscribed={activeModules.includes('receipt')}
+              onModuleClick={handleModuleClick} 
+              tooltip={<div className="space-y-3"><p className="font-black text-[14px]">{t.modules.receipt.fullTitle}</p><p className="text-[10px] leading-relaxed text-white/70">{t.modules.receipt.desc}</p></div>} 
+            />
+            <ModuleIcon emoji="📁" id="project" title={t.modules.project.title} color="#6366f1" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('project')} badge={t.modules.project.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.project.desc}</p>} />
+            <ModuleIcon emoji="👥" id="staff" title={t.modules.staff.title} color="#00c48c" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('staff')} badge={t.modules.staff.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.staff.desc}</p>} />
+            <ModuleIcon emoji="📋" id="career" title={t.modules.career.title} color="#f59e0b" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('career')} badge={t.modules.career.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.career.desc}</p>} />
+            <ModuleIcon emoji="🆔" id="id" title={t.modules.id.title} color="#3b82f6" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('id')} badge={t.modules.id.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.id.desc}</p>} />
+            <ModuleIcon emoji="🔧" id="assets" title={t.modules.assets.title} color="#ef4444" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('assets')} tooltip={<p className="text-xs font-bold text-white/50">{t.modules.assets.desc}</p>} />
+            <ModuleIcon emoji="💰" id="sales" title={t.modules.sales.title} color="#10b981" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('sales')} tooltip={<p className="text-xs font-bold text-white/50">{t.modules.sales.desc}</p>} />
+            <ModuleIcon emoji="⏱️" id="attendance" title={t.modules.attendance.title} color="#8b5cf6" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('attendance')} tooltip={<p className="text-xs font-bold text-white/50">{t.modules.attendance.desc}</p>} />
+            <ModuleIcon emoji="🏢" id="kaigyo" title={t.modules.kaigyo.title} color="#f43f5e" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('kaigyo')} badge={t.modules.kaigyo.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.kaigyo.desc}</p>} />
+            <ModuleIcon emoji="📑" id="docs" title={t.modules.docs.title} color="#71717a" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('docs')} tooltip={<p className="text-xs font-bold text-white/50">{t.modules.docs.desc}</p>} />
+            <ModuleIcon emoji="⚙️" id="setup" title={t.modules.settings.title} color="#64748b" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('settings')} tooltip={<p className="text-xs font-bold text-white/50">{t.modules.settings.desc}</p>} />
           </div>
 
           {/* Footer Area with Legal links */}
@@ -398,6 +417,113 @@ export default function LandingPage() {
             </div>
           </div>
         </footer>
+
+        {/* Login/Register Modal */}
+        <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+          <DialogContent className="sm:max-w-[400px] bg-[#0c0c14] border border-[#222235] text-white rounded-3xl p-8 overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#ff6b35] to-[#ff9f1c]" />
+            
+            <DialogHeader className="space-y-4 text-center mt-2">
+              <div className="mx-auto w-12 h-12 bg-[#ff6b35] rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg rotate-3">
+                F
+              </div>
+              <DialogTitle className="text-2xl font-black tracking-tight uppercase">
+                {isRegister ? t.registerTitle : t.loginTitle}
+              </DialogTitle>
+              <DialogDescription className="text-white/40 text-xs font-bold tracking-widest uppercase">
+                FastLine Platform Access
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={isRegister ? handleRegister : handleLogin} className="space-y-5 mt-6">
+              {isRegister && (
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-white/30 uppercase tracking-widest ml-1">{t.dash.users.colName || 'Name'}</Label>
+                  <div className="relative group">
+                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#ff6b35] transition-colors" />
+                    <Input
+                      placeholder="Jane Doe"
+                      className="bg-white/[0.03] border-white/5 h-12 pl-11 rounded-xl focus:border-[#ff6b35]/50 focus:ring-0 transition-all placeholder:text-white/10"
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+              )}
+              
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-white/30 uppercase tracking-widest ml-1">{t.email}</Label>
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#ff6b35] transition-colors" />
+                  <Input
+                    type="email"
+                    placeholder="email@example.com"
+                    className="bg-white/[0.03] border-white/5 h-12 pl-11 rounded-xl focus:border-[#ff6b35]/50 focus:ring-0 transition-all placeholder:text-white/10"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between ml-1">
+                  <Label className="text-[10px] font-black text-white/30 uppercase tracking-widest">{t.password}</Label>
+                  {!isRegister && <button type="button" className="text-[9px] font-black text-[#ff6b35]/60 hover:text-[#ff6b35] transition-colors uppercase tracking-widest">{t.forgot}</button>}
+                </div>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#ff6b35] transition-colors" />
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    className="bg-white/[0.03] border-white/5 h-12 pl-11 pr-11 rounded-xl focus:border-[#ff6b35]/50 focus:ring-0 transition-all"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {authError && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-red-500 text-[11px] font-bold text-center animate-shake">
+                  {authError}
+                </div>
+              )}
+
+              <Button 
+                type="submit" 
+                disabled={isLocalLoading}
+                className="w-full h-12 bg-[#ff6b35] hover:bg-[#ff8555] text-white font-black rounded-xl shadow-lg shadow-[#ff6b35]/20 group relative overflow-hidden transition-all active:scale-[0.98]"
+              >
+                {isLocalLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <span className="relative z-10">{isRegister ? t.registerBtn : t.login}</span>
+                    <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
+                  </>
+                )}
+              </Button>
+
+              <div className="pt-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => { setIsRegister(!isRegister); setAuthError(null); }}
+                  className="text-[11px] font-black text-white/30 hover:text-white transition-colors tracking-tight"
+                >
+                  {isRegister ? "既にアカウントをお持ちですか？ ログイン" : t.registerFree}
+                </button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </TooltipProvider>
   );
