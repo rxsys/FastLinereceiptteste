@@ -268,9 +268,9 @@ export default function LandingPage() {
         <nav className={`fixed left-1/2 -translate-x-1/2 w-[92%] max-w-5xl z-50 transition-all duration-200 ${user && !user.emailVerified && role !== 'developer' ? 'top-[52px]' : 'top-6'}`}>
           <div className="flex items-center justify-between px-6 py-3 bg-[#0c0c14]/80 backdrop-blur-xl border border-[#222235] rounded-2xl shadow-2xl">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-[#ff6b35] rounded-md flex items-center justify-center text-white font-black text-lg shadow-[0_0_15px_rgba(255,107,53,0.4)]">F</div>
+              <div className="w-7 h-7 bg-[#22c55e] rounded-md flex items-center justify-center text-white font-black text-lg shadow-[0_0_15px_rgba(34,197,94,0.4)]">F</div>
               <div className="flex items-center font-black text-xl tracking-tight">
-                <span className="text-white">Fast</span><span className="text-[#ff6b35]">Line</span>
+                <span className="text-white">Fast</span><span className="text-[#22c55e]">Line</span>
               </div>
             </div>
             <div className="flex items-center gap-4">
