@@ -179,7 +179,8 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
   if (!user) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="rounded-[2.5rem] max-w-3xl max-h-[90vh] flex flex-col overflow-hidden p-0">
         {/* Header */}
         <div className="bg-slate-900 text-white px-8 py-6 shrink-0">
@@ -350,18 +351,16 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
                       {advances.map(adv => (
                         <div key={adv.id}
                           className="group relative flex items-center justify-between gap-2 p-3 rounded-2xl border border-blue-50 bg-blue-50/30 hover:bg-blue-50 transition-all">
-                          <div className="min-w-0">
+                          <div className="min-w-0 cursor-pointer" onClick={() => setEditingAdv({ ...adv, viewOnly: true })}>
                             <p className="text-[9px] font-bold text-slate-400">{fmtDate(adv.createdAt)}</p>
                             <p className="text-xs font-black text-slate-700 truncate">{adv.description || '---'}</p>
                           </div>
                           
                           {/* Actions on hover */}
-                          <div className="absolute inset-0 flex items-center justify-end px-3 gap-1 opactiy-0 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-50/90 rounded-2xl">
-                             {adv.imageUrl && (
-                               <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-white text-blue-500" onClick={() => setEditingAdv({ ...adv, viewOnly: true })}>
-                                 <Eye className="w-3.5 h-3.5" />
-                               </Button>
-                             )}
+                          <div className="absolute inset-0 flex items-center justify-end px-3 gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-50/90 rounded-2xl">
+                             <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-white text-blue-500" onClick={() => setEditingAdv({ ...adv, viewOnly: true })}>
+                               <Eye className="w-3.5 h-3.5" />
+                             </Button>
                              <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-white text-slate-600" onClick={() => setEditingAdv(adv)}>
                                <Edit2 className="w-3.5 h-3.5" />
                              </Button>
@@ -370,7 +369,7 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
                              </Button>
                           </div>
 
-                          <div className="flex items-center gap-1.5 shrink-0">
+                          <div className="flex items-center gap-1.5 shrink-0" onClick={() => setEditingAdv({ ...adv, viewOnly: true })}>
                             <span className="text-sm font-black text-blue-600">¥{Number(adv.amount || 0).toLocaleString()}</span>
                             {adv.imageUrl && (
                                <div className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center">
@@ -420,7 +419,6 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
                 </div>
               </div>
             </div>
-          </div>
         )}
       </DialogContent>
       </Dialog>
@@ -512,5 +510,6 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
            </div>
         </DialogContent>
       </Dialog>
+    </>
   );
 }
