@@ -420,7 +420,7 @@ async function processExpenseFromReceipt(
     if (duplicate) {
       const isSelf = duplicate.userId === userId;
       const alertText = isSelf ? i18n('duplicateSelf', lang, fmtDT(duplicate.createdAt)) : i18n('duplicateOther', lang, duplicate.senderName, fmtDT(duplicate.createdAt));
-      await push([{ type: 'text', text: `${summaryLine}\n\n${alertText}` }, buildDuplicateFlexMessage(expenseId!)]);
+      await push([{ type: 'text', text: `${summaryLine}\n\n${alertText}` }, buildDuplicateFlexMessage(expenseId!, lang)]);
       return;
     }
 
@@ -509,7 +509,7 @@ async function processExpense(lineClient: any, companyId: string, userId: string
       const alertText = isSelf
         ? i18n('duplicateSelf', lang, dupDateTime)
         : i18n('duplicateOther', lang, duplicate.senderName, dupDateTime);
-      const flexDup = buildDuplicateFlexMessage(expenseId!);
+      const flexDup = buildDuplicateFlexMessage(expenseId!, lang);
       await push([{ type: 'text', text: `${summaryTextEarly}\n\n${alertText}` }, flexDup]);
       return;
     }
@@ -643,18 +643,18 @@ function buildCcFlexMessage(availableCcs: { pId: string; ccId: string; ccName: s
   const bodyContents: any[] = [];
   
   // Customizações de Cores e Textos baseado no Type
-  let headerText = '🔽 Despesa / Expense';
+  let headerText = i18n('headerExpense', lang);
   let headerColor = '#f43f5e'; // Rose-500
-  let toggleText = '🔄 Mudar para Entrada (Amortização)';
+  let toggleText = i18n('btnToggleAmortization', lang);
   
   if (currentType === 'income_amortization') {
-    headerText = '🟩 Entrada (Amortização)';
+    headerText = i18n('headerAmortization', lang);
     headerColor = '#10b981'; // Emerald-500
-    toggleText = '🔄 Mudar para Aditivo';
+    toggleText = i18n('btnToggleAdditive', lang);
   } else if (currentType === 'income_additive') {
-    headerText = '🟦 Entrada (Aditivo)';
+    headerText = i18n('headerAdditive', lang);
     headerColor = '#3b82f6'; // Blue-500
-    toggleText = '🔄 Mudar para Despesa';
+    toggleText = i18n('btnToggleExpense', lang);
   }
 
   // Header Toggle Button
@@ -676,7 +676,7 @@ function buildCcFlexMessage(availableCcs: { pId: string; ccId: string; ccName: s
       type: 'postback',
       label: toggleText,
       data: `action=toggle_type&expenseId=${expenseId}`,
-      displayText: '🔄 Type changed'
+      displayText: i18n('typeChanged', lang)
     },
     style: 'secondary',
     height: 'sm',
@@ -708,9 +708,9 @@ function buildCcFlexMessage(availableCcs: { pId: string; ccId: string; ccName: s
      type: 'button',
      action: {
        type: 'postback',
-       label: '❌ Cancel / キャンセル',
+       label: i18n('btnCancel', lang),
        data: `action=cancel&expenseId=${expenseId}`,
-       displayText: 'Cancelled'
+       displayText: i18n('cancelled', lang)
      },
      style: 'primary',
      color: '#ef4444',
@@ -720,7 +720,7 @@ function buildCcFlexMessage(availableCcs: { pId: string; ccId: string; ccName: s
 
   return {
     type: 'flex',
-    altText: '📁 原価センターを選択してください / Choose CC',
+    altText: i18n('altSelectCc', lang),
     contents: {
        type: 'bubble',
        size: 'mega',
@@ -794,10 +794,10 @@ async function findDuplicateExpense(companyId: string, amount: number, date: str
 }
 
 // ── Flex de confirmação de duplicata ──────────────────────────────────────────
-function buildDuplicateFlexMessage(expenseId: string): any {
+function buildDuplicateFlexMessage(expenseId: string, lang: import('@/ai/i18n').Lang): any {
   return {
     type: 'flex',
-    altText: '⚠️ 重複確認 / Duplicate detected',
+    altText: i18n('altSelectCc', lang),
     contents: {
       type: 'bubble',
       size: 'kilo',
@@ -809,14 +809,14 @@ function buildDuplicateFlexMessage(expenseId: string): any {
         contents: [
           {
             type: 'button',
-            action: { type: 'postback', label: '❌ キャンセル / Cancel', data: `action=cancel_duplicate&expenseId=${expenseId}`, displayText: 'Cancel' },
+            action: { type: 'postback', label: i18n('duplicateCancel', lang), data: `action=cancel_duplicate&expenseId=${expenseId}`, displayText: i18n('cancelled', lang) },
             style: 'primary',
             color: '#ef4444',
             height: 'sm',
           },
           {
             type: 'button',
-            action: { type: 'postback', label: '⚠️ 両方保存して後で確認', data: `action=keep_duplicate&expenseId=${expenseId}`, displayText: 'Keep both for review' },
+            action: { type: 'postback', label: i18n('duplicateKeep', lang), data: `action=keep_duplicate&expenseId=${expenseId}`, displayText: i18n('btnKeepBoth', lang) },
             style: 'secondary',
             height: 'sm',
           },

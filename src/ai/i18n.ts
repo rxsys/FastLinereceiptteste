@@ -344,9 +344,24 @@ const TRANSLATIONS = {
     en: (name: string, dt: string) => `⚠️ Possible duplicate\n\n${name} already registered this receipt on ${dt}.\n\nCancel or keep both for later review?`,
     es: (name: string, dt: string) => `⚠️ Posible duplicado\n\n${name} ya registró este recibo el ${dt}.\n\n¿Cancelar o mantener ambos para revisión?`,
     zh: (name: string, dt: string) => `⚠️ 可能重复\n\n${name} 已于 ${dt} 登记了相同收据。\n\n取消还是保留两者供后续审查？`,
-    ko: (name: string, dt: string) => `⚠️ 중복 가능성\n\n${name}님이 ${dt}에 동일한 영수증을 이미 등록했습니다.\n\n취소 또는 두 개 모두 보관?`,
-    vi: (name: string, dt: string) => `⚠️ Có thể trùng lặp\n\n${name} đã đăng ký hóa đơn này vào ${dt}.\n\nHủy hay giữ cả hai để xem xét sau?`,
+    ko: (name: string, dt: string) => `⚠️ 중복 가능성\n\n${name}님이 ${dt}에 동일한 영수증을 이미 제출했습니다.\n\n취소 또는 두 개 모두 보관?`,
+    vi: (name: string, dt: string) => `⚠️ Có thể trùng lặp\n\nBạn đã gửi hóa đơn này vào ${dt}.\n\nHủy hay giữ cả hai để xem xét sau?`,
   } as TranslationEntry,
+
+  // ── Flex Messages & UI ──
+  headerExpense: { ja: '🔽 経費登録', pt: '🔽 Registro de Despesa', en: '🔽 Expense Recording' },
+  headerAmortization: { ja: '🟩 入金登録 (償却)', pt: '🟩 Entrada (Amortização)', en: '🟩 Income (Amortization)' },
+  headerAdditive: { ja: '🟦 入金登録 (加算)', pt: '🟦 Entrada (Aditivo)', en: '🟦 Income (Additive)' },
+  btnToggleAmortization: { ja: '🔄 入金 (償却) へ変更', pt: '🔄 Mudar para Amortização', en: '🔄 Change to Amortization' },
+  btnToggleAdditive: { ja: '🔄 入金 (加算) へ変更', pt: '🔄 Mudar para Aditivo', en: '🔄 Change to Additive' },
+  btnToggleExpense: { ja: '🔄 経費へ変更', pt: '🔄 Mudar para Despesa', en: '🔄 Change to Expense' },
+  btnCancel: { ja: '❌ キャンセル', pt: '❌ Cancelar', en: '❌ Cancel' },
+  altSelectCc: { ja: '📁 原価センターを選択してください', pt: '📁 Escolha o centro de custo', en: '📁 Choose cost center' },
+  typeChanged: { ja: '🔄 種別を変更しました', pt: '🔄 Tipo alterado', en: '🔄 Type changed' },
+  duplicateCancel: { ja: '❌ キャンセル', pt: '❌ Cancelar', en: '❌ Cancel' },
+  duplicateKeep: { ja: '⚠️ 両方保存して後で確認', pt: '⚠️ Manter ambos para revisão', en: '⚠️ Keep both for review' },
+  btnKeepBoth: { ja: '両方保存しました', pt: 'Ambos foram salvos', en: 'Both were saved' },
+  notReceipt: { ja: '⚠️ レシートが検出されませんでした。', pt: '⚠️ Nenhum recibo detectado.', en: '⚠️ No receipt detected.' },
 };
 
 // ─── Public API ───────────────────────────────────────────────────────────────
