@@ -44,23 +44,30 @@ function UserBalanceBadge({ userId, lineUserId, ownerId }: { userId: string; lin
   }, [database, ownerId, userId, lineUserId]);
 
   if (balance === null) return null;
-  if (balance > 0) return (
-    <div className="mt-2 flex items-center gap-1.5 bg-blue-50 border border-blue-100 rounded-xl px-3 py-1.5">
-      <span className="text-[9px] font-black text-blue-400 uppercase tracking-tight">残高</span>
-      <span className="text-sm font-black text-blue-600">¥{balance.toLocaleString()}</span>
-      <span className="text-[8px] font-bold text-blue-400">🔵 残高あり</span>
-    </div>
-  );
-  if (balance < 0) return (
-    <div className="mt-2 flex items-center gap-1.5 bg-red-50 border border-red-100 rounded-xl px-3 py-1.5">
-      <span className="text-[9px] font-black text-red-400 uppercase tracking-tight">要精算</span>
-      <span className="text-sm font-black text-red-600">¥{Math.abs(balance).toLocaleString()}</span>
-      <span className="text-[8px] font-bold text-red-400">🔴 要精算</span>
-    </div>
-  );
+  const isUserPositive = balance < 0; // Usuário tem a receber (Vermelho)
+  const isCompanyPositive = balance > 0; // Empresa tem saldo com o usuário (Azul)
+
   return (
-    <div className="mt-2 flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-1.5">
-      <span className="text-sm font-black text-emerald-600">✅ 精算済み</span>
+    <div className={cn(
+      "mt-2 flex items-center justify-between px-3 py-2 rounded-xl border font-black",
+      isUserPositive ? "bg-red-50 border-red-100 text-red-600" : 
+      isCompanyPositive ? "bg-blue-50 border-blue-100 text-blue-600" :
+      "bg-emerald-50 border-emerald-100 text-emerald-600"
+    )}>
+      <div className="flex items-center gap-2">
+        <span className="text-[9px] uppercase tracking-wider opacity-70">差引残高</span>
+        <span className="text-sm">
+          {balance < 0 ? '-' : ''}¥{Math.abs(balance).toLocaleString()}
+        </span>
+      </div>
+      <Badge className={cn(
+        "text-[8px] border-none",
+        isUserPositive ? "bg-red-500 text-white" : 
+        isCompanyPositive ? "bg-blue-500 text-white" :
+        "bg-emerald-500 text-white"
+      )}>
+        {isUserPositive ? "●要精算" : isCompanyPositive ? "●残高あり" : "●精算済み"}
+      </Badge>
     </div>
   );
 }

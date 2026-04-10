@@ -174,6 +174,14 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
                 <TrendingUp className="w-3.5 h-3.5" />
                 + クレジット追加
               </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="rounded-full text-white/50 hover:text-white hover:bg-white/10"
+              >
+                <X className="w-5 h-5" />
+              </Button>
             </div>
           </div>
 
@@ -315,27 +323,36 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
             </div>
 
             {/* Footer */}
-            <div className="shrink-0 border-t border-slate-100 px-8 py-4 bg-slate-50/50">
+            <div className="shrink-0 border-t border-slate-100 px-8 py-5 bg-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-tight">支出合計</span>
                     <span className="text-sm font-black text-red-500">¥{totalExpenses.toLocaleString()}</span>
                   </div>
-                  <div className="text-slate-200 font-black">|</div>
+                  <div className="text-slate-100 font-black">|</div>
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-tight">受取合計</span>
                     <span className="text-sm font-black text-blue-600">¥{totalAdvances.toLocaleString()}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-tight">差引残高</span>
-                  <span className={cn(
-                    'text-base font-black',
-                    balance > 0 ? 'text-blue-600' : balance < 0 ? 'text-red-500' : 'text-emerald-600'
-                  )}>
-                    {balance < 0 ? '-' : ''}¥{Math.abs(balance).toLocaleString()}
-                  </span>
+
+                <div className="flex items-center gap-6">
+                  <div className="flex flex-col items-end">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-tight">差引残高</span>
+                    <span className={cn(
+                      'text-lg font-black',
+                      balance > 0 ? 'text-blue-600' : balance < 0 ? 'text-red-500' : 'text-emerald-600'
+                    )}>
+                      {balance < 0 ? '-' : ''}¥{Math.abs(balance).toLocaleString()}
+                    </span>
+                  </div>
+                  <Button 
+                    onClick={onClose}
+                    className="rounded-2xl h-11 px-8 font-black bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  >
+                    閉じる
+                  </Button>
                 </div>
               </div>
             </div>
