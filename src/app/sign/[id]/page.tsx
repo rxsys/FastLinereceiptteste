@@ -45,9 +45,13 @@ export default function SignReceiptPage() {
     if (!database || !id) return;
     const fetchReceipt = async () => {
       try {
+        // Formato: ${ownerId}_${userId}_${receiptId}
+        // receiptId (pushId RTDB) pode conter '_', então reagrupa o resto.
         const parts = (id as string).split('_');
         if (parts.length < 3) { setLoading(false); return; }
-        const [oId, uId, rId] = parts;
+        const oId = parts[0];
+        const uId = parts[1];
+        const rId = parts.slice(2).join('_');
         const rRef = ref(database, `owner_data/${oId}/lineUsers/${uId}/wallet/advances/${rId}`);
         const snap = await get(rRef);
         if (snap.exists()) setReceipt({ ...snap.val(), oId, uId, rId });
