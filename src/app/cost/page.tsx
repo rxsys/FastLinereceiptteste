@@ -122,7 +122,7 @@ export default function DashboardPage() {
                 <div className="w-1 h-1 rounded-full bg-slate-200" />
                 <Badge variant="outline" className="text-[10px] font-black bg-primary/5 text-primary">{role || 'USER'}</Badge>
              </div>
-             <Button variant="ghost" size="sm" onClick={() => signOut(auth!)} className="text-slate-400 hover:text-red-500 font-black text-xs"><LogOut className="w-4 h-4 mr-2" />Sair</Button>
+             <Button variant="ghost" size="sm" onClick={() => signOut(auth!)} className="text-slate-400 hover:text-red-500 font-black text-xs"><LogOut className="w-4 h-4 mr-2" />{t.dash?.logout || 'Logout'}</Button>
           </div>
         </div>
 
