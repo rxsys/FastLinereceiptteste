@@ -125,15 +125,27 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
       setAdvances(advList);
 
       // LINE push notification with Signature Link
-      const lineId = (user.lineUserId?.startsWith('U') ? user.lineUserId : null) || 
-                     (user.id?.startsWith('U') ? user.id : null) || 
-                     user.lineUserId || 
+      const lineId = (user.lineUserId?.startsWith('U') ? user.lineUserId : null) ||
+                     (user.id?.startsWith('U') ? user.id : null) ||
+                     user.lineUserId ||
                      user.id;
-      
+
       console.log('[WalletDebug] Verificação de ID do LINE:', { lineId, user, receiptId });
-      
+
       if (lineId && receiptId) {
-        const signUrl = `${window.location.origin}/sign/${ownerId}_${user.id}_${receiptId}`;
+        // Fetch LIFF ID from owner config — build LIFF URL if configured
+        const token = `${ownerId}_${user.id}_${receiptId}`;
+        let signUrl = `${window.location.origin}/sign/${token}`;
+        try {
+          const ownerSnap = await get(ref(database!, `owner/${ownerId}`));
+          const liffSignId = ownerSnap.val()?.liffSignId;
+          if (liffSignId) {
+            signUrl = `https://liff.line.me/${liffSignId}/${token}`;
+            console.log('[WalletDebug] Usando URL LIFF:', signUrl);
+          }
+        } catch (e) {
+          console.warn('[WalletDebug] Falha ao buscar liffSignId, usando URL direta.');
+        }
         const result = await notifyWalletCredit(ownerId, lineId, Number(creditAmount), creditDesc, signUrl);
         if (!result.success) {
           toast({ 

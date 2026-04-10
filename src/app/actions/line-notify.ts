@@ -195,3 +195,99 @@ export async function notifyReviewStatus(
     return { success: false, error: String(error) };
   }
 }
+
+/**
+ * Server Action para confirmar ao usuário LINE que a assinatura foi recebida.
+ */
+export async function notifySignatureComplete(
+  ownerId: string,
+  lineUserId: string,
+  amount: number,
+  description: string,
+  signedAt: string
+) {
+  try {
+    const ownerData = await getOwnerCredentials(ownerId);
+    if (!ownerData) return { success: false, error: 'Owner not found' };
+
+    const accessToken = ownerData.lineChannelAccessToken;
+    if (!accessToken) return { success: false, error: 'Access token missing' };
+
+    const lineClient = getLineClient(accessToken);
+
+    const dateStr = new Date(signedAt).toLocaleString('ja-JP', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit'
+    });
+
+    await lineClient.pushMessage({
+      to: lineUserId,
+      messages: [
+        {
+          type: 'flex',
+          altText: '✅ 署名が完了しました',
+          contents: {
+            type: 'bubble',
+            header: {
+              type: 'box',
+              layout: 'vertical',
+              backgroundColor: '#064e3b',
+              contents: [
+                { type: 'text', text: '✅ 署名完了', weight: 'bold', color: '#ffffff', size: 'sm' }
+              ]
+            },
+            body: {
+              type: 'box',
+              layout: 'vertical',
+              spacing: 'md',
+              contents: [
+                { type: 'text', text: '領収書への署名が確認されました', weight: 'bold', size: 'md', color: '#111827', wrap: true },
+                {
+                  type: 'box',
+                  layout: 'vertical',
+                  margin: 'lg',
+                  spacing: 'sm',
+                  contents: [
+                    {
+                      type: 'box', layout: 'baseline', spacing: 'sm',
+                      contents: [
+                        { type: 'text', text: '金額', color: '#6b7280', size: 'sm', flex: 2 },
+                        { type: 'text', text: `¥${amount.toLocaleString('ja-JP')}`, weight: 'bold', color: '#111827', size: 'sm', flex: 5 }
+                      ]
+                    },
+                    {
+                      type: 'box', layout: 'baseline', spacing: 'sm',
+                      contents: [
+                        { type: 'text', text: '摘要', color: '#6b7280', size: 'sm', flex: 2 },
+                        { type: 'text', text: description || '—', color: '#111827', size: 'sm', flex: 5, wrap: true }
+                      ]
+                    },
+                    {
+                      type: 'box', layout: 'baseline', spacing: 'sm',
+                      contents: [
+                        { type: 'text', text: '署名日時', color: '#6b7280', size: 'sm', flex: 2 },
+                        { type: 'text', text: dateStr, color: '#111827', size: 'sm', flex: 5, wrap: true }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            footer: {
+              type: 'box',
+              layout: 'vertical',
+              contents: [
+                { type: 'text', text: 'このメッセージは自動送信です', color: '#9ca3af', size: 'xs', align: 'center' }
+              ]
+            }
+          }
+        }
+      ]
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('[NotifySignatureComplete] Error:', error);
+    return { success: false, error: String(error) };
+  }
+}
