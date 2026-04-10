@@ -19,6 +19,8 @@ import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UserWalletModal } from './lineusers/UserWalletModal';
+import { EditExpenseDialog } from './expenses/EditExpenseDialog';
+import { Expense } from '@/types';
 
 function UserBalanceBadge({ userId, lineUserId, ownerId }: { userId: string; lineUserId?: string; ownerId: string }) {
   const database = useDatabase();
@@ -81,7 +83,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
   const [editing, setEditing] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [walletUser, setWalletUser] = useState<any | null>(null);
-  const [walletExpenseToEdit, setWalletExpenseToEdit] = useState<any | null>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   const [newInviteName, setNewInviteName] = useState('');
   const [selectedInviteProjectIds, setSelectedInviteProjectIds] = useState<string[]>([]);
@@ -639,6 +641,23 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
            </div>
         </DialogContent>
       </Dialog>
+
+      <EditExpenseDialog
+        expense={editingExpense}
+        costCenters={costCenters}
+        isOpen={!!editingExpense}
+        onClose={() => setEditingExpense(null)}
+        onSave={async (updated) => {
+          if (!database || !effectiveOwnerId) return;
+          const { id, ...data } = updated;
+          await update(ref(database, `owner_data/${effectiveOwnerId}/expenses/${id}`), { ...data, amount: Number(updated.amount), updatedAt: new Date().toISOString() });
+          setEditingExpense(null);
+          toast({ title: "変更を保存しました" });
+        }}
+        onUpdateState={setEditingExpense}
+        ownerId={effectiveOwnerId || undefined}
+        t={t}
+      />
     </div>
   );
 }
