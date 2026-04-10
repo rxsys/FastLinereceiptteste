@@ -6,7 +6,7 @@ import { ref, onValue, set } from 'firebase/database';
 import { Save, Bell, Link } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface Props { ownerId: string; }
 
