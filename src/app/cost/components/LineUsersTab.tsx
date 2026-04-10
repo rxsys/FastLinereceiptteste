@@ -100,24 +100,25 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
   const { data: owner } = useRTDBDoc(ownerPath);
   const { data: projects } = useRTDBCollection<any>(projectsRef);
 
-  const costCenters = useMemo(() => {
+  const allCostCenters = useMemo(() => {
     const ccs: any[] = [];
     projects?.forEach(p => {
       if (p.costcenters) {
         Object.entries(p.costcenters).forEach(([id, data]: [string, any]) => {
-          ccs.push({ id, projectId: p.id, ...data });
+          ccs.push({ id, projectId: p.id, projectName: p.name, ...data });
         });
       }
     });
     return ccs;
   }, [projects]);
+  
+  const costCenters = allCostCenters; // Alias for the dialog prop
 
   const poolRef = useMemoFirebase(() => database ? ref(database, 'line_api_pool') : null, [database]);
   const { data: pool } = useRTDBCollection(poolRef);
 
   const { data: lineUsers } = useRTDBCollection(usersRef);
   const { data: invitesRaw } = useRTDBCollection(invitesRef);
-  const { data: projects } = useRTDBCollection(projectsRef);
 
   const invites = useMemo(() => invitesRaw?.filter(i => !i.used) || [], [invitesRaw]);
 
@@ -127,13 +128,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
   const qrData = botId ? `https://line.me/R/oaMessage/${botId}/?${encodeURIComponent(regMessage)}` : '';
   const qrUrl = qrData ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrData)}` : '';
 
-  const allCostCenters = useMemo(() => {
-    const ccs: any[] = [];
-    projects?.forEach(p => {
-      if (p.costcenters) Object.entries(p.costcenters).forEach(([id, data]: [string, any]) => ccs.push({ id, projectId: p.id, projectName: p.name, ...data }));
-    });
-    return ccs;
-  }, [projects]);
+
 
   const filteredLineUsers = useMemo(() => {
     if (!lineUsers) return [];
