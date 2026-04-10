@@ -2,10 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { useDatabase, useStorage } from '@/firebase';
-import { ref, get, update } from 'firebase/database';
-import { ref as storageRef, uploadString, getDownloadURL } from 'firebase/storage';
-import { notifySignatureComplete } from '@/app/actions/line-notify';
+import { getSignReceipt, saveSignature } from '@/app/actions/sign';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, CheckCircle2, PenTool, Eraser, X, Shield } from 'lucide-react';
@@ -26,8 +23,6 @@ declare global {
 
 export default function SignReceiptPage() {
   const { id } = useParams();
-  const database = useDatabase();
-  const storage = useStorage();
 
   const [receipt, setReceipt] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -40,21 +35,18 @@ export default function SignReceiptPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawingRef = useRef(false);
 
-  // Fetch receipt data
+  const [liffSignId, setLiffSignId] = useState<string | null>(null);
+
+  // Fetch receipt data via server action (bypassa regras RTDB/Auth)
   useEffect(() => {
-    if (!database || !id) return;
+    if (!id) return;
     const fetchReceipt = async () => {
       try {
-        // Formato: ${ownerId}_${userId}_${receiptId}
-        // receiptId (pushId RTDB) pode conter '_', então reagrupa o resto.
-        const parts = (id as string).split('_');
-        if (parts.length < 3) { setLoading(false); return; }
-        const oId = parts[0];
-        const uId = parts[1];
-        const rId = parts.slice(2).join('_');
-        const rRef = ref(database, `owner_data/${oId}/lineUsers/${uId}/wallet/advances/${rId}`);
-        const snap = await get(rRef);
-        if (snap.exists()) setReceipt({ ...snap.val(), oId, uId, rId });
+        const result = await getSignReceipt(id as string);
+        if (result.success && result.receipt) {
+          setReceipt(result.receipt);
+          setLiffSignId(result.liffSignId || null);
+        }
       } catch (err) {
         console.error('Error fetching receipt:', err);
       } finally {
@@ -62,27 +54,22 @@ export default function SignReceiptPage() {
       }
     };
     fetchReceipt();
-  }, [database, id]);
+  }, [id]);
 
   // Initialize LIFF after SDK loads
   const initLiff = useCallback(async () => {
-    if (!receipt?.oId || !window.liff) return;
+    if (!liffSignId || !window.liff) return;
     try {
-      // Fetch liffSignId from owner config
-      const ownerSnap = await get(ref(database!, `owner/${receipt.oId}`));
-      const liffId = ownerSnap.val()?.liffSignId;
-      if (liffId) {
-        await window.liff.init({ liffId });
-        const inClient = window.liff.isInClient();
-        setIsInLiff(inClient);
-        console.log('[LIFF] initialized, isInClient:', inClient);
-      }
+      await window.liff.init({ liffId: liffSignId });
+      const inClient = window.liff.isInClient();
+      setIsInLiff(inClient);
+      console.log('[LIFF] initialized, isInClient:', inClient);
     } catch (err) {
       console.warn('[LIFF] init failed (running outside LINE):', err);
     } finally {
       setLiffReady(true);
     }
-  }, [receipt, database]);
+  }, [liffSignId]);
 
   // Canvas setup
   useEffect(() => {
@@ -151,41 +138,22 @@ export default function SignReceiptPage() {
 
   const handleSaveSignature = async () => {
     const canvas = canvasRef.current;
-    if (!canvas || !storage || !database || !receipt) return;
+    if (!canvas || !receipt) return;
     setSaving(true);
     try {
-      // 1. Upload signature to Storage
       const dataUrl = canvas.toDataURL('image/png');
-      const path = `owners/${receipt.oId}/signatures/${receipt.rId}.png`;
-      const sRef = storageRef(storage, path);
-      await uploadString(sRef, dataUrl, 'data_url');
-      const signatureUrl = await getDownloadURL(sRef);
-
-      // 2. Update RTDB
-      const signedAt = new Date().toISOString();
-      const rRef = ref(database, `owner_data/${receipt.oId}/lineUsers/${receipt.uId}/wallet/advances/${receipt.rId}`);
-      await update(rRef, { signed: true, signatureUrl, signedAt });
-
-      // 3. Send LINE confirmation to user (get lineUserId from RTDB)
-      try {
-        const userSnap = await get(ref(database, `owner_data/${receipt.oId}/lineUsers/${receipt.uId}`));
-        const lineUserId = userSnap.val()?.lineUserId || receipt.uId;
-        if (lineUserId?.startsWith('U')) {
-          await notifySignatureComplete(receipt.oId, lineUserId, receipt.amount, receipt.description, signedAt);
-        }
-      } catch (notifyErr) {
-        console.warn('[Sign] confirmation notify failed:', notifyErr);
+      const result = await saveSignature(id as string, dataUrl);
+      if (!result.success) {
+        alert(`エラー: ${result.error || '不明なエラー'}`);
+        return;
       }
-
       setDone(true);
-
-      // 4. Close LIFF if in LINE client
       if (isInLiff && window.liff?.isInClient()) {
         setTimeout(() => window.liff.closeWindow(), 1500);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving signature:', err);
-      alert('エラーが発生しました。もう一度お試しください。');
+      alert(`エラーが発生しました: ${err?.message || err}`);
     } finally {
       setSaving(false);
     }
