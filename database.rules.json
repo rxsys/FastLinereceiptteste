@@ -43,6 +43,13 @@
     "versions": {
       ".read": "auth != null",
       ".write": "root.child('users').child(auth.uid).child('role').val() === 'developer'"
+    },
+    "audit_logs": {
+      "$ownerId": {
+        ".read": "root.child('users').child(auth.uid).child('ownerId').val() === $ownerId || root.child('users').child(auth.uid).child('role').val() === 'developer'",
+        ".write": false,
+        ".indexOn": ["timestamp"]
+      }
     }
   }
 }

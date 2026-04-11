@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { AuditLogPanel } from './AuditLogPanel';
 
 export function SettingsTab({ version, hideUserManagement = false, t }: { version: string, hideAddOwner?: boolean, hideUserManagement?: boolean, t: any }) {
   const { user, ownerId, role } = useUser();
@@ -171,6 +172,8 @@ export function SettingsTab({ version, hideUserManagement = false, t }: { versio
           </CardContent>
         </Card>
       )}
+      {ownerId && <AuditLogPanel ownerId={ownerId} />}
+
       <div className="flex items-center justify-between p-6 bg-slate-900 rounded-[2rem] text-slate-400">
         <div className="flex items-center gap-2">
           <ShieldCheck className="text-emerald-400 w-4 h-4"/>

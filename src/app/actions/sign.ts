@@ -2,6 +2,7 @@
 
 import { rtdb, adminStorage } from '@/lib/firebase';
 import { notifySignatureComplete } from './line-notify';
+import { logAudit } from '@/lib/audit';
 
 function parseToken(token: string) {
   // Formato: ${ownerId}_${userId}_${receiptId}
@@ -67,6 +68,7 @@ export async function saveSignature(token: string, dataUrl: string) {
     // 3. Atualizar RTDB
     const signedAt = new Date().toISOString();
     await advRef.update({ signed: true, signatureUrl, signedAt, status: 'signed' });
+    logAudit({ ownerId: oId, actor: { type: 'lineUser', id: uId, name: uId }, action: 'update', entity: { type: 'signature', id: rId, path: `owner_data/${oId}/lineUsers/${uId}/wallet/advances/${rId}`, label: `¥${Number(receipt.amount||0).toLocaleString()} ${receipt.description||''}` }, before: receipt, after: { ...receipt, signed: true, signatureUrl, signedAt, status: 'signed' }, source: 'webhook' });
 
     // 4. Notificar LINE (buscar lineUserId do perfil)
     try {

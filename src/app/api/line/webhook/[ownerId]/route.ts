@@ -8,6 +8,7 @@ import { adminStorage } from '@/lib/firebase';
 import { processExpenseNtaCheck } from '@/lib/nta-service';
 import { handleLineTextMessage, saveUserPreference, learnFromExpense, suggestCcFromPatterns, detectAmountAnomaly } from '@/ai/line-ai-manager';
 import { i18n } from '@/ai/i18n';
+import { logAudit } from '@/lib/audit';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ ownerId: string }> }) {
   const { ownerId: webhookId } = await params;
@@ -109,6 +110,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
           await rtdb.ref(`owner_data/${companyId}/expenses/${expenseId}`).update({
              costcenterId: ccId, costcenterName: ccName, projectId: pId, status: 'processed'
           });
+          logAudit({ ownerId: companyId, actor: { type: 'lineUser', id: userId, name: senderName }, action: 'update', entity: { type: 'expense', id: expenseId!, path: `owner_data/${companyId}/expenses/${expenseId}`, label: `¥${Number(expData.amount||0).toLocaleString()} ${expData.description||''}` }, before: expData, after: { ...expData, costcenterId: ccId, costcenterName: ccName, projectId: pId, status: 'processed' }, source: 'line_bot' });
           await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/preferences/pendingExpenseId`).remove();
           saveUserPreference(companyId, userId, { favoriteCcId: ccId || '', favoriteCcName: ccName || '' }).catch(() => {});
           // Aprender padrão: categoria → CC
@@ -317,6 +319,7 @@ async function processInviteHash(lineClient: any, companyId: string, userId: str
   }
 
   await rtdb.ref(`owner_data/${companyId}/invites/${inviteKey}`).update({ used: true, usedBy: userId, usedAt: new Date().toISOString() });
+  logAudit({ ownerId: companyId, actor: { type: 'lineUser', id: userId, name: senderName }, action: 'create', entity: { type: 'lineUser', id: userId, path: `owner_data/${companyId}/lineUsers/${userId}`, label: inviteData.inviteName || senderName }, after: { name: inviteData.inviteName, fullName: senderName, lineUserId: userId, status: 2 }, source: 'line_bot', metadata: { inviteHash: hash } });
 
   const msg = isManager ? i18n('managerRegistered', inviteLang, inviteData.inviteName) : i18n('userRegistered', inviteLang, inviteData.inviteName);
   logInteraction(companyId, userId, { role: 'ai', text: msg });
@@ -537,14 +540,16 @@ async function processExpense(lineClient: any, companyId: string, userId: string
       }
     }
 
-    await newExpRef.set({
+    const expensePayload = {
       type: detectedType, userId, ownerId: companyId, projectId: userData?.projectId || 'unassigned', senderName: userData?.fullName || userData?.name || 'User',
       amount, description: details?.description || 'LINE Expense', category,
       date, createdAt: new Date().toISOString(), imageUrl,
       status: duplicate ? 'duplicate_pending' : (amount > 0 ? 'pending_cc' : 'error'),
       registrationNumber: details?.registrationNumber || "", ntaStatus: 'pending',
       ...(duplicate ? { duplicateFlag: true, duplicateOf: duplicate.id } : {}),
-    });
+    };
+    await newExpRef.set(expensePayload);
+    logAudit({ ownerId: companyId, actor: { type: 'lineUser', id: userId, name: userData?.fullName || userData?.name || 'User' }, action: 'create', entity: { type: 'expense', id: expenseId!, path: `owner_data/${companyId}/expenses/${expenseId}`, label: `¥${amount.toLocaleString()} ${details?.description || ''}` }, after: expensePayload, source: 'line_bot' });
 
     if (details?.registrationNumber && expenseId) {
       processExpenseNtaCheck(companyId, expenseId, details.registrationNumber).catch(console.error);

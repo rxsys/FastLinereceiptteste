@@ -2,6 +2,7 @@
 
 import { useRTDBCollection } from '@/firebase/rtdb';
 import { useMemoFirebase, useUser, useDatabase } from '@/firebase';
+import { auditAction } from '@/app/actions/audit';
 import { ref, update, remove } from 'firebase/database';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
@@ -856,7 +857,9 @@ export function ExpensesTab({ ownerIdOverride, t }: { expenses: Expense[], owner
         onSave={async (updated) => {
           if (!database || !effectiveOwnerId) return;
           const { id, ...data } = updated;
-          await update(ref(database, `owner_data/${effectiveOwnerId}/expenses/${id}`), { ...data, amount: Number(data.amount), updatedAt: new Date().toISOString() });
+          const updatedAt = new Date().toISOString();
+          await update(ref(database, `owner_data/${effectiveOwnerId}/expenses/${id}`), { ...data, amount: Number(data.amount), updatedAt });
+          auditAction({ ownerId: effectiveOwnerId, actor: { type: 'user', id: user?.uid || 'unknown', name: user?.displayName || user?.email || 'manager', role: role || 'manager' }, action: 'update', entity: { type: 'expense', id, path: `owner_data/${effectiveOwnerId}/expenses/${id}`, label: `¥${Number(data.amount).toLocaleString()} ${data.description||''}` }, before: editingExpense, after: { ...data, amount: Number(data.amount), updatedAt }, source: 'dashboard' }).catch(() => {});
           setEditingExpense(null);
           toast({ title: te.btnSave || "変更を保存" });
         }}
@@ -865,6 +868,7 @@ export function ExpensesTab({ ownerIdOverride, t }: { expenses: Expense[], owner
         onDelete={async (exp) => {
           if (!database || !effectiveOwnerId || !confirm(te.btnDelete || "削除しますか？")) return;
           await remove(ref(database, `owner_data/${effectiveOwnerId}/expenses/${exp.id}`));
+          auditAction({ ownerId: effectiveOwnerId, actor: { type: 'user', id: user?.uid || 'unknown', name: user?.displayName || user?.email || 'manager', role: role || 'manager' }, action: 'delete', entity: { type: 'expense', id: exp.id, path: `owner_data/${effectiveOwnerId}/expenses/${exp.id}`, label: `¥${Number(exp.amount).toLocaleString()} ${exp.description||''}` }, before: exp, source: 'dashboard' }).catch(() => {});
           setEditingExpense(null);
           toast({ title: te.btnDelete || "削除しました" });
         }}

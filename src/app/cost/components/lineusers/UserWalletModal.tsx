@@ -5,6 +5,8 @@ import { useDatabase, useStorage } from '@/firebase';
 import { ref, push, set, get, onValue, update, remove } from 'firebase/database';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { notifyWalletCredit } from '@/app/actions/line-notify';
+import { auditAction } from '@/app/actions/audit';
+import { useUser } from '@/firebase';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +30,7 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
   const database = useDatabase();
   const storage = useStorage();
   const { toast } = useToast();
+  const { user: authUser } = useUser();
 
   const [expenses, setExpenses] = useState<any[]>([]);
   const [advances, setAdvances] = useState<any[]>([]);
@@ -137,14 +140,9 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
       const imageUrl = await uploadEvidence();
       const advRef = push(ref(database, `owner_data/${ownerId}/lineUsers/${user.id}/wallet/advances`));
       const receiptId = advRef.key;
-      await set(advRef, {
-        amount: Number(creditAmount),
-        description: creditDesc,
-        ...(imageUrl ? { imageUrl } : {}),
-        createdAt: new Date().toISOString(),
-        signed: true,
-        status: 'manual',
-      });
+      const manualPayload = { amount: Number(creditAmount), description: creditDesc, ...(imageUrl ? { imageUrl } : {}), createdAt: new Date().toISOString(), signed: true, status: 'manual' };
+      await set(advRef, manualPayload);
+      auditAction({ ownerId, actor: { type: 'user', id: authUser?.uid || 'unknown', name: authUser?.displayName || authUser?.email || 'manager', role: 'manager' }, action: 'create', entity: { type: 'advance', id: receiptId || '', path: `owner_data/${ownerId}/lineUsers/${user.id}/wallet/advances/${receiptId}`, label: `¥${Number(creditAmount).toLocaleString()} ${creditDesc} (手書き)` }, after: manualPayload, source: 'dashboard' }).catch(() => {});
       resetCreditForm();
       toast({
         title: '手書き領収書を登録しました',
@@ -176,14 +174,9 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
       const advRef = push(ref(database, `owner_data/${ownerId}/lineUsers/${user.id}/wallet/advances`));
       const receiptId = advRef.key;
       const createdAt = new Date().toISOString();
-      await set(advRef, {
-        amount: Number(creditAmount),
-        description: creditDesc,
-        ...(imageUrl ? { imageUrl } : {}),
-        createdAt,
-        signed: false,
-        status: 'pending_signature',
-      });
+      const linePayload = { amount: Number(creditAmount), description: creditDesc, ...(imageUrl ? { imageUrl } : {}), createdAt, signed: false, status: 'pending_signature' };
+      await set(advRef, linePayload);
+      auditAction({ ownerId, actor: { type: 'user', id: authUser?.uid || 'unknown', name: authUser?.displayName || authUser?.email || 'manager', role: 'manager' }, action: 'create', entity: { type: 'advance', id: receiptId || '', path: `owner_data/${ownerId}/lineUsers/${user.id}/wallet/advances/${receiptId}`, label: `¥${Number(creditAmount).toLocaleString()} ${creditDesc} (LINE署名)` }, after: linePayload, source: 'dashboard' }).catch(() => {});
 
       const lineId = (user.lineUserId?.startsWith('U') ? user.lineUserId : null) ||
                      (user.id?.startsWith('U') ? user.id : null) ||
@@ -222,11 +215,10 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
     setSaving(true);
     try {
       const advRef = ref(database, `owner_data/${ownerId}/lineUsers/${user.id}/wallet/advances/${editingAdv.id}`);
-      await update(advRef, {
-        amount: Number(editingAdv.amount),
-        description: editingAdv.description,
-        updatedAt: new Date().toISOString()
-      });
+      const { id, viewOnly, ...beforeData } = editingAdv;
+      const updatedAt = new Date().toISOString();
+      await update(advRef, { amount: Number(editingAdv.amount), description: editingAdv.description, updatedAt });
+      auditAction({ ownerId, actor: { type: 'user', id: authUser?.uid || 'unknown', name: authUser?.displayName || authUser?.email || 'manager', role: 'manager' }, action: 'update', entity: { type: 'advance', id: editingAdv.id, path: `owner_data/${ownerId}/lineUsers/${user.id}/wallet/advances/${editingAdv.id}`, label: `¥${Number(editingAdv.amount).toLocaleString()} ${editingAdv.description}` }, before: beforeData, after: { ...beforeData, amount: Number(editingAdv.amount), description: editingAdv.description, updatedAt }, source: 'dashboard' }).catch(() => {});
       setEditingAdv(null);
       toast({ title: '更新いたしました' });
     } catch (e) {
@@ -240,7 +232,9 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
     if (!database || !ownerId || !user?.id) return;
     try {
       const advRef = ref(database, `owner_data/${ownerId}/lineUsers/${user.id}/wallet/advances/${advId}`);
+      const snap = advances.find(a => a.id === advId);
       await remove(advRef);
+      if (snap) auditAction({ ownerId, actor: { type: 'user', id: authUser?.uid || 'unknown', name: authUser?.displayName || authUser?.email || 'manager', role: 'manager' }, action: 'delete', entity: { type: 'advance', id: advId, path: `owner_data/${ownerId}/lineUsers/${user.id}/wallet/advances/${advId}`, label: `¥${Number(snap.amount).toLocaleString()} ${snap.description}` }, before: snap, source: 'dashboard' }).catch(() => {});
       setShowDeleteConfirm(null);
       toast({ title: '削除いたしました' });
     } catch (e) {
