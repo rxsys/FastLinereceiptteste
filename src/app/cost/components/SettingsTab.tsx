@@ -16,8 +16,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { AuditLogPanel } from './AuditLogPanel';
 
-export function SettingsTab({ version, hideUserManagement = false, t }: { version: string, hideAddOwner?: boolean, hideUserManagement?: boolean, t: any }) {
-  const { user, ownerId, role } = useUser();
+export function SettingsTab({ version, hideUserManagement = false, t, ownerIdOverride }: { version: string, hideAddOwner?: boolean, hideUserManagement?: boolean, t: any, ownerIdOverride?: string }) {
+  const { user, ownerId: userOwnerId, role } = useUser();
+  const ownerId = ownerIdOverride || userOwnerId;
   const database = useDatabase();
   const { toast } = useToast();
 

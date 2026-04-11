@@ -142,7 +142,7 @@ export default function DashboardPage() {
           <TabsContent value="expenses" className="mt-0"><ExpensesTab expenses={[]} ownerIdOverride={selectedOwnerId || undefined} t={t} /></TabsContent>
           <TabsContent value="lineUsers" className="mt-0"><LineUsersTab ownerIdOverride={selectedOwnerId || undefined} t={t} /></TabsContent>
           <TabsContent value="management" className="mt-0"><ManagementTab ownerIdOverride={selectedOwnerId || undefined} t={t} /></TabsContent>
-          <TabsContent value="settings" className="mt-0"><SettingsTab version={APP_VERSION} hideUserManagement={false} t={t} /></TabsContent>
+          <TabsContent value="settings" className="mt-0"><SettingsTab version={APP_VERSION} hideUserManagement={false} t={t} ownerIdOverride={selectedOwnerId || undefined} /></TabsContent>
         </Tabs>
       </div>
 
