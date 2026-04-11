@@ -106,7 +106,7 @@ export function UserInteractionModal({ isOpen, onClose, user, ownerId }: UserInt
               </div>
             ) : null}
 
-            <ScrollArea className="h-full px-6 py-6" ref={scrollRef}>
+            <ScrollArea className="h-full px-6 py-6">
               <div className="space-y-6">
                 {interactions.length === 0 && !loading && (
                   <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">

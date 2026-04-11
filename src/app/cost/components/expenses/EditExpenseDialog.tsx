@@ -11,6 +11,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Expense, CostCenter, CATEGORY_MAP } from '@/types';
 import { notifyReviewStatus } from '@/app/actions/line-notify';
 import { cn } from '@/lib/utils';
+import { useDatabase } from '@/firebase';
+import { ref, get, set } from 'firebase/database';
 
 function fmtDate(iso?: string | null) {
   if (!iso) return '—';
@@ -56,6 +58,27 @@ export const EditExpenseDialog = ({
   const prevReviewStatus = useRef<string | undefined>(undefined);
   const [rejectReason, setRejectReason] = React.useState('');
   const [requireResubmission, setRequireResubmission] = React.useState(false);
+  const [savedReasons, setSavedReasons] = React.useState<string[]>([]);
+  const database = useDatabase();
+
+  React.useEffect(() => {
+    if (ownerId && database && isOpen) {
+      get(ref(database, `owner_data/${ownerId}/settings/rejectionReasons`)).then((snap) => {
+        if (snap.exists()) {
+          const list = snap.val();
+          setSavedReasons(Array.isArray(list) ? list : Object.values(list));
+        } else {
+          const defaults = [
+            '領収書の画像が不鮮明で読み取れません。再度撮影をお願いします。',
+            '日付が確認できません。',
+            '金額が確認できません。',
+            '会社規定外の支出と判断されました。'
+          ];
+          setSavedReasons(defaults);
+        }
+      }).catch(() => {});
+    }
+  }, [ownerId, database, isOpen]);
 
   React.useEffect(() => {
     if (expense) {
@@ -95,6 +118,11 @@ export const EditExpenseDialog = ({
         newStatus === 'rejected' ? rejectReason : undefined,
         newStatus === 'rejected' ? requireResubmission : undefined
       ).catch(() => {});
+
+      if (database && newStatus === 'rejected' && rejectReason && !savedReasons.includes(rejectReason)) {
+        const updatedReasons = [rejectReason, ...savedReasons].slice(0, 15);
+        set(ref(database, `owner_data/${ownerId}/settings/rejectionReasons`), updatedReasons).catch(() => {});
+      }
     }
     onSave(updatedExpense);
   };
@@ -170,6 +198,20 @@ export const EditExpenseDialog = ({
                   <div className="mt-4 p-4 rounded-xl bg-slate-800/50 border border-red-500/20 space-y-4 animate-in slide-in-from-top-2">
                     <div className="space-y-2">
                       <Label className="text-xs font-black text-red-400">否認の理由（ユーザーに通知されます）</Label>
+                      {savedReasons.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pb-1">
+                          {savedReasons.map(r => (
+                            <span 
+                              key={r} 
+                              onClick={() => setRejectReason(r)}
+                              className="text-[10px] bg-slate-800 border-b border-slate-700 text-slate-400 px-2.5 py-1 rounded-md cursor-pointer hover:bg-slate-700 hover:text-white transition-colors truncate max-w-full"
+                              title={r}
+                            >
+                              {r.length > 30 ? r.substring(0, 30) + '...' : r}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                       <textarea
                         className="w-full h-20 rounded-xl bg-slate-900 border border-slate-700 text-sm font-medium text-slate-200 p-3 outline-none focus:border-red-500/50 resize-none transition-colors placeholder:text-slate-600"
                         placeholder="例：領収書が不鮮明なため、再提出をお願いします。"
