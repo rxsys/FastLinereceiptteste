@@ -564,12 +564,6 @@ async function processExpense(lineClient: any, companyId: string, userId: string
       await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/preferences/pendingExpenseId`).set(expenseId);
     }
 
-    // 2. Múltiplos CCs → sempre perguntar ao usuário (sem auto-assign por padrão)
-    const suggestion = suggestCcFromPatterns(userPatterns, category, availableCcs);
-    if (expenseId && availableCcs.length > 0) {
-      await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/preferences/pendingExpenseId`).set(expenseId);
-    }
-
     let suggestionHint = '';
     if (suggestion && (suggestion.confidence === 'high' || suggestion.confidence === 'medium')) {
       suggestionHint = `\n${i18n('recommend', lang)}: ${suggestion.ccName}`;
