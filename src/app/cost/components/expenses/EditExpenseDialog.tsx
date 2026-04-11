@@ -230,9 +230,16 @@ export const EditExpenseDialog = ({
                         レシートの再送信を要求する
                       </label>
                     </div>
-                    <p className="text-[10px] text-red-300/70 leading-tight">
-                      ※設定後、右下の「保存」ボタンをクリックしてください。
-                    </p>
+                    <Button 
+                      className="w-full mt-2 bg-red-600 hover:bg-red-700 text-white font-black rounded-lg h-10 shadow-lg shadow-red-900/20 flex gap-2"
+                      onClick={() => {
+                        handleSave();
+                        onClose();
+                      }}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                      否認してユーザーに通知
+                    </Button>
                   </div>
                 ) : (
                   ownerId && (
