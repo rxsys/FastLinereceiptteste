@@ -16,19 +16,16 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const snap = await rtdb
-      .ref(`debug_webhook/${webhookId}`)
-      .orderByChild('ts')
-      .limitToLast(limit)
-      .get();
+    const snap = await rtdb.ref(`debug_webhook/${webhookId}`).get();
 
     const list: any[] = [];
     snap.forEach((child) => {
       list.push({ _key: child.key, ...child.val() });
     });
-    list.reverse();
+    list.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    const trimmed = list.slice(0, limit);
 
-    return NextResponse.json({ webhookId, count: list.length, hits: list });
+    return NextResponse.json({ webhookId, count: trimmed.length, total: list.length, hits: trimmed });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || String(e) }, { status: 500 });
   }
