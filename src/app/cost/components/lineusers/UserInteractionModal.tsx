@@ -24,6 +24,7 @@ export function UserInteractionModal({ isOpen, onClose, user, ownerId }: UserInt
   const [loading, setLoading] = useState(true);
   const scrollBottomRef = useRef<HTMLDivElement>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<{ paths: string[]; errors: string[]; counts: Record<string, number> }>({ paths: [], errors: [], counts: {} });
 
   const scrollToBottom = () => {
     if (scrollBottomRef.current) {
@@ -39,17 +40,19 @@ export function UserInteractionModal({ isOpen, onClose, user, ownerId }: UserInt
     if (!isOpen || !database || !ownerId || !user) return;
 
     setLoading(true);
+    setInteractions([]);
 
-    // IDs candidatos para localizar as interações gravadas pelo webhook
-    // (o webhook sempre grava em owner_data/${ownerId}/lineUsers/${lineUserId})
     const candidateIds = Array.from(new Set([
       user.lineUserId,
       user.id,
       user.userId,
     ].filter(Boolean))) as string[];
 
+    const paths = candidateIds.map((cid) => `owner_data/${ownerId}/lineUsers/${cid}/interactions`);
+    setDebugInfo({ paths, errors: [], counts: {} });
+    console.log('[UserInteractionModal] ownerId=', ownerId, 'user=', user, 'listening=', paths);
+
     if (candidateIds.length === 0) {
-      setInteractions([]);
       setLoading(false);
       return;
     }
@@ -57,6 +60,8 @@ export function UserInteractionModal({ isOpen, onClose, user, ownerId }: UserInt
     const mergedMap = new Map<string, any>();
     const unsubs: Array<() => void> = [];
     let pending = candidateIds.length;
+    const errors: string[] = [];
+    const counts: Record<string, number> = {};
 
     const flush = () => {
       const list = Array.from(mergedMap.values()).sort((a, b) => (a.ts || 0) - (b.ts || 0));
@@ -68,15 +73,19 @@ export function UserInteractionModal({ isOpen, onClose, user, ownerId }: UserInt
       const unsub = onValue(
         logRef,
         (snap) => {
-          // Remove itens anteriores desta origem e re-adiciona a partir do snapshot atual
           for (const key of Array.from(mergedMap.keys())) {
             if (key.startsWith(`${cid}::`)) mergedMap.delete(key);
           }
+          let n = 0;
           if (snap.exists()) {
             snap.forEach((child) => {
               mergedMap.set(`${cid}::${child.key}`, { id: child.key, ...child.val() });
+              n++;
             });
           }
+          counts[cid] = n;
+          console.log(`[UserInteractionModal] ${cid} -> ${n} interactions`);
+          setDebugInfo((d) => ({ ...d, counts: { ...d.counts, [cid]: n } }));
           flush();
           if (pending > 0) {
             pending -= 1;
@@ -84,7 +93,10 @@ export function UserInteractionModal({ isOpen, onClose, user, ownerId }: UserInt
           }
         },
         (err) => {
-          console.warn('[UserInteractionModal] onValue error:', cid, err);
+          const msg = `${cid}: ${err?.message || err}`;
+          console.warn('[UserInteractionModal] onValue error:', msg);
+          errors.push(msg);
+          setDebugInfo((d) => ({ ...d, errors: [...d.errors, msg] }));
           if (pending > 0) {
             pending -= 1;
             if (pending === 0) setLoading(false);
@@ -153,15 +165,43 @@ export function UserInteractionModal({ isOpen, onClose, user, ownerId }: UserInt
             <ScrollArea className="h-full px-6 py-6">
               <div className="space-y-6">
                 {interactions.length === 0 && !loading && (
-                  <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                  <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
                      <div className="w-16 h-16 rounded-3xl bg-white flex items-center justify-center shadow-sm border border-slate-100 text-slate-200">
                         <MessageSquare className="w-8 h-8" />
                      </div>
                      <p className="text-xs font-black text-slate-400">
                        履歴がまだありません<br/>
                        <span className="text-[10px] font-medium opacity-70 block mt-1">No interactions recorded yet.</span>
-                       <span className="text-[8px] opacity-30 mt-4 block font-mono">Listening on ID: {user?.lineUserId || user?.id}</span>
                      </p>
+                     <div className="mt-2 max-w-md w-full bg-white border border-slate-100 rounded-2xl p-4 text-left space-y-2">
+                       <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Debug</p>
+                       <div className="text-[9px] font-mono text-slate-500 break-all">
+                         <div><span className="font-black">ownerId:</span> {ownerId}</div>
+                         <div><span className="font-black">user.id:</span> {user?.id}</div>
+                         <div><span className="font-black">user.lineUserId:</span> {user?.lineUserId || '—'}</div>
+                       </div>
+                       <div className="border-t border-slate-100 pt-2">
+                         <p className="text-[9px] font-black text-slate-500 mb-1">Listening paths:</p>
+                         {debugInfo.paths.length === 0 && <p className="text-[9px] text-red-500 font-mono">No candidate IDs available</p>}
+                         {debugInfo.paths.map((p, i) => {
+                           const cid = p.split('/')[3];
+                           const n = debugInfo.counts[cid];
+                           return (
+                             <div key={i} className="text-[9px] font-mono text-slate-400 break-all">
+                               <span className={cn(n > 0 ? 'text-emerald-600' : 'text-slate-400')}>[{n ?? '?'}]</span> {p}
+                             </div>
+                           );
+                         })}
+                       </div>
+                       {debugInfo.errors.length > 0 && (
+                         <div className="border-t border-slate-100 pt-2">
+                           <p className="text-[9px] font-black text-red-500 mb-1">Errors:</p>
+                           {debugInfo.errors.map((e, i) => (
+                             <div key={i} className="text-[9px] font-mono text-red-500 break-all">{e}</div>
+                           ))}
+                         </div>
+                       )}
+                     </div>
                   </div>
                 )}
 
