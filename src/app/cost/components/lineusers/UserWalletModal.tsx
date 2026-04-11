@@ -13,6 +13,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { CloudUpload, X, Loader2, Receipt, TrendingUp, TrendingDown, Wallet, Edit2, Trash2, Eye, CheckCircle2, PenTool, Printer, FileSignature } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 import { ReceiptLayout, statusMeta, type ReceiptStatus } from '@/components/receipt-layout';
 
 interface UserWalletModalProps {
