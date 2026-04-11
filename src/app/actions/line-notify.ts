@@ -238,7 +238,9 @@ export async function notifyReviewStatus(
   amount: number,
   date?: string,
   projectName?: string,
-  costCenterName?: string
+  costCenterName?: string,
+  rejectReason?: string,
+  requireResubmission?: boolean
 ) {
   try {
     const ownerData = await getOwnerCredentials(ownerId);
@@ -254,14 +256,19 @@ export async function notifyReviewStatus(
       reviewStatus === 'rejected' ? '否認 (却下)' : 
       '審査中';
 
-    const statusDetail =
-      reviewStatus === 'approved' ? '領収書が受理されました。ありがとうございます。' :
-      reviewStatus === 'rejected' ? '申し訳ございませんが、領収書を受理できませんでした。内容をご確認ください。' :
-      '現在、領収書の内容を確認しております。';
+    let statusDetail = '現在、領収書の内容を確認しております。';
+    if (reviewStatus === 'approved') {
+      statusDetail = '領収書が受理されました。ありがとうございます。';
+    } else if (reviewStatus === 'rejected') {
+      statusDetail = '申し訳ございませんが、領収書を受理できませんでした。内容をご確認ください。';
+      if (rejectReason) statusDetail += `\n\n【否認理由】\n${rejectReason}`;
+      if (requireResubmission) statusDetail += '\n\n【お願い】\nお手数ですが、領収書の写真を再度撮影し、このトーク画面に送信し直してください。';
+    }
 
     const extraInfo = (date || projectName || costCenterName)
       ? `\n📅 日付：${date || '—'}\n📁 プロジェクト：${projectName || '—'}\n🏢 センター：${costCenterName || '—'}`
       : '';
+
 
     await lineClient.pushMessage({
       to: lineUserId,

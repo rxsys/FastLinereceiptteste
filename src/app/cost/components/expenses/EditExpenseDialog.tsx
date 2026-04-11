@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ShieldCheck, Clock, Calendar, Building2, MapPin, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Expense, CostCenter, CATEGORY_MAP } from '@/types';
 import { notifyReviewStatus } from '@/app/actions/line-notify';
 import { cn } from '@/lib/utils';
@@ -53,9 +54,15 @@ export const EditExpenseDialog = ({
   t
 }: EditExpenseDialogProps) => {
   const prevReviewStatus = useRef<string | undefined>(undefined);
+  const [rejectReason, setRejectReason] = React.useState('');
+  const [requireResubmission, setRequireResubmission] = React.useState(false);
 
   React.useEffect(() => {
-    if (expense) prevReviewStatus.current = (expense as any).reviewStatus || 'reviewing';
+    if (expense) {
+      prevReviewStatus.current = (expense as any).reviewStatus || 'reviewing';
+      setRejectReason((expense as any).rejectReason || '');
+      setRequireResubmission((expense as any).requireResubmission || false);
+    }
   }, [expense?.id]);
 
   if (!expense) return null;
@@ -64,8 +71,15 @@ export const EditExpenseDialog = ({
 
   const handleSave = () => {
     const newStatus = currentReviewStatus as 'reviewing' | 'approved' | 'rejected';
-    const changed = prevReviewStatus.current !== newStatus;
+    const changed = prevReviewStatus.current !== newStatus || newStatus === 'rejected'; // Always update if rejected (might have changed reason)
     const lineUserId = (expense as any).userId;
+    
+    const updatedExpense = { 
+      ...expense, 
+      rejectReason: newStatus === 'rejected' ? rejectReason : undefined,
+      requireResubmission: newStatus === 'rejected' ? requireResubmission : undefined
+    } as any;
+
     if (changed && ownerId && lineUserId) {
       const cc = costCenters.find(c => c.id === expense.costcenterId);
       const projectName = (expense as any).projectName || cc?.projectId || '—'; // Fallback to projectId if name is not available
@@ -77,13 +91,21 @@ export const EditExpenseDialog = ({
         Number(expense.amount),
         expense.date,
         projectName,
-        expense.costcenterName || cc?.name || '—'
+        expense.costcenterName || cc?.name || '—',
+        newStatus === 'rejected' ? rejectReason : undefined,
+        newStatus === 'rejected' ? requireResubmission : undefined
       ).catch(() => {});
     }
-    onSave(expense);
+    onSave(updatedExpense);
   };
 
   const handleQuickStatus = (newStatus: 'reviewing' | 'approved' | 'rejected') => {
+    if (newStatus === 'rejected') {
+      // Just change local status to show the reject fields, don't auto-save
+      onUpdateState({ ...expense, reviewStatus: newStatus } as any);
+      return;
+    }
+
     const updatedExpense = { ...expense, reviewStatus: newStatus } as any;
     const changed = prevReviewStatus.current !== newStatus;
     const lineUserId = (expense as any).userId;
@@ -144,13 +166,42 @@ export const EditExpenseDialog = ({
                     </button>
                   ))}
                 </div>
-                {ownerId && (
-                  <p className="text-[9px] text-slate-600 text-center leading-tight">
-                    選択すると即時保存・通知されます
-                  </p>
+                {currentReviewStatus === 'rejected' ? (
+                  <div className="mt-4 p-4 rounded-xl bg-slate-800/50 border border-red-500/20 space-y-4 animate-in slide-in-from-top-2">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-black text-red-400">否認の理由（ユーザーに通知されます）</Label>
+                      <textarea
+                        className="w-full h-20 rounded-xl bg-slate-900 border border-slate-700 text-sm font-medium text-slate-200 p-3 outline-none focus:border-red-500/50 resize-none transition-colors placeholder:text-slate-600"
+                        placeholder="例：領収書が不鮮明なため、再提出をお願いします。"
+                        value={rejectReason}
+                        onChange={(e) => setRejectReason(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="resubmit"
+                        checked={requireResubmission}
+                        onCheckedChange={(checked) => setRequireResubmission(!!checked)}
+                        className="border-slate-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                      />
+                      <label htmlFor="resubmit" className="text-sm font-bold text-slate-300 cursor-pointer">
+                        レシートの再送信を要求する
+                      </label>
+                    </div>
+                    <p className="text-[10px] text-red-300/70 leading-tight">
+                      ※設定後、右下の「保存」ボタンをクリックしてください。
+                    </p>
+                  </div>
+                ) : (
+                  ownerId && (
+                    <p className="text-[9px] text-slate-600 text-center leading-tight">
+                      選択すると即時保存・通知されます
+                    </p>
+                  )
                 )}
               </div>
             </div>
+
           )}
 
           {/* Dados para Edição (Direita) */}
