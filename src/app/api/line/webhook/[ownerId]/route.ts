@@ -7,7 +7,7 @@ import { extractExpenseDetailsDirect, extractMultipleReceipts } from '@/ai/direc
 import { adminStorage } from '@/lib/firebase';
 import { processExpenseNtaCheck } from '@/lib/nta-service';
 import { handleLineTextMessage, saveUserPreference, learnFromExpense, suggestCcFromPatterns, detectAmountAnomaly } from '@/ai/line-ai-manager';
-import { i18n, resolveLang } from '@/ai/i18n';
+import { i18n } from '@/ai/i18n';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ ownerId: string }> }) {
   const { ownerId: webhookId } = await params;
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
       // Obter comportamento do usuário para idioma
       const behaviorSnap = await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/behavior`).get();
       const behavior = behaviorSnap.val() || {};
-      const lang = resolveLang(message?.text || '', behavior.preferredLang);
+      const lang: import('@/ai/i18n').Lang = (behavior.preferredLang as import('@/ai/i18n').Lang) || 'ja';
 
       if (type === 'postback') {
         const data = new URLSearchParams(event.postback.data);
