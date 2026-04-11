@@ -36,10 +36,11 @@ export function UserInteractionModal({ isOpen, onClose, user, ownerId }: UserInt
   }, [interactions]);
 
   useEffect(() => {
-    if (!isOpen || !database || !ownerId || !user?.id) return;
+    const targetUserId = user?.lineUserId || user?.id;
+    if (!isOpen || !database || !ownerId || !targetUserId) return;
 
     setLoading(true);
-    const logRef = ref(database, `owner_data/${ownerId}/lineUsers/${user.id}/interactions`);
+    const logRef = ref(database, `owner_data/${ownerId}/lineUsers/${targetUserId}/interactions`);
     
     const unsub = onValue(logRef, (snap) => {
       const list: any[] = [];
@@ -53,7 +54,7 @@ export function UserInteractionModal({ isOpen, onClose, user, ownerId }: UserInt
     });
 
     return () => off(logRef);
-  }, [isOpen, database, ownerId, user?.id]);
+  }, [isOpen, database, ownerId, user?.id, user?.lineUserId]);
 
   const formatTime = (ts: number) => {
     if (!ts) return '';
