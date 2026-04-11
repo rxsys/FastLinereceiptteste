@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useDatabase } from '@/firebase';
-import { ref, onValue, off } from 'firebase/database';
+import { ref, onValue } from 'firebase/database';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -39,44 +39,65 @@ export function UserInteractionModal({ isOpen, onClose, user, ownerId }: UserInt
     if (!isOpen || !database || !ownerId || !user) return;
 
     setLoading(true);
-    
-    // Fallbacks para buscar na ID principal ou na lineUserId.
-    const primaryId = user.lineUserId || user.id;
-    const secondaryId = user.id;
 
-    // Monitora o caminho primário (provavelmente onde o bot grava, que usa Uxxxx)
-    const logRef = ref(database, `owner_data/${ownerId}/lineUsers/${primaryId}/interactions`);
-    
-    const unsub = onValue(logRef, (snap) => {
-      let list: any[] = [];
-      if (snap.exists()) {
-        snap.forEach((child) => {
-          list.push({ id: child.key, ...child.val() });
-        });
-      }
+    // IDs candidatos para localizar as interações gravadas pelo webhook
+    // (o webhook sempre grava em owner_data/${ownerId}/lineUsers/${lineUserId})
+    const candidateIds = Array.from(new Set([
+      user.lineUserId,
+      user.id,
+      user.userId,
+    ].filter(Boolean))) as string[];
 
-      // Se a lista estiver vazia no primary, checa também o secondary se for diferente
-      if (list.length === 0 && primaryId !== secondaryId) {
-        const secRef = ref(database, `owner_data/${ownerId}/lineUsers/${secondaryId}/interactions`);
-        get(secRef).then(secSnap => {
-          if (secSnap.exists()) {
-            secSnap.forEach(cc => { list.push({ id: cc.key, ...cc.val() }); });
-          }
-          list.sort((a, b) => (a.ts || 0) - (b.ts || 0));
-          setInteractions(list);
-          setLoading(false);
-        });
-        return;
-      }
-
-      // Ordem cronológica para o chat
-      list.sort((a, b) => (a.ts || 0) - (b.ts || 0));
-      setInteractions(list);
+    if (candidateIds.length === 0) {
+      setInteractions([]);
       setLoading(false);
+      return;
+    }
+
+    const mergedMap = new Map<string, any>();
+    const unsubs: Array<() => void> = [];
+    let pending = candidateIds.length;
+
+    const flush = () => {
+      const list = Array.from(mergedMap.values()).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+      setInteractions(list);
+    };
+
+    candidateIds.forEach((cid) => {
+      const logRef = ref(database, `owner_data/${ownerId}/lineUsers/${cid}/interactions`);
+      const unsub = onValue(
+        logRef,
+        (snap) => {
+          // Remove itens anteriores desta origem e re-adiciona a partir do snapshot atual
+          for (const key of Array.from(mergedMap.keys())) {
+            if (key.startsWith(`${cid}::`)) mergedMap.delete(key);
+          }
+          if (snap.exists()) {
+            snap.forEach((child) => {
+              mergedMap.set(`${cid}::${child.key}`, { id: child.key, ...child.val() });
+            });
+          }
+          flush();
+          if (pending > 0) {
+            pending -= 1;
+            if (pending === 0) setLoading(false);
+          }
+        },
+        (err) => {
+          console.warn('[UserInteractionModal] onValue error:', cid, err);
+          if (pending > 0) {
+            pending -= 1;
+            if (pending === 0) setLoading(false);
+          }
+        }
+      );
+      unsubs.push(unsub);
     });
 
-    return () => off(logRef);
-  }, [isOpen, database, ownerId, user?.id, user?.lineUserId]);
+    return () => {
+      unsubs.forEach((u) => u());
+    };
+  }, [isOpen, database, ownerId, user?.id, user?.lineUserId, user?.userId]);
 
   const formatTime = (ts: number) => {
     if (!ts) return '';
