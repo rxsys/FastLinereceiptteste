@@ -178,11 +178,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
         const INVITE_HASH_RE = /^#?[A-F0-9]{8}$/;
         const cleanHash = text.toUpperCase().replace(/^#/, '');
 
-        // Loading indicator para mensagens de texto
-        if (userData.status === 2 && message.type === 'text' && !INVITE_HASH_RE.test(text.toUpperCase())) {
-          lineClient.showLoadingAnimation({ chatId: userId, loadingSeconds: 20 }).catch(() => {});
-          logInteraction(companyId, userId, { role: 'user', text });
-        }
+          if (userData.status === 2 && message.type === 'text' && !INVITE_HASH_RE.test(text.toUpperCase())) {
+            lineClient.showLoadingAnimation({ chatId: userId, loadingSeconds: 20 }).catch(() => {});
+            await logInteraction(companyId, userId, { role: 'user', text });
+          }
 
           if (INVITE_HASH_RE.test(text.toUpperCase())) {
           try {
@@ -199,12 +198,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
             let interactionImageUrl = '';
             try {
               interactionImageUrl = await uploadBase64ToStorage(companyId, userId, base64Image, `${Date.now()}_log_input.jpg`);
-              logInteraction(companyId, userId, { role: 'user', imageUrl: interactionImageUrl });
+              await logInteraction(companyId, userId, { role: 'user', imageUrl: interactionImageUrl });
             } catch {}
 
             // Confirma o webhook imediatamente (replyToken expira em ~30s)
             const aiProcMsg = i18n('aiProcessing', lang);
-            logInteraction(companyId, userId, { role: 'ai', text: aiProcMsg });
+            await logInteraction(companyId, userId, { role: 'ai', text: aiProcMsg });
             await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: aiProcMsg }] }).catch(() => {});
             const multiInput = { photoDataUri, companyName: ownerData.companyName, apiKey: ownerData.googleGenAiApiKey };
 
@@ -239,7 +238,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
                 companyId, userId, userData, apiKey: ownerData.googleGenAiApiKey
               });
               if (aiResult.usage) await saveTokenUsage(companyId, aiResult.usage);
-              logInteraction(companyId, userId, { role: 'ai', text: aiResult.text });
+              await logInteraction(companyId, userId, { role: 'ai', text: aiResult.text });
               await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: aiResult.text }] });
             } else {
               await processExpense(lineClient, companyId, userId, userData, replyToken, { message: text, companyName: ownerData.companyName }, ownerData.googleGenAiApiKey, false, lang, behavior);
@@ -473,6 +472,13 @@ async function processExpenseFromReceipt(
     }
 
     const availableCcs = await getAvailableCcs(companyId, userId, userData.lineUserId);
+    const finalMsg = `${summaryLine}\n\n${i18n('selectCC', lang)}`;
+    await logInteraction(companyId, userId, { 
+      role: 'ai', 
+      text: finalMsg, 
+      metadata: { amount, date, description: receipt.description, registrationNumber: receipt.registrationNumber } 
+    });
+
     if (expenseId && availableCcs.length > 0) {
       await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/preferences/pendingExpenseId`).set(expenseId);
       const ccFlex = buildCcFlexMessage(availableCcs, expenseId!, lang, receipt.transactionType || 'expense');
@@ -482,7 +488,9 @@ async function processExpenseFromReceipt(
     }
   } catch (e: any) {
     console.error('[processExpenseFromReceipt] error:', e?.message);
-    await push([{ type: 'text', text: `⚠️ レシート ${index + 1}/${total} の処理中にエラーが発生いたしました。` }]);
+    const errText = `⚠️ レシート ${index + 1}/${total} の処理中にエラーが発生いたしました。`;
+    await logInteraction(companyId, userId, { role: 'system', text: errText });
+    await push([{ type: 'text', text: errText }]);
   }
 }
 
@@ -618,8 +626,16 @@ async function processExpense(lineClient: any, companyId: string, userId: string
     }
 
     const ccFlex = buildCcFlexMessage(availableCcs, expenseId!, lang, detectedType);
+    const finalMsg = `${summaryText}\n\n${i18n('selectCC', lang)}${suggestionHint}`;
+    
+    await logInteraction(companyId, userId, { 
+      role: 'ai', 
+      text: finalMsg, 
+      metadata: { amount, date, description: details?.description, type: detectedType } 
+    });
+
     await push([
-      { type: 'text', text: `${summaryText}\n\n${i18n('selectCC', lang)}${suggestionHint}` },
+      { type: 'text', text: finalMsg },
       ccFlex
     ]);
   } catch (e: any) {
