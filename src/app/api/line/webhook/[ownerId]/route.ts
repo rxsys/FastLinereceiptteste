@@ -14,17 +14,43 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
   const { ownerId: webhookId } = await params;
   const body = await req.text();
 
+  // DIAGNOSTIC: registra o hit do webhook (sem bloquear o fluxo)
+  const diagRef = rtdb.ref(`debug_webhook/${webhookId}`).push();
+  const diagId = diagRef.key;
+  await diagRef.set({
+    ts: Date.now(),
+    stage: 'received',
+    webhookId,
+    bodyPreview: body.slice(0, 400),
+  }).catch(() => {});
+
   try {
     const ownerData = await getOwnerCredentials(webhookId);
-    if (!ownerData) return new NextResponse('OK', { status: 200 });
+    if (!ownerData) {
+      await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/stage_no_owner`).set(Date.now()).catch(() => {});
+      return new NextResponse('OK', { status: 200 });
+    }
 
     const companyId = ownerData.ownerId || ownerData.id;
     const channelAccessToken = ownerData.lineChannelAccessToken;
     const channelSecret = ownerData.lineChannelSecret;
     console.log('[webhook] companyId:', companyId, '| hasApiKey:', !!ownerData.googleGenAiApiKey, '| webhookId:', webhookId);
 
+    await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/resolved`).set({
+      companyId,
+      ownerDataId: ownerData.id,
+      ownerDataOwnerId: ownerData.ownerId || null,
+      hasToken: !!channelAccessToken,
+    }).catch(() => {});
+
     const payload = JSON.parse(body);
     const events = payload.events || [];
+    await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/events`).set({
+      count: events.length,
+      types: events.map((e: any) => e.type),
+      userIds: events.map((e: any) => e.source?.userId || null),
+      msgTypes: events.map((e: any) => e.message?.type || null),
+    }).catch(() => {});
     if (events.length === 0) return NextResponse.json({ status: 'ok' });
 
     const lineClient = getLineClient(channelAccessToken);
@@ -180,9 +206,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
         const INVITE_HASH_RE = /^#?[A-F0-9]{8}$/;
         const cleanHash = text.toUpperCase().replace(/^#/, '');
 
+        await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/msg`).set({
+          userId, msgType: message.type, userStatus: userData.status ?? null, companyId,
+        }).catch(() => {});
+
           if (userData.status === 2 && message.type === 'text' && !INVITE_HASH_RE.test(text.toUpperCase())) {
             lineClient.showLoadingAnimation({ chatId: userId, loadingSeconds: 20 }).catch(() => {});
             await logInteraction(companyId, userId, { role: 'user', text });
+            await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/log_user_text`).set(Date.now()).catch(() => {});
           }
 
           if (INVITE_HASH_RE.test(text.toUpperCase())) {
@@ -253,8 +284,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
       }
     }
 
+    await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/done`).set(Date.now()).catch(() => {});
     return NextResponse.json({ status: 'ok' });
   } catch (error: any) {
+    await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/error`).set({
+      message: error?.message || String(error),
+      stack: (error?.stack || '').slice(0, 1000),
+    }).catch(() => {});
     return new NextResponse('OK', { status: 200 });
   }
 }
