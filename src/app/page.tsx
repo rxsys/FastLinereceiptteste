@@ -84,15 +84,15 @@ const ModuleIcon = ({
       >
         <div 
           className={cn(
-            "relative w-[80px] h-[80px] rounded-[24px] flex items-center justify-center bg-white/[0.03] transition-all duration-500 border-2 border-white/5",
-            active ? "border-[#ff6b35]/50 shadow-[0_0_25px_rgba(255,107,53,0.2)]" : "group-hover:border-white/20"
+            "relative w-[80px] h-[80px] rounded-[24px] flex items-center justify-center bg-white transition-all duration-500 border-2 border-slate-200 shadow-sm hover:shadow-md",
+            active ? "border-[#ff6b35]/50 shadow-[0_0_25px_rgba(255,107,53,0.15)]" : "group-hover:border-slate-300"
           )}
         >
           <span className="text-4xl">{emoji}</span>
           {badge && <div className={cn("absolute -top-3 -right-3 px-3 py-1 rounded-full text-[9px] font-black text-white shadow-xl", badgeColor)}>{badge}</div>}
         </div>
         <div className="text-center space-y-1">
-          <p className="text-[11px] font-black text-white/40 group-hover:text-white transition-colors tracking-tight whitespace-nowrap">{title}</p>
+          <p className="text-[11px] font-black text-slate-500 group-hover:text-slate-900 transition-colors tracking-tight whitespace-nowrap">{title}</p>
           {active ? (
             isSubscribed ? (
               <p className="text-[10px] font-bold text-[#00c48c] drop-shadow-[0_0_8px_rgba(0,196,140,0.3)] flex items-center justify-center gap-1">
@@ -104,12 +104,12 @@ const ModuleIcon = ({
               </p>
             )
           ) : (
-            <p className="text-[9px] font-black text-white/20 tracking-widest uppercase">近日公開</p>
+            <p className="text-[9px] font-black text-slate-400 tracking-widest uppercase">近日公開</p>
           )}
         </div>
       </div>
     </TooltipTrigger>
-    <TooltipContent side="bottom" className="w-[240px] p-4 bg-[#0c0c14]/95 backdrop-blur-xl border border-[#222235] text-white rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200" sideOffset={12}>
+    <TooltipContent side="bottom" className="w-[240px] p-4 bg-white/95 backdrop-blur-xl border border-slate-200 text-slate-800 rounded-2xl shadow-xl animate-in zoom-in-95 duration-200" sideOffset={12}>
       {tooltip}
     </TooltipContent>
   </Tooltip>
@@ -269,28 +269,28 @@ export default function LandingPage() {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="min-h-screen bg-[#06060b] text-white font-sans antialiased overflow-x-hidden">
+      <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased overflow-x-hidden">
         
         {/* Navbar */}
         <nav className={`fixed left-1/2 -translate-x-1/2 w-[92%] max-w-5xl z-50 transition-all duration-200 ${user && !user.emailVerified && role !== 'developer' ? 'top-[52px]' : 'top-6'}`}>
-          <div className="flex items-center justify-between px-6 py-3 bg-[#0c0c14]/80 backdrop-blur-xl border border-[#222235] rounded-2xl shadow-2xl">
+          <div className="flex items-center justify-between px-6 py-3 bg-white/80 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-lg">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 bg-[#22c55e] rounded-md flex items-center justify-center text-white font-black text-lg shadow-[0_0_15px_rgba(34,197,94,0.4)]">F</div>
               <div className="flex items-center font-black text-xl tracking-tight">
-                <span className="text-white">Fast</span><span className="text-[#22c55e]">Line</span>
+                <span className="text-slate-900">Fast</span><span className="text-[#22c55e]">Line</span>
               </div>
             </div>
             <div className="flex items-center gap-4">
               <Select value={currentLang} onValueChange={handleLangChange}>
-                <SelectTrigger className="w-[100px] h-9 bg-white/5 border-white/10 text-white/70 rounded-xl focus:ring-0 text-[11px] font-bold">
+                <SelectTrigger className="w-[100px] h-9 bg-slate-50 border-slate-200 text-slate-600 rounded-xl focus:ring-0 text-[11px] font-bold">
                   <div className="flex items-center gap-2">
                     <span className="text-base">{languages.find(l => l.code === currentLang)?.flag}</span>
                     <span>{languages.find(l => l.code === currentLang)?.code.toUpperCase()}</span>
                   </div>
                 </SelectTrigger>
-                <SelectContent className="bg-[#0c0c14]/95 border-[#222235] text-white rounded-2xl shadow-2xl">
+                <SelectContent className="bg-white border-slate-200 text-slate-800 rounded-2xl shadow-xl">
                   {languages.map((lang) => (
-                    <SelectItem key={lang.code} value={lang.code} className="focus:bg-white/10 focus:text-white rounded-xl text-[11px] font-bold">
+                    <SelectItem key={lang.code} value={lang.code} className="focus:bg-slate-100 focus:text-slate-900 rounded-xl text-[11px] font-bold">
                       <div className="flex items-center gap-2">
                         <span className="text-base">{lang.flag}</span><span>{lang.name}</span>
                       </div>
@@ -301,30 +301,30 @@ export default function LandingPage() {
 
               {user ? (
                 <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <div className="hidden lg:flex flex-col items-end pr-4 border-r border-white/10">
+                  <div className="hidden lg:flex flex-col items-end pr-4 border-r border-slate-200">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-black text-[#ff6b35] uppercase tracking-widest">{role || 'User'}</span>
-                      <span className="text-[11px] font-bold text-white/90">{user.email}</span>
+                      <span className="text-[11px] font-bold text-slate-700">{user.email}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">v{APP_VERSION}</span>
-                      <span className="text-[10px] font-medium text-white/40">{companyName || 'Personal Account'}</span>
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">v{APP_VERSION}</span>
+                      <span className="text-[10px] font-medium text-slate-500">{companyName || 'Personal Account'}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={() => router.push('/cost')} 
-                      className="flex items-center px-4 h-9 rounded-xl bg-[#ff6b35]/15 border border-[#ff6b35]/40 hover:bg-[#ff6b35]/30 hover:scale-105 active:scale-95 transition-all shadow-[0_0_12px_#ff6b3530]"
+                      className="flex items-center px-4 h-9 rounded-xl bg-[#ff6b35]/10 border border-[#ff6b35]/20 hover:bg-[#ff6b35]/20 hover:scale-105 active:scale-95 transition-all shadow-sm"
                     >
                       <span className="text-base">📄</span>
                       <span className="text-[10px] font-black tracking-tight text-[#ff6b35] ml-2">FastLineコスト管理</span>
                       <ArrowRight className="w-3 h-3 ml-2 text-[#ff6b35]" />
                     </button>
-                    <button onClick={() => signOut(auth!)} className="p-2.5 text-white/30 hover:text-red-400 transition-colors" title="Logout"><LogOut className="w-5 h-5" /></button>
+                    <button onClick={() => signOut(auth!)} className="p-2.5 text-slate-400 hover:text-red-500 transition-colors" title="Logout"><LogOut className="w-5 h-5" /></button>
                   </div>
                 </div>
               ) : (
-                <button onClick={() => setIsLoginOpen(true)} className="text-[13px] font-bold text-white/50 hover:text-white transition-colors px-4 border border-white/10 rounded-xl py-2 bg-white/5">
+                <button onClick={() => setIsLoginOpen(true)} className="text-[13px] font-bold text-slate-600 hover:text-slate-900 shadow-sm transition-colors px-4 border border-slate-200 rounded-xl py-2 bg-white">
                   {t.login}
                 </button>
               )}
@@ -346,11 +346,11 @@ export default function LandingPage() {
         )}
 
         <main className="pt-44 pb-32 px-6 flex flex-col items-center">
-          <h1 className="text-2xl md:text-5xl font-black text-center uppercase tracking-tighter leading-tight">{t.heroTitle[0]}<span className="text-[#ff6b35]">{t.heroTitle[1]}</span>{t.heroTitle[2]}</h1>
-          <p className="text-white/40 mt-6 max-w-2xl text-center font-medium">{t.heroDesc}</p>
+          <h1 className="text-2xl md:text-5xl font-black text-center uppercase tracking-tighter leading-tight text-slate-900">{t.heroTitle[0]}<span className="text-[#ff6b35]">{t.heroTitle[1]}</span>{t.heroTitle[2]}</h1>
+          <p className="text-slate-500 mt-6 max-w-2xl text-center font-medium">{t.heroDesc}</p>
 
           <div className="flex flex-wrap justify-center gap-3 mt-12 mb-16 max-w-3xl">
-            {t.categories.map((cat: string) => <span key={cat} className="px-6 py-3 rounded-full bg-white/5 border border-white/10 text-[12px] font-black tracking-widest text-white/40">{cat}</span>)}
+            {t.categories.map((cat: string) => <span key={cat} className="px-6 py-3 rounded-full bg-white border border-slate-200 text-[12px] font-black tracking-widest text-slate-500 shadow-sm">{cat}</span>)}
           </div>
 
           <div className="mt-8 w-full max-w-[1000px] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-x-8 gap-y-12 pb-24">
@@ -405,42 +405,42 @@ export default function LandingPage() {
                 tooltip={<div className="space-y-3"><p className="font-black text-[14px]">{t.modules.mypage.fullTitle}</p><p className="text-[10px] leading-relaxed text-white/70">{t.modules.mypage.desc}</p></div>}
               />
             </div>
-            <ModuleIcon emoji="📁" id="project" title={t.modules.project.title} color="#6366f1" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('project')} badge={t.modules.project.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.project.desc}</p>} />
-            <ModuleIcon emoji="👥" id="staff" title={t.modules.staff.title} color="#00c48c" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('staff')} badge={t.modules.staff.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.staff.desc}</p>} />
-            <ModuleIcon emoji="📋" id="career" title={t.modules.career.title} color="#f59e0b" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('career')} badge={t.modules.career.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.career.desc}</p>} />
-            <ModuleIcon emoji="🆔" id="id" title={t.modules.id.title} color="#3b82f6" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('id')} badge={t.modules.id.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.id.desc}</p>} />
-            <ModuleIcon emoji="🔧" id="assets" title={t.modules.assets.title} color="#ef4444" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('assets')} tooltip={<p className="text-xs font-bold text-white/50">{t.modules.assets.desc}</p>} />
-            <ModuleIcon emoji="💰" id="sales" title={t.modules.sales.title} color="#10b981" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('sales')} tooltip={<p className="text-xs font-bold text-white/50">{t.modules.sales.desc}</p>} />
-            <ModuleIcon emoji="⏱️" id="attendance" title={t.modules.attendance.title} color="#8b5cf6" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('attendance')} tooltip={<p className="text-xs font-bold text-white/50">{t.modules.attendance.desc}</p>} />
-            <ModuleIcon emoji="🏢" id="kaigyo" title={t.modules.kaigyo.title} color="#f43f5e" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('kaigyo')} badge={t.modules.kaigyo.badge} badgeColor="bg-white/10" tooltip={<p className="text-xs font-bold text-white/50">{t.modules.kaigyo.desc}</p>} />
-            <ModuleIcon emoji="📑" id="docs" title={t.modules.docs.title} color="#71717a" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('docs')} tooltip={<p className="text-xs font-bold text-white/50">{t.modules.docs.desc}</p>} />
-            <ModuleIcon emoji="⚙️" id="setup" title={t.modules.settings.title} color="#64748b" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('settings')} tooltip={<p className="text-xs font-bold text-white/50">{t.modules.settings.desc}</p>} />
+            <ModuleIcon emoji="📁" id="project" title={t.modules.project.title} color="#6366f1" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('project')} badge={t.modules.project.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.project.desc}</p>} />
+            <ModuleIcon emoji="👥" id="staff" title={t.modules.staff.title} color="#00c48c" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('staff')} badge={t.modules.staff.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.staff.desc}</p>} />
+            <ModuleIcon emoji="📋" id="career" title={t.modules.career.title} color="#f59e0b" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('career')} badge={t.modules.career.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.career.desc}</p>} />
+            <ModuleIcon emoji="🆔" id="id" title={t.modules.id.title} color="#3b82f6" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('id')} badge={t.modules.id.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.id.desc}</p>} />
+            <ModuleIcon emoji="🔧" id="assets" title={t.modules.assets.title} color="#ef4444" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('assets')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.assets.desc}</p>} />
+            <ModuleIcon emoji="💰" id="sales" title={t.modules.sales.title} color="#10b981" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('sales')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.sales.desc}</p>} />
+            <ModuleIcon emoji="⏱️" id="attendance" title={t.modules.attendance.title} color="#8b5cf6" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('attendance')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.attendance.desc}</p>} />
+            <ModuleIcon emoji="🏢" id="kaigyo" title={t.modules.kaigyo.title} color="#f43f5e" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('kaigyo')} badge={t.modules.kaigyo.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.kaigyo.desc}</p>} />
+            <ModuleIcon emoji="📑" id="docs" title={t.modules.docs.title} color="#71717a" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('docs')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.docs.desc}</p>} />
+            <ModuleIcon emoji="⚙️" id="setup" title={t.modules.settings.title} color="#64748b" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('settings')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.settings.desc}</p>} />
           </div>
 
           {/* Footer Area with Legal links */}
-          <div className="mt-20 w-full max-w-5xl pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-start gap-8 px-6">
+          <div className="mt-20 w-full max-w-5xl pt-12 border-t border-slate-200 flex flex-col md:flex-row justify-between items-start gap-8 px-6">
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <div className="w-10 h-10 bg-[#ff6b35] rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg">F</div>
-                <span className="font-black text-2xl tracking-tight">FastLine Platform</span>
+                <span className="font-black text-2xl tracking-tight text-slate-900">FastLine Platform</span>
               </div>
-              <p className="text-[12px] text-white/30 max-w-[300px] leading-relaxed">
+              <p className="text-[12px] text-slate-500 max-w-[300px] leading-relaxed">
                 © 2024 Fast LINE - 建設業界特化型コスト管理プラットフォーム
               </p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-12">
               <div className="space-y-4">
-                <h4 className="text-[11px] font-black text-white/50 tracking-widest uppercase">法的情報</h4>
+                <h4 className="text-[11px] font-black text-slate-400 tracking-widest uppercase">法的情報</h4>
                 <div className="flex flex-col gap-3">
-                  <Link href="/tokushoho" className="text-[12px] text-white/30 hover:text-[#ff6b35] transition-colors">特定商取引法に基づく表記</Link>
-                  <Link href="/privacy" className="text-[12px] text-white/30 hover:text-[#ff6b35] transition-colors">プライバシーポリシー</Link>
-                  <Link href="/terms" className="text-[12px] text-white/30 hover:text-[#ff6b35] transition-colors">利用規約</Link>
+                  <Link href="/tokushoho" className="text-[12px] text-slate-500 hover:text-[#ff6b35] transition-colors">特定商取引法に基づく表記</Link>
+                  <Link href="/privacy" className="text-[12px] text-slate-500 hover:text-[#ff6b35] transition-colors">プライバシーポリシー</Link>
+                  <Link href="/terms" className="text-[12px] text-slate-500 hover:text-[#ff6b35] transition-colors">利用規約</Link>
                 </div>
               </div>
               <div className="space-y-4">
-                <h4 className="text-[11px] font-black text-white/50 tracking-widest uppercase">サポート</h4>
-                <div className="flex flex-col gap-2 text-[12px] text-white/30">
-                  <p className="font-bold text-white/50">RICARDO YUKIO (代表者)</p>
+                <h4 className="text-[11px] font-black text-slate-400 tracking-widest uppercase">サポート</h4>
+                <div className="flex flex-col gap-2 text-[12px] text-slate-500">
+                  <p className="font-bold text-slate-700">RICARDO YUKIO (代表者)</p>
                   <p>WhatsApp/Tel: 090-3277-7484</p>
                   <p>Email: rxsys@gmail.com</p>
                 </div>
@@ -448,7 +448,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-20 opacity-10 select-none pointer-events-none">
-            <p className="text-[10px] font-black tracking-[1em] uppercase">FastLine Intelligence</p>
+            <p className="text-[10px] font-black tracking-[1em] uppercase text-slate-900">FastLine Intelligence</p>
           </div>
         </main>
 
@@ -456,17 +456,17 @@ export default function LandingPage() {
 
         {/* Login/Register Modal */}
         <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
-          <DialogContent className="sm:max-w-[400px] bg-[#0c0c14] border border-[#222235] text-white rounded-3xl p-8 overflow-hidden">
+          <DialogContent className="sm:max-w-[400px] bg-white border border-slate-200 text-slate-900 rounded-3xl p-8 overflow-hidden shadow-2xl">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#ff6b35] to-[#ff9f1c]" />
             
             <DialogHeader className="space-y-4 text-center mt-2">
               <div className="mx-auto w-12 h-12 bg-[#ff6b35] rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg rotate-3">
                 F
               </div>
-              <DialogTitle className="text-2xl font-black tracking-tight uppercase">
+              <DialogTitle className="text-2xl font-black tracking-tight uppercase text-slate-900">
                 {isRegister ? t.registerTitle : t.loginTitle}
               </DialogTitle>
-              <DialogDescription className="text-white/40 text-xs font-bold tracking-widest uppercase">
+              <DialogDescription className="text-slate-400 text-xs font-bold tracking-widest uppercase">
                 FastLine Platform Access
               </DialogDescription>
             </DialogHeader>
@@ -474,12 +474,12 @@ export default function LandingPage() {
             <form onSubmit={isRegister ? handleRegister : handleLogin} className="space-y-5 mt-6">
               {isRegister && (
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-white/30 uppercase tracking-widest ml-1">{t.dash.users.colName || 'Name'}</Label>
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t.dash.users.colName || 'Name'}</Label>
                   <div className="relative group">
-                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#ff6b35] transition-colors" />
+                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#ff6b35] transition-colors" />
                     <Input
                       placeholder="Jane Doe"
-                      className="bg-white/[0.03] border-white/5 h-12 pl-11 rounded-xl focus:border-[#ff6b35]/50 focus:ring-0 transition-all placeholder:text-white/10"
+                      className="bg-slate-50 border-slate-200 h-12 pl-11 rounded-xl focus:border-[#ff6b35]/50 focus:ring-0 transition-all placeholder:text-slate-300 text-slate-900"
                       value={userName}
                       onChange={(e) => setUserName(e.target.value)}
                       required
@@ -489,13 +489,13 @@ export default function LandingPage() {
               )}
               
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-white/30 uppercase tracking-widest ml-1">{t.email}</Label>
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t.email}</Label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#ff6b35] transition-colors" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#ff6b35] transition-colors" />
                   <Input
                     type="email"
                     placeholder="email@example.com"
-                    className="bg-white/[0.03] border-white/5 h-12 pl-11 rounded-xl focus:border-[#ff6b35]/50 focus:ring-0 transition-all placeholder:text-white/10"
+                    className="bg-slate-50 border-slate-200 h-12 pl-11 rounded-xl focus:border-[#ff6b35]/50 focus:ring-0 transition-all placeholder:text-slate-300 text-slate-900"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -505,14 +505,14 @@ export default function LandingPage() {
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between ml-1">
-                  <Label className="text-[10px] font-black text-white/30 uppercase tracking-widest">{t.password}</Label>
-                  {!isRegister && <button type="button" className="text-[9px] font-black text-[#ff6b35]/60 hover:text-[#ff6b35] transition-colors uppercase tracking-widest">{t.forgot}</button>}
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.password}</Label>
+                  {!isRegister && <button type="button" className="text-[9px] font-black text-[#ff6b35]/80 hover:text-[#ff6b35] transition-colors uppercase tracking-widest">{t.forgot}</button>}
                 </div>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#ff6b35] transition-colors" />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#ff6b35] transition-colors" />
                   <Input
                     type={showPassword ? "text" : "password"}
-                    className="bg-white/[0.03] border-white/5 h-12 pl-11 pr-11 rounded-xl focus:border-[#ff6b35]/50 focus:ring-0 transition-all"
+                    className="bg-slate-50 border-slate-200 h-12 pl-11 pr-11 rounded-xl focus:border-[#ff6b35]/50 focus:ring-0 transition-all text-slate-900"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -520,7 +520,7 @@ export default function LandingPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -552,7 +552,7 @@ export default function LandingPage() {
                 <button
                   type="button"
                   onClick={() => { setIsRegister(!isRegister); setAuthError(null); }}
-                  className="text-[11px] font-black text-white/30 hover:text-white transition-colors tracking-tight"
+                  className="text-[11px] font-black text-slate-500 hover:text-slate-900 transition-colors tracking-tight"
                 >
                   {isRegister ? "既にアカウントをお持ちですか？ ログイン" : t.registerFree}
                 </button>
