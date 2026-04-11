@@ -244,6 +244,7 @@ export const translations = {
         filterApproved: "承認済みのみ",
         filterUnapproved: "未承認のみ",
         exportCSV: "CSVエクスポート",
+        exportExcel: "Excelエクスポート",
         filterPeriod: "期間で絞り込み",
         allPeriod: "全期間",
         tableReceipts: "領収書明細",

@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 
 import { EditExpenseDialog } from './expenses/EditExpenseDialog';
 import { ManualTransactionDialog } from './expenses/ManualTransactionDialog';
+import * as XLSX from 'xlsx';
 import { Expense, LineUser, CostCenter } from '@/types';
 
 // ── Helpers de formatação ─────────────────────────────────────────────────────
@@ -215,6 +216,56 @@ function csv(v: string | number) {
   return `"${String(v).replace(/"/g, '""')}"`;
 }
 
+function exportToExcel(expenses: Expense[], projects: any[], costCenters: CostCenter[]) {
+  const data = expenses.map((exp, i) => {
+    const anyExp = exp as any;
+    const cc = costCenters.find(c => c.id === exp.costcenterId);
+    const proj = projects?.find((p: any) => p.id === (exp.projectId || cc?.projectId));
+    const account = ACCOUNT_MAP[exp.category] || ACCOUNT_MAP['Miscellaneous'];
+    const taxRate = getTaxRate(exp.category);
+    const { taxEx, tax } = calcTax(Number(exp.amount) || 0, taxRate);
+    const ntaVerified = anyExp.ntaStatus === 'verified';
+    const payType = anyExp.paymentType === 'company' ? '会社払い' : anyExp.paymentType === 'reimbursement' ? '立替払い' : '未設定';
+    const status = (exp.status as string) === 'processed' ? '承認済み' : '未承認';
+    
+    return {
+      'No.': i + 1,
+      '取引日': exp.date || '',
+      '送信日時': fmtDateTime(exp.createdAt),
+      '勘定科目コード': account.code,
+      '勘定科目': account.title,
+      '補助科目': account.sub,
+      '摘要': exp.description || '',
+      '取引先': anyExp.ntaData?.name || '',
+      '税区分': getTaxClass(exp.category, ntaVerified),
+      '税率(%)': taxRate,
+      '税込金額(¥)': Number(exp.amount) || 0,
+      '消費税額(¥)': tax,
+      '税抜金額(¥)': taxEx,
+      '登録番号': anyExp.registrationNumber || exp.tNumber || '',
+      '支払方法': payType,
+      '原価センター': exp.costcenterName || cc?.name || '',
+      'プロジェクト': proj?.name || '',
+      '登録者': exp.senderName || '',
+      'ステータス': status
+    };
+  });
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Expenses");
+
+  const wscols = [
+    {wch: 5}, {wch: 12}, {wch: 20}, {wch: 15}, {wch: 15},
+    {wch: 15}, {wch: 30}, {wch: 20}, {wch: 15}, {wch: 8},
+    {wch: 12}, {wch: 12}, {wch: 12}, {wch: 20}, {wch: 12},
+    {wch: 20}, {wch: 20}, {wch: 15}, {wch: 12}
+  ];
+  ws['!cols'] = wscols;
+
+  XLSX.writeFile(wb, `経費精算書_${new Date().toISOString().slice(0, 10)}.xlsx`);
+}
+
 function exportToCSV(expenses: Expense[], projects: any[], costCenters: CostCenter[]) {
   const BOM = '\uFEFF';
   const now = new Date();
@@ -286,11 +337,15 @@ export function ExpensesTab({ ownerIdOverride, t }: { expenses: Expense[], owner
   const [openProjects, setOpenProjects] = useState<Record<string, boolean>>({});
   const [mounted, setMounted] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
-  // ① Filtro por período
-  const [selectedMonth, setSelectedMonth] = useState<string>('all');
-  // ⑤ View mode: project/CC vs user
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('all');
+  const [selectedCcId, setSelectedCcId] = useState<string>('all');
+  
+  // View mode: project/CC vs user
   const [viewMode, setViewMode] = useState<'project' | 'user'>('project');
-  // ⑦ Bulk selection
+  // Bulk selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => { setMounted(true); }, []);
@@ -316,23 +371,34 @@ export function ExpensesTab({ ownerIdOverride, t }: { expenses: Expense[], owner
     return ccs;
   }, [projects]);
 
-  // ① Month options from expense dates
-  const monthOptions = useMemo(() => {
-    const months = new Set<string>();
-    expenses.forEach(exp => {
-      const m = toMonthKey(exp.createdAt);
-      if (m) months.add(m);
-    });
-    return Array.from(months).sort().reverse();
-  }, [expenses]);
+  // No longer using month filter options as we moved to date range
 
   const filteredExpenses = useMemo(() => {
     return expenses.filter(exp => {
-      const matchesKeyword = !searchKeyword || exp.description?.toLowerCase().includes(searchKeyword.toLowerCase()) || exp.senderName?.toLowerCase().includes(searchKeyword.toLowerCase());
-      const matchesMonth = selectedMonth === 'all' || toMonthKey(exp.createdAt) === selectedMonth;
-      return matchesKeyword && matchesMonth;
+      // Busca por palavra-chave (descrição ou remetente)
+      const matchesKeyword = !searchKeyword || 
+        exp.description?.toLowerCase().includes(searchKeyword.toLowerCase()) || 
+        exp.senderName?.toLowerCase().includes(searchKeyword.toLowerCase());
+      
+      // Filtro por Data
+      const expDate = exp.date || exp.createdAt?.substring(0, 10);
+      const matchesStartDate = !startDate || (expDate && expDate >= startDate);
+      const matchesEndDate = !endDate || (expDate && expDate <= endDate);
+      
+      // Filtro por Status
+      const matchesStatus = selectedStatus === 'all' || 
+        (selectedStatus === 'approved' && exp.status === 'processed') ||
+        (selectedStatus === 'pending' && exp.status !== 'processed');
+
+      // Filtro por Projeto
+      const matchesProject = selectedProjectId === 'all' || exp.projectId === selectedProjectId;
+      
+      // Filtro por Centro de Custo
+      const matchesCc = selectedCcId === 'all' || exp.costcenterId === selectedCcId;
+
+      return matchesKeyword && matchesStartDate && matchesEndDate && matchesStatus && matchesProject && matchesCc;
     });
-  }, [expenses, searchKeyword, selectedMonth]);
+  }, [expenses, searchKeyword, startDate, endDate, selectedStatus, selectedProjectId, selectedCcId]);
 
   // ② Period totals
   const periodTotals = useMemo(() => {
@@ -466,7 +532,7 @@ export function ExpensesTab({ ownerIdOverride, t }: { expenses: Expense[], owner
 
   const handleBulkExport = () => {
     const selected = filteredExpenses.filter(e => selectedIds.has(e.id!));
-    exportToCSV(selected, projects || [], costCenters);
+    exportToExcel(selected, projects || [], costCenters);
   };
 
   const te = t?.tabs?.expenses || {};
@@ -479,45 +545,130 @@ export function ExpensesTab({ ownerIdOverride, t }: { expenses: Expense[], owner
         <CardContent className="p-5 flex flex-col gap-3">
           {/* Linha 1: busca + mês + view mode */}
           <div className="flex flex-col md:flex-row gap-3">
-            <Input
-              value={searchKeyword}
-              onChange={e => setSearchKeyword(e.target.value)}
-              placeholder={te.searchPlaceholder || "検索ワードを入力..."}
-              className="h-11 rounded-xl flex-1"
-            />
-            {/* ① Seletor de mês */}
-            <select
-              value={selectedMonth}
-              onChange={e => setSelectedMonth(e.target.value)}
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 min-w-[140px] focus:outline-none focus:ring-2 focus:ring-slate-300"
-            >
-              <option value="all">すべての期間</option>
-              {monthOptions.map(m => (
-                <option key={m} value={m}>{fmtMonthLabel(m)}</option>
-              ))}
-            </select>
-            {/* ⑤ View mode toggle */}
-            <div className="flex rounded-xl border border-slate-200 overflow-hidden shrink-0">
-              <button
-                onClick={() => setViewMode('project')}
-                className={cn('flex items-center gap-1.5 px-4 h-11 text-sm font-bold transition-colors', viewMode === 'project' ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 hover:bg-slate-50')}
+            <div className="flex-1 flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-slate-400 ml-1">キーワード・内容で検索</span>
+              <Input
+                value={searchKeyword}
+                onChange={e => setSearchKeyword(e.target.value)}
+                placeholder={te.searchPlaceholder || "検索ワードを入力..."}
+                className="h-11 rounded-xl"
+              />
+            </div>
+            
+            <div className="flex flex-col gap-1 w-full md:w-[150px]">
+              <span className="text-[10px] font-bold text-slate-400 ml-1">ステータス</span>
+              <select
+                value={selectedStatus}
+                onChange={e => setSelectedStatus(e.target.value)}
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300"
               >
-                <LayoutList className="w-4 h-4" /> CC別
-              </button>
-              <button
-                onClick={() => setViewMode('user')}
-                className={cn('flex items-center gap-1.5 px-4 h-11 text-sm font-bold transition-colors', viewMode === 'user' ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 hover:bg-slate-50')}
+                <option value="all">すべて表示</option>
+                <option value="approved">✅ 承認済み</option>
+                <option value="pending">🔍 未承認</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-slate-400 ml-1">期間 (開始 〜 終了)</span>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={e => setStartDate(e.target.value)}
+                  className="h-11 rounded-xl w-full md:w-[140px] text-xs font-bold"
+                />
+                <span className="text-slate-300 text-sm">〜</span>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={e => setEndDate(e.target.value)}
+                  className="h-11 rounded-xl w-full md:w-[140px] text-xs font-bold"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Linha 2: Projeto + CC + View mode */}
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="flex flex-col gap-1 flex-1">
+              <span className="text-[10px] font-bold text-slate-400 ml-1">プロジェクトで絞り込み</span>
+              <select
+                value={selectedProjectId}
+                onChange={e => {
+                  setSelectedProjectId(e.target.value);
+                  setSelectedCcId('all'); // Reseta CC ao trocar projeto
+                }}
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 w-full focus:outline-none focus:ring-2 focus:ring-slate-300"
               >
-                <Users className="w-4 h-4" /> ユーザー別
-              </button>
+                <option value="all">すべてのプロジェクト</option>
+                {projects?.map((p: any) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1 flex-1">
+              <span className="text-[10px] font-bold text-slate-400 ml-1">原価センターで絞り込み</span>
+              <select
+                value={selectedCcId}
+                onChange={e => setSelectedCcId(e.target.value)}
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 w-full focus:outline-none focus:ring-2 focus:ring-slate-300"
+              >
+                <option value="all">すべての原価センター</option>
+                {costCenters
+                  .filter(cc => selectedProjectId === 'all' || cc.projectId === selectedProjectId)
+                  .map(cc => (
+                    <option key={cc.id} value={cc.id}>{cc.name}</option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1 shrink-0">
+               <span className="text-[10px] font-bold text-white ml-1">.</span>
+               <div className="flex rounded-xl border border-slate-200 overflow-hidden">
+                <button
+                  onClick={() => setViewMode('project')}
+                  className={cn('flex items-center gap-1.5 px-4 h-11 text-sm font-bold transition-colors', viewMode === 'project' ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 hover:bg-slate-50')}
+                >
+                  <LayoutList className="w-4 h-4" /> CC別
+                </button>
+                <button
+                  onClick={() => setViewMode('user')}
+                  className={cn('flex items-center gap-1.5 px-4 h-11 text-sm font-bold transition-colors', viewMode === 'user' ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 hover:bg-slate-50')}
+                >
+                  <Users className="w-4 h-4" /> ユーザー別
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Export */}
-          <div className="flex justify-end">
-            <Button variant="outline" onClick={() => exportToCSV(filteredExpenses, projects || [], costCenters)} className="rounded-xl h-9 gap-1.5 text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50">
-              <Download className="w-3.5 h-3.5" />{te.exportCSV || "CSVエクスポート"}
-            </Button>
+          <div className="flex justify-between items-center">
+            <div className="flex gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  setSearchKeyword('');
+                  setSelectedStatus('all');
+                  setStartDate('');
+                  setEndDate('');
+                  setSelectedProjectId('all');
+                  setSelectedCcId('all');
+                }}
+                className="text-[10px] font-bold text-slate-400 hover:text-slate-900"
+              >
+                フィルターをリセット
+              </Button>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => exportToCSV(filteredExpenses, projects || [], costCenters)} className="rounded-xl h-9 gap-1.5 text-xs border-orange-200 text-orange-700 hover:bg-orange-50">
+                <Download className="w-3.5 h-3.5" />{te.exportCSV || "CSVエクスポート"}
+              </Button>
+              <Button variant="outline" onClick={() => exportToExcel(filteredExpenses, projects || [], costCenters)} className="rounded-xl h-9 gap-1.5 text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50">
+                <Download className="w-3.5 h-3.5" />{te.exportExcel || "Excelエクスポート"}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
