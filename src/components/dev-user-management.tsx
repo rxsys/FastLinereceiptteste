@@ -51,9 +51,24 @@ export function DevUserManagement() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!database || !confirm("Deletar usuário permanentemente?")) return;
-    await remove(ref(database, `users/${id}`));
-    toast({ title: "Usuário removido" });
+    if (!database || !confirm("Deletar usuário permanentemente do Banco e do Authentication?")) return;
+    
+    try {
+      // 1. Deletar do Firebase Authentication via API Admin
+      const res = await fetch(`/api/admin/users/upsert?id=${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        console.warn('Falha ao remover do Auth (pode não existir):', data.error);
+      }
+
+      // 2. Deletar do Realtime Database
+      await remove(ref(database, `users/${id}`));
+      toast({ title: "Usuário removido com sucesso" });
+    } catch (error) {
+      console.error('Erro ao deletar usuário:', error);
+      toast({ variant: "destructive", title: "Erro ao remover usuário" });
+    }
   };
 
   return (

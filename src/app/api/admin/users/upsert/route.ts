@@ -64,13 +64,18 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
     const email = searchParams.get('email');
 
-    if (!email) return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    if (!id && !email) return NextResponse.json({ error: 'ID or Email is required' }, { status: 400 });
 
     try {
-      const user = await auth.getUserByEmail(email);
-      await auth.deleteUser(user.uid);
+      if (id) {
+        await auth.deleteUser(id);
+      } else if (email) {
+        const user = await auth.getUserByEmail(email);
+        await auth.deleteUser(user.uid);
+      }
     } catch (e: any) {
       if (e.code !== 'auth/user-not-found') throw e;
     }
