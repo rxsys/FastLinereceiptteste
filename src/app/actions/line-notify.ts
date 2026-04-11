@@ -235,7 +235,10 @@ export async function notifyReviewStatus(
   lineUserId: string,
   reviewStatus: 'reviewing' | 'approved' | 'rejected',
   description: string,
-  amount: number
+  amount: number,
+  date?: string,
+  projectName?: string,
+  costCenterName?: string
 ) {
   try {
     const ownerData = await getOwnerCredentials(ownerId);
@@ -256,11 +259,15 @@ export async function notifyReviewStatus(
       reviewStatus === 'rejected' ? '申し訳ございませんが、領収書を受理できませんでした。内容をご確認ください。' :
       '現在、領収書の内容を確認しております。';
 
+    const extraInfo = (date || projectName || costCenterName)
+      ? `\n📅 日付：${date || '—'}\n📁 プロジェクト：${projectName || '—'}\n🏢 センター：${costCenterName || '—'}`
+      : '';
+
     await lineClient.pushMessage({
       to: lineUserId,
       messages: [{
         type: 'text',
-        text: `${statusEmoji} 領収書の確認状況が変わりました。\n\nステータス：${statusLabel}\n${statusDetail}\n\n📝 内容：${description || '—'}\n💰 金額：¥${amount.toLocaleString('ja-JP')}`
+        text: `${statusEmoji} 領収書の確認状況が変わりました。\n\nステータス：${statusLabel}\n${statusDetail}\n\n📝 内容：${description || '—'}\n💰 金額：¥${amount.toLocaleString('ja-JP')}${extraInfo}`
       }]
     });
 

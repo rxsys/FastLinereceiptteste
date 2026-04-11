@@ -96,7 +96,10 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
   }, [isOpen, database, ownerId, user?.id, user?.lineUserId]);
 
   const totalAdvances = advances.reduce((s, a) => s + (Number(a.amount) || 0), 0);
-  const totalExpenses = expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+  const totalExpenses = expenses.reduce((s, e) => {
+    if (e.reviewStatus === 'approved') return s + (Number(e.amount) || 0);
+    return s;
+  }, 0);
   const balance = totalAdvances - totalExpenses;
 
   const balanceLabel = balance > 0
@@ -405,24 +408,44 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
                         const proj = projects.find(p => p.id === (exp.projectId || cc?.projectId));
                         const projectName = proj?.name || null;
                         const ccName = exp.costcenterName || cc?.name || null;
+                        const isApproved = exp.reviewStatus === 'approved';
+                        const isRejected = exp.reviewStatus === 'rejected';
+                        const isReviewing = !exp.reviewStatus || exp.reviewStatus === 'reviewing';
+
                         return (
                         <button
                           key={exp.id}
                           onClick={() => onOpenExpense?.(exp)}
-                          className="w-full text-left flex items-center justify-between gap-2 p-3 rounded-2xl hover:bg-slate-50 transition-colors group border border-transparent hover:border-slate-100"
+                          className={cn(
+                            "w-full text-left flex items-center justify-between gap-2 p-3 rounded-2xl transition-colors group border border-transparent hover:border-slate-100",
+                            isApproved ? "hover:bg-slate-50" : 
+                            isRejected ? "bg-red-50/50 hover:bg-red-50 text-red-900" :
+                            "bg-amber-50/50 hover:bg-amber-50 text-amber-900"
+                          )}
                         >
                           <div className="min-w-0 flex-1">
-                            <p className="text-[9px] font-bold text-slate-400">{fmtDate(exp.date || exp.createdAt)}</p>
-                            <p className="text-xs font-black text-slate-700 truncate">{exp.description || '---'}</p>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                               <p className="text-[9px] font-bold text-slate-400">{fmtDate(exp.date || exp.createdAt)}</p>
+                               {isReviewing && <Badge variant="outline" className="text-[8px] font-black border-amber-200 text-amber-600 bg-amber-50 uppercase tracking-tighter">審査中</Badge>}
+                               {isRejected && <Badge variant="outline" className="text-[8px] font-black border-red-200 text-red-600 bg-red-50 uppercase tracking-tighter">否認</Badge>}
+                               {isApproved && <Badge variant="outline" className="text-[8px] font-black border-emerald-200 text-emerald-600 bg-emerald-50 uppercase tracking-tighter">受取済み</Badge>}
+                            </div>
+                            <p className="text-xs font-black truncate">{exp.description || '---'}</p>
                             {(projectName || ccName) && (
                               <div className="flex items-center gap-1 mt-0.5 flex-wrap">
                                 {projectName && (
-                                  <span className="text-[8px] font-black bg-indigo-50 text-indigo-500 border border-indigo-100 px-1.5 py-0.5 rounded-full truncate max-w-[80px]">
+                                  <span className={cn(
+                                    "text-[8px] font-black border px-1.5 py-0.5 rounded-full truncate max-w-[80px]",
+                                    isApproved ? "bg-indigo-50 text-indigo-500 border-indigo-100" : "bg-white/50 border-transparent opacity-70"
+                                  )}>
                                     {projectName}
                                   </span>
                                 )}
                                 {ccName && (
-                                  <span className="text-[8px] font-black bg-slate-100 text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded-full truncate max-w-[80px]">
+                                  <span className={cn(
+                                    "text-[8px] font-black border px-1.5 py-0.5 rounded-full truncate max-w-[80px]",
+                                    isApproved ? "bg-slate-100 text-slate-500 border-slate-200" : "bg-white/50 border-transparent opacity-70"
+                                  )}>
                                     {ccName}
                                   </span>
                                 )}
@@ -430,7 +453,9 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
                             )}
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="text-sm font-black text-red-500">¥{Number(exp.amount || 0).toLocaleString()}</span>
+                            <span className={cn("text-sm font-black", isApproved ? "text-red-500" : isRejected ? "text-red-400 line-through" : "text-amber-500")}>
+                               ¥{Number(exp.amount || 0).toLocaleString()}
+                            </span>
                             <Receipt className="w-3 h-3 text-slate-300 group-hover:text-slate-500 transition-colors" />
                           </div>
                         </button>

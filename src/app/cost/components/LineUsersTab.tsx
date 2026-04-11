@@ -44,7 +44,9 @@ function UserBalanceBadge({ userId, lineUserId, ownerId }: { userId: string; lin
       snap.forEach((c: any) => {
         const e = c.val();
         if (e.userId === userId || (lineUserId && e.userId === lineUserId)) {
-          total += Number(e.amount) || 0;
+          if (e.reviewStatus === 'approved') {
+            total += Number(e.amount) || 0;
+          }
         }
       });
       setExpenses(total);

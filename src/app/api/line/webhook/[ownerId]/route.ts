@@ -425,11 +425,7 @@ async function processExpenseFromReceipt(
     }
 
     const availableCcs = await getAvailableCcs(companyId, userId, userData.lineUserId);
-    if (availableCcs.length === 1) {
-      const cc = availableCcs[0];
-      await rtdb.ref(`owner_data/${companyId}/expenses/${expenseId}`).update({ costcenterId: cc.ccId, costcenterName: cc.ccName, projectId: cc.pId, status: 'processed' });
-      await push([{ type: 'text', text: `${summaryLine}\n\n${i18n('autoAssigned', lang, cc.ccName)}` }]);
-    } else if (availableCcs.length > 1) {
+    if (expenseId && availableCcs.length > 0) {
       await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/preferences/pendingExpenseId`).set(expenseId);
       const ccFlex = buildCcFlexMessage(availableCcs, expenseId!, lang, receipt.transactionType || 'expense');
       await push([{ type: 'text', text: summaryLine }, ccFlex]);
@@ -562,21 +558,10 @@ async function processExpense(lineClient: any, companyId: string, userId: string
       return '';
     };
 
-    // 🧠 Auto-assign inteligente
-    // 1. Se só tem 1 CC → atribuir automaticamente (sem necessidade de flag — não há escolha)
-    if (availableCcs.length === 1) {
-      const cc = availableCcs[0];
-      await rtdb.ref(`owner_data/${companyId}/expenses/${expenseId}`).update({
-        costcenterId: cc.ccId, costcenterName: cc.ccName, projectId: cc.pId, status: 'processed'
-      });
-      learnFromExpense(companyId, userId, { category, amount, ccId: cc.ccId, ccName: cc.ccName, pId: cc.pId }).catch(() => {});
-      const budgetAlert = await checkBudgetAlert(cc.ccId, cc.pId, amount);
-      console.log('[processExpense] Auto-assign: 1 CC only →', cc.ccName);
-      await safeReply(lineClient, replyToken, userId, [{
-        type: 'text',
-        text: `${summaryText}\n\n${i18n('autoAssigned', lang, cc.ccName)}${budgetAlert}`
-      }]);
-      return;
+    // Sempre perguntar ao usuário, mesmo que só tenha 1 CC
+    const suggestion = suggestCcFromPatterns(userPatterns, category, availableCcs);
+    if (expenseId && availableCcs.length > 0) {
+      await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/preferences/pendingExpenseId`).set(expenseId);
     }
 
     // 2. Múltiplos CCs → sempre perguntar ao usuário (sem auto-assign por padrão)

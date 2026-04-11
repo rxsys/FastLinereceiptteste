@@ -67,7 +67,18 @@ export const EditExpenseDialog = ({
     const changed = prevReviewStatus.current !== newStatus;
     const lineUserId = (expense as any).userId;
     if (changed && ownerId && lineUserId) {
-      notifyReviewStatus(ownerId, lineUserId, newStatus, expense.description || '', Number(expense.amount)).catch(() => {});
+      const cc = costCenters.find(c => c.id === expense.costcenterId);
+      const projectName = (expense as any).projectName || cc?.projectId || '—'; // Fallback to projectId if name is not available
+      notifyReviewStatus(
+        ownerId, 
+        lineUserId, 
+        newStatus, 
+        expense.description || '', 
+        Number(expense.amount),
+        expense.date,
+        projectName,
+        expense.costcenterName || cc?.name || '—'
+      ).catch(() => {});
     }
     onSave(expense);
   };
@@ -77,7 +88,18 @@ export const EditExpenseDialog = ({
     const changed = prevReviewStatus.current !== newStatus;
     const lineUserId = (expense as any).userId;
     if (changed && ownerId && lineUserId) {
-      notifyReviewStatus(ownerId, lineUserId, newStatus, expense.description || '', Number(expense.amount)).catch(() => {});
+      const cc = costCenters.find(c => c.id === expense.costcenterId);
+      const projectName = (expense as any).projectName || cc?.projectId || '—';
+      notifyReviewStatus(
+        ownerId, 
+        lineUserId, 
+        newStatus, 
+        expense.description || '', 
+        Number(expense.amount),
+        expense.date,
+        projectName,
+        expense.costcenterName || cc?.name || '—'
+      ).catch(() => {});
     }
     onSave(updatedExpense);
     onClose();
