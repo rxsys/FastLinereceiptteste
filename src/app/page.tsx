@@ -89,22 +89,22 @@ const ModuleIcon = ({
           )}
         >
           <span className="text-4xl">{emoji}</span>
-          {badge && <div className={cn("absolute -top-3 -right-3 px-3 py-1 rounded-full text-[9px] font-black text-white shadow-xl", badgeColor)}>{badge}</div>}
+          {badge && <div className={cn("absolute -top-3 -right-3 px-3 py-1 rounded-full text-[10px] font-black text-white shadow-xl", badgeColor)}>{badge}</div>}
         </div>
         <div className="text-center space-y-1">
-          <p className="text-[11px] font-black text-slate-500 group-hover:text-slate-900 transition-colors tracking-tight whitespace-nowrap">{title}</p>
+          <p className="text-[12px] font-black text-slate-500 group-hover:text-slate-900 transition-colors tracking-tight whitespace-nowrap">{title}</p>
           {active ? (
             isSubscribed ? (
-              <p className="text-[10px] font-bold text-[#00c48c] drop-shadow-[0_0_8px_rgba(0,196,140,0.3)] flex items-center justify-center gap-1">
+               <p className="text-[11px] font-bold text-[#00c48c] drop-shadow-[0_0_8px_rgba(0,196,140,0.3)] flex items-center justify-center gap-1">
                 <span>✅</span> 利用中
               </p>
             ) : (
-              <p className="text-[10px] font-bold text-[#ff6b35]">
+              <p className="text-[11px] font-bold text-[#ff6b35]">
                 <ModulePrice priceId={priceId} defaultPrice="¥10,000" />
               </p>
             )
           ) : (
-            <p className="text-[9px] font-black text-slate-400 tracking-widest uppercase">近日公開</p>
+            <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase">近日公開</p>
           )}
         </div>
       </div>
@@ -282,7 +282,7 @@ export default function LandingPage() {
             </div>
             <div className="flex items-center gap-4">
               <Select value={currentLang} onValueChange={handleLangChange}>
-                <SelectTrigger className="w-[100px] h-9 bg-slate-50 border-slate-200 text-slate-600 rounded-xl focus:ring-0 text-[11px] font-bold">
+                <SelectTrigger className="w-[110px] h-9 bg-slate-50 border-slate-200 text-slate-600 rounded-xl focus:ring-0 text-[12px] font-bold">
                   <div className="flex items-center gap-2">
                     <span className="text-base">{languages.find(l => l.code === currentLang)?.flag}</span>
                     <span>{languages.find(l => l.code === currentLang)?.code.toUpperCase()}</span>
@@ -290,7 +290,7 @@ export default function LandingPage() {
                 </SelectTrigger>
                 <SelectContent className="bg-white border-slate-200 text-slate-800 rounded-2xl shadow-xl">
                   {languages.map((lang) => (
-                    <SelectItem key={lang.code} value={lang.code} className="focus:bg-slate-100 focus:text-slate-900 rounded-xl text-[11px] font-bold">
+                    <SelectItem key={lang.code} value={lang.code} className="focus:bg-slate-100 focus:text-slate-900 rounded-xl text-[12px] font-bold">
                       <div className="flex items-center gap-2">
                         <span className="text-base">{lang.flag}</span><span>{lang.name}</span>
                       </div>
@@ -303,12 +303,12 @@ export default function LandingPage() {
                 <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-4 duration-500">
                   <div className="hidden lg:flex flex-col items-end pr-4 border-r border-slate-200">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black text-[#ff6b35] uppercase tracking-widest">{role || 'User'}</span>
-                      <span className="text-[11px] font-bold text-slate-700">{user.email}</span>
+                      <span className="text-[11px] font-black text-[#ff6b35] uppercase tracking-widest">{role || 'User'}</span>
+                      <span className="text-[12px] font-bold text-slate-700">{user.email}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">v{APP_VERSION}</span>
-                      <span className="text-[10px] font-medium text-slate-500">{companyName || 'Personal Account'}</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">v{APP_VERSION}</span>
+                      <span className="text-[11px] font-medium text-slate-500">{companyName || 'Personal Account'}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -317,7 +317,7 @@ export default function LandingPage() {
                       className="flex items-center px-4 h-9 rounded-xl bg-[#ff6b35]/10 border border-[#ff6b35]/20 hover:bg-[#ff6b35]/20 hover:scale-105 active:scale-95 transition-all shadow-sm"
                     >
                       <span className="text-base">📄</span>
-                      <span className="text-[10px] font-black tracking-tight text-[#ff6b35] ml-2">FastLineコスト管理</span>
+                      <span className="text-[11px] font-black tracking-tight text-[#ff6b35] ml-2">FastLineコスト管理</span>
                       <ArrowRight className="w-3 h-3 ml-2 text-[#ff6b35]" />
                     </button>
                     <button onClick={() => signOut(auth!)} className="p-2.5 text-slate-400 hover:text-red-500 transition-colors" title="Logout"><LogOut className="w-5 h-5" /></button>
@@ -347,10 +347,10 @@ export default function LandingPage() {
 
         <main className="pt-44 pb-32 px-6 flex flex-col items-center">
           <h1 className="text-2xl md:text-5xl font-black text-center uppercase tracking-tighter leading-tight text-slate-900">{t.heroTitle[0]}<span className="text-[#ff6b35]">{t.heroTitle[1]}</span>{t.heroTitle[2]}</h1>
-          <p className="text-slate-500 mt-6 max-w-2xl text-center font-medium">{t.heroDesc}</p>
+          <p className="text-slate-500 mt-6 max-w-2xl text-center font-medium text-lg">{t.heroDesc}</p>
 
           <div className="flex flex-wrap justify-center gap-3 mt-12 mb-16 max-w-3xl">
-            {t.categories.map((cat: string) => <span key={cat} className="px-6 py-3 rounded-full bg-white border border-slate-200 text-[12px] font-black tracking-widest text-slate-500 shadow-sm">{cat}</span>)}
+            {t.categories.map((cat: string) => <span key={cat} className="px-6 py-3 rounded-full bg-white border border-slate-200 text-[13px] font-black tracking-widest text-slate-500 shadow-sm">{cat}</span>)}
           </div>
 
           <div className="mt-8 w-full max-w-[1000px] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-x-8 gap-y-12 pb-24">
@@ -358,7 +358,7 @@ export default function LandingPage() {
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); router.push('/module-cost'); }}
-                className="px-3 py-1 rounded-full bg-[#22c55e]/10 border border-[#22c55e]/30 text-[9px] font-black text-[#22c55e] hover:bg-[#22c55e]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
+                className="px-4 py-1.5 rounded-full bg-[#22c55e]/10 border border-[#22c55e]/30 text-[10px] font-black text-[#22c55e] hover:bg-[#22c55e]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
               >
                 詳細はこちら →
               </button>
@@ -374,7 +374,7 @@ export default function LandingPage() {
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); router.push('/member'); }}
-                className="px-3 py-1 rounded-full bg-[#6366f1]/10 border border-[#6366f1]/30 text-[9px] font-black text-[#6366f1] hover:bg-[#6366f1]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
+                className="px-4 py-1.5 rounded-full bg-[#6366f1]/10 border border-[#6366f1]/30 text-[10px] font-black text-[#6366f1] hover:bg-[#6366f1]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
               >
                 詳細はこちら →
               </button>
@@ -392,7 +392,7 @@ export default function LandingPage() {
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); router.push('/mypage'); }}
-                className="px-3 py-1 rounded-full bg-[#0ea5e9]/10 border border-[#0ea5e9]/30 text-[9px] font-black text-[#0ea5e9] hover:bg-[#0ea5e9]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
+                className="px-4 py-1.5 rounded-full bg-[#0ea5e9]/10 border border-[#0ea5e9]/30 text-[10px] font-black text-[#0ea5e9] hover:bg-[#0ea5e9]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
               >
                 詳細はこちら →
               </button>
