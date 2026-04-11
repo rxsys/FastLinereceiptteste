@@ -245,16 +245,22 @@ export async function notifyReviewStatus(
 
     const lineClient = getLineClient(accessToken);
 
-    const statusText =
-      reviewStatus === 'approved' ? '✅ 受取済み — 領収書が受理されました。' :
-      reviewStatus === 'rejected' ? '❌ 否認 — 領収書が受理されませんでした。ご確認をお願いいたします。' :
-      '🔍 審査中 — 領収書を確認しております。';
+    const statusEmoji = reviewStatus === 'approved' ? '✅' : reviewStatus === 'rejected' ? '❌' : '🔍';
+    const statusLabel = 
+      reviewStatus === 'approved' ? '受取済み (承認)' : 
+      reviewStatus === 'rejected' ? '否認 (却下)' : 
+      '審査中';
+
+    const statusDetail =
+      reviewStatus === 'approved' ? '領収書が受理されました。ありがとうございます。' :
+      reviewStatus === 'rejected' ? '申し訳ございませんが、領収書を受理できませんでした。内容をご確認ください。' :
+      '現在、領収書の内容を確認しております。';
 
     await lineClient.pushMessage({
       to: lineUserId,
       messages: [{
         type: 'text',
-        text: `📄 領収書ステータスが更新されました。\n\n${statusText}\n\n店舗名：${description || '—'}\n金額：¥${amount.toLocaleString('ja-JP')}`
+        text: `${statusEmoji} 領収書の確認状況が変わりました。\n\nステータス：${statusLabel}\n${statusDetail}\n\n📝 内容：${description || '—'}\n💰 金額：¥${amount.toLocaleString('ja-JP')}`
       }]
     });
 
