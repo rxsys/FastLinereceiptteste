@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { auditAction } from '@/app/actions/audit';
 import { BudgetSpeedometer, CategoryPieChart } from "./expenses/charts";
 
 const formatCurrency = (val: string | number) => {
@@ -27,7 +28,7 @@ const formatCurrency = (val: string | number) => {
 const parseCurrency = (val: string) => val.replace(/[^0-9]/g, '');
 
 export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string, t: any }) {
-  const { ownerId: userOwnerId } = useUser();
+  const { ownerId: userOwnerId, user, role } = useUser();
   const database = useDatabase();
   const { toast } = useToast();
   const effectiveOwnerId = ownerIdOverride || userOwnerId;
@@ -72,10 +73,14 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
     return map;
   }, [expenses]);
 
+  const actor = () => ({ type: 'user' as const, id: user?.uid || 'unknown', name: user?.displayName || user?.email || 'manager', role: role || 'manager' });
+
   const handleAddProject = async () => {
     if (!database || !effectiveOwnerId || !newProject.name) return;
     const newRef = push(ref(database, `owner_data/${effectiveOwnerId}/projects`));
-    await set(newRef, { ...newProject, createdAt: new Date().toISOString() });
+    const payload = { ...newProject, createdAt: new Date().toISOString() };
+    await set(newRef, payload);
+    auditAction({ ownerId: effectiveOwnerId, actor: actor(), action: 'create', entity: { type: 'project', id: newRef.key || '', path: `owner_data/${effectiveOwnerId}/projects/${newRef.key}`, label: newProject.name }, after: payload, source: 'dashboard' }).catch(() => {});
     setNewProject({ name: '' });
     setIsAddProjectDialogOpen(false);
     toast({ title: "プロジェクトを登録しました" });
@@ -84,7 +89,9 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
   const handleAddCC = async () => {
     if (!database || !effectiveOwnerId || !newCC.name || !newCC.projectId) return;
     const newRef = push(ref(database, `owner_data/${effectiveOwnerId}/projects/${newCC.projectId}/costcenters`));
-    await set(newRef, { ...newCC, totalValue: Number(newCC.totalValue), budgetLimit: Number(newCC.budgetLimit), createdAt: new Date().toISOString() });
+    const payload = { ...newCC, totalValue: Number(newCC.totalValue), budgetLimit: Number(newCC.budgetLimit), createdAt: new Date().toISOString() };
+    await set(newRef, payload);
+    auditAction({ ownerId: effectiveOwnerId, actor: actor(), action: 'create', entity: { type: 'costcenter', id: newRef.key || '', path: `owner_data/${effectiveOwnerId}/projects/${newCC.projectId}/costcenters/${newRef.key}`, label: newCC.name }, after: payload, source: 'dashboard' }).catch(() => {});
     setNewCC({ name: '', status: 2, totalValue: '', budgetLimit: '', assignedLineUserIds: [], projectId: '' });
     setIsAddCCDialogOpen(false);
     toast({ title: "原価センターを登録しました" });
@@ -93,19 +100,24 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
   const handleUpdateCC = async () => {
     if (!database || !effectiveOwnerId || !editingCC) return;
     const { id, projectId, ...data } = editingCC;
-    await update(ref(database, `owner_data/${effectiveOwnerId}/projects/${projectId}/costcenters/${id}`), { 
-      ...data, 
-      totalValue: Number(data.totalValue), 
-      budgetLimit: Number(data.budgetLimit),
-      updatedAt: new Date().toISOString()
-    });
+    const updatedAt = new Date().toISOString();
+    const payload = { ...data, totalValue: Number(data.totalValue), budgetLimit: Number(data.budgetLimit), updatedAt };
+    await update(ref(database, `owner_data/${effectiveOwnerId}/projects/${projectId}/costcenters/${id}`), payload);
+    auditAction({ ownerId: effectiveOwnerId, actor: actor(), action: 'update', entity: { type: 'costcenter', id, path: `owner_data/${effectiveOwnerId}/projects/${projectId}/costcenters/${id}`, label: editingCC.name }, before: editingCC, after: payload, source: 'dashboard' }).catch(() => {});
     setEditingCC(null);
     toast({ title: "原価センターを更新しました" });
   };
 
   const handleDelete = async (path: string) => {
     if (!database || !effectiveOwnerId || !confirm("削除してもよろしいですか？")) return;
+    // Detectar tipo pelo path (projects/X vs projects/X/costcenters/Y)
+    const parts = path.split('/');
+    const isCC = parts.length === 4; // projects/{pId}/costcenters/{ccId}
+    const entityId = parts[parts.length - 1];
+    const entityType = isCC ? 'costcenter' : 'project';
+    const snapBefore = await get(ref(database, `owner_data/${effectiveOwnerId}/${path}`));
     await remove(ref(database, `owner_data/${effectiveOwnerId}/${path}`));
+    auditAction({ ownerId: effectiveOwnerId, actor: actor(), action: 'delete', entity: { type: entityType, id: entityId, path: `owner_data/${effectiveOwnerId}/${path}`, label: snapBefore.val()?.name || entityId }, before: snapBefore.val() || {}, source: 'dashboard' }).catch(() => {});
     toast({ title: "削除しました" });
   };
 
