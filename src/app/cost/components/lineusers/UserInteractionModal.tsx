@@ -36,17 +36,39 @@ export function UserInteractionModal({ isOpen, onClose, user, ownerId }: UserInt
   }, [interactions]);
 
   useEffect(() => {
-    const targetUserId = user?.lineUserId || user?.id;
-    if (!isOpen || !database || !ownerId || !targetUserId) return;
+    if (!isOpen || !database || !ownerId || !user) return;
 
     setLoading(true);
-    const logRef = ref(database, `owner_data/${ownerId}/lineUsers/${targetUserId}/interactions`);
+    
+    // Fallbacks para buscar na ID principal ou na lineUserId.
+    const primaryId = user.lineUserId || user.id;
+    const secondaryId = user.id;
+
+    // Monitora o caminho primário (provavelmente onde o bot grava, que usa Uxxxx)
+    const logRef = ref(database, `owner_data/${ownerId}/lineUsers/${primaryId}/interactions`);
     
     const unsub = onValue(logRef, (snap) => {
-      const list: any[] = [];
-      snap.forEach((child) => {
-        list.push({ id: child.key, ...child.val() });
-      });
+      let list: any[] = [];
+      if (snap.exists()) {
+        snap.forEach((child) => {
+          list.push({ id: child.key, ...child.val() });
+        });
+      }
+
+      // Se a lista estiver vazia no primary, checa também o secondary se for diferente
+      if (list.length === 0 && primaryId !== secondaryId) {
+        const secRef = ref(database, `owner_data/${ownerId}/lineUsers/${secondaryId}/interactions`);
+        get(secRef).then(secSnap => {
+          if (secSnap.exists()) {
+            secSnap.forEach(cc => { list.push({ id: cc.key, ...cc.val() }); });
+          }
+          list.sort((a, b) => (a.ts || 0) - (b.ts || 0));
+          setInteractions(list);
+          setLoading(false);
+        });
+        return;
+      }
+
       // Ordem cronológica para o chat
       list.sort((a, b) => (a.ts || 0) - (b.ts || 0));
       setInteractions(list);
@@ -114,7 +136,11 @@ export function UserInteractionModal({ isOpen, onClose, user, ownerId }: UserInt
                      <div className="w-16 h-16 rounded-3xl bg-white flex items-center justify-center shadow-sm border border-slate-100 text-slate-200">
                         <MessageSquare className="w-8 h-8" />
                      </div>
-                     <p className="text-xs font-black text-slate-400">履歴がまだありません<br/><span className="text-[10px] font-medium opacity-70">No interactions recorded yet.</span></p>
+                     <p className="text-xs font-black text-slate-400">
+                       履歴がまだありません<br/>
+                       <span className="text-[10px] font-medium opacity-70 block mt-1">No interactions recorded yet.</span>
+                       <span className="text-[8px] opacity-30 mt-4 block font-mono">Listening on ID: {user?.lineUserId || user?.id}</span>
+                     </p>
                   </div>
                 )}
 
