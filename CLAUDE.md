@@ -15,6 +15,7 @@
 - Não refatorar código além do que foi pedido
 - Não adicionar tratamento de erro para casos impossíveis
 - Confirmar comandos bash automaticamente quando possível
+- **PROIBIDO** alterar qualquer parte do Portal do Desenvolvedor (`src/app/developer` e componentes relacionados) sem ordem direta e específica.
 
 ## Fluxo de trabalho
 - Ler o arquivo antes de editar
