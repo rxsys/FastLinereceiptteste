@@ -22,8 +22,18 @@ export function UserInteractionModal({ isOpen, onClose, user, ownerId }: UserInt
   const database = useDatabase();
   const [interactions, setInteractions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollBottomRef = useRef<HTMLDivElement>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const scrollToBottom = () => {
+    if (scrollBottomRef.current) {
+      scrollBottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [interactions]);
 
   useEffect(() => {
     if (!isOpen || !database || !ownerId || !user?.id) return;
@@ -40,13 +50,6 @@ export function UserInteractionModal({ isOpen, onClose, user, ownerId }: UserInt
       list.sort((a, b) => (a.ts || 0) - (b.ts || 0));
       setInteractions(list);
       setLoading(false);
-      
-      // Auto-scroll para o final após carregar
-      setTimeout(() => {
-        if (scrollRef.current) {
-          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-      }, 100);
     });
 
     return () => off(logRef);
@@ -200,6 +203,7 @@ export function UserInteractionModal({ isOpen, onClose, user, ownerId }: UserInt
                     </div>
                   );
                 })}
+                <div ref={scrollBottomRef} />
               </div>
             </ScrollArea>
           </div>
