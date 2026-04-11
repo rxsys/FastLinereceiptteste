@@ -54,21 +54,25 @@ function computeDiff(before: any, after: any): string[] {
   return [...keys].filter(k => !NOISE_FIELDS.has(k) && JSON.stringify(before[k]) !== JSON.stringify(after[k]));
 }
 
-export function logAudit(params: LogAuditParams): void {
+export async function logAudit(params: LogAuditParams): Promise<void> {
   const { ownerId, actor, action, entity, before, after, source = 'dashboard', metadata } = params;
   const cleanBefore = before ? sanitize(before) : undefined;
   const cleanAfter = after ? sanitize(after) : undefined;
   const diff = computeDiff(cleanBefore, cleanAfter);
 
-  rtdb.ref(`audit_logs/${ownerId}`).push({
-    timestamp: new Date().toISOString(),
-    actor,
-    action,
-    entity,
-    ...(cleanBefore !== undefined ? { before: cleanBefore } : {}),
-    ...(cleanAfter !== undefined ? { after: cleanAfter } : {}),
-    ...(diff.length > 0 ? { diff } : {}),
-    source,
-    metadata: metadata || {},
-  }).catch(e => console.warn('[audit] write failed:', (e as any)?.message));
+  try {
+    await rtdb.ref(`audit_logs/${ownerId}`).push({
+      timestamp: new Date().toISOString(),
+      actor,
+      action,
+      entity,
+      ...(cleanBefore !== undefined ? { before: cleanBefore } : {}),
+      ...(cleanAfter !== undefined ? { after: cleanAfter } : {}),
+      ...(diff.length > 0 ? { diff } : {}),
+      source,
+      metadata: metadata || {},
+    });
+  } catch (e) {
+    console.warn('[audit] write failed:', (e as any)?.message);
+  }
 }

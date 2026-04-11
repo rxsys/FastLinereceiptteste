@@ -79,8 +79,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
           // Aprende preferência do usuário
           saveUserPreference(companyId, userId, { lastPaymentType: paymentType }).catch(() => {});
           const msg = paymentType === 'company' ? i18n('paymentCompany', lang) : i18n('paymentReimburse', lang);
-          logInteraction(companyId, userId, { role: 'user', text: `Action: Set Payment (${paymentType})` });
-          logInteraction(companyId, userId, { role: 'ai', text: msg });
+          await logInteraction(companyId, userId, { role: 'user', text: `Action: Set Payment (${paymentType})` });
+          await logInteraction(companyId, userId, { role: 'ai', text: msg });
           await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: msg }] });
           continue;
         } else if (action === 'cancel') {
@@ -92,8 +92,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
           await rtdb.ref(`owner_data/${companyId}/expenses/${expenseId}`).remove();
           await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/preferences/pendingExpenseId`).remove();
           const msg = i18n('cancelled', lang);
-          logInteraction(companyId, userId, { role: 'user', text: 'Action: Cancel Submission' });
-          logInteraction(companyId, userId, { role: 'ai', text: msg });
+          await logInteraction(companyId, userId, { role: 'user', text: 'Action: Cancel Submission' });
+          await logInteraction(companyId, userId, { role: 'ai', text: msg });
           await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: msg }] });
         } else if (action === 'setcc') {
           const ccId = data.get('ccId');
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
           await rtdb.ref(`owner_data/${companyId}/expenses/${expenseId}`).update({
              costcenterId: ccId, costcenterName: ccName, projectId: pId, status: 'processed'
           });
-          logAudit({ ownerId: companyId, actor: { type: 'lineUser', id: userId, name: senderName }, action: 'update', entity: { type: 'expense', id: expenseId!, path: `owner_data/${companyId}/expenses/${expenseId}`, label: `¥${Number(expData.amount||0).toLocaleString()} ${expData.description||''}` }, before: expData, after: { ...expData, costcenterId: ccId, costcenterName: ccName, projectId: pId, status: 'processed' }, source: 'line_bot' });
+          await logAudit({ ownerId: companyId, actor: { type: 'lineUser', id: userId, name: senderName }, action: 'update', entity: { type: 'expense', id: expenseId!, path: `owner_data/${companyId}/expenses/${expenseId}`, label: `¥${Number(expData.amount||0).toLocaleString()} ${expData.description||''}` }, before: expData, after: { ...expData, costcenterId: ccId, costcenterName: ccName, projectId: pId, status: 'processed' }, source: 'line_bot' });
           await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/preferences/pendingExpenseId`).remove();
           saveUserPreference(companyId, userId, { favoriteCcId: ccId || '', favoriteCcName: ccName || '' }).catch(() => {});
           // Aprender padrão: categoria → CC
@@ -123,8 +123,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
           const pName = pNameSnap.val() || 'Project';
           
           const msg = i18n('ccRegistered', lang, ccName, Number(expData.amount||0).toLocaleString(), expData.description||'---', expData.date||'', pName);
-          logInteraction(companyId, userId, { role: 'user', text: `Action: Select CC (${ccName})` });
-          logInteraction(companyId, userId, { role: 'ai', text: msg });
+          await logInteraction(companyId, userId, { role: 'user', text: `Action: Select CC (${ccName})` });
+          await logInteraction(companyId, userId, { role: 'ai', text: msg });
 
           await lineClient.replyMessage({ replyToken, messages: [{
             type: 'text',
@@ -319,10 +319,10 @@ async function processInviteHash(lineClient: any, companyId: string, userId: str
   }
 
   await rtdb.ref(`owner_data/${companyId}/invites/${inviteKey}`).update({ used: true, usedBy: userId, usedAt: new Date().toISOString() });
-  logAudit({ ownerId: companyId, actor: { type: 'lineUser', id: userId, name: senderName }, action: 'create', entity: { type: 'lineUser', id: userId, path: `owner_data/${companyId}/lineUsers/${userId}`, label: inviteData.inviteName || senderName }, after: { name: inviteData.inviteName, fullName: senderName, lineUserId: userId, status: 2 }, source: 'line_bot', metadata: { inviteHash: hash } });
+  await logAudit({ ownerId: companyId, actor: { type: 'lineUser', id: userId, name: senderName }, action: 'create', entity: { type: 'lineUser', id: userId, path: `owner_data/${companyId}/lineUsers/${userId}`, label: inviteData.inviteName || senderName }, after: { name: inviteData.inviteName, fullName: senderName, lineUserId: userId, status: 2 }, source: 'line_bot', metadata: { inviteHash: hash } });
 
   const msg = isManager ? i18n('managerRegistered', inviteLang, inviteData.inviteName) : i18n('userRegistered', inviteLang, inviteData.inviteName);
-  logInteraction(companyId, userId, { role: 'ai', text: msg });
+  await logInteraction(companyId, userId, { role: 'ai', text: msg });
   await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: msg }] });
 }
 
@@ -549,7 +549,7 @@ async function processExpense(lineClient: any, companyId: string, userId: string
       ...(duplicate ? { duplicateFlag: true, duplicateOf: duplicate.id } : {}),
     };
     await newExpRef.set(expensePayload);
-    logAudit({ ownerId: companyId, actor: { type: 'lineUser', id: userId, name: userData?.fullName || userData?.name || 'User' }, action: 'create', entity: { type: 'expense', id: expenseId!, path: `owner_data/${companyId}/expenses/${expenseId}`, label: `¥${amount.toLocaleString()} ${details?.description || ''}` }, after: expensePayload, source: 'line_bot' });
+    await logAudit({ ownerId: companyId, actor: { type: 'lineUser', id: userId, name: userData?.fullName || userData?.name || 'User' }, action: 'create', entity: { type: 'expense', id: expenseId!, path: `owner_data/${companyId}/expenses/${expenseId}`, label: `¥${amount.toLocaleString()} ${details?.description || ''}` }, after: expensePayload, source: 'line_bot' });
 
     if (details?.registrationNumber && expenseId) {
       processExpenseNtaCheck(companyId, expenseId, details.registrationNumber).catch(console.error);
