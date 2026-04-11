@@ -23,7 +23,7 @@ export function LineApiPoolTab({ t }: { t: any }) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingBot, setEditingBot] = useState<any | null>(null);
   
-  const defaultBotState = { name: '', lineBasicId: '', lineChannelAccessToken: '', lineChannelSecret: '', googleGenAiApiKey: '' };
+  const defaultBotState = { name: '', lineBasicId: '', lineChannelAccessToken: '', lineChannelSecret: '', googleGenAiApiKey: '', webhook: '' };
   const [newBot, setNewBot] = useState(defaultBotState);
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
 
@@ -62,9 +62,12 @@ export function LineApiPoolTab({ t }: { t: any }) {
           <DialogTrigger asChild><Button className="rounded-2xl gap-2 font-black"><Plus/> Novo Bot</Button></DialogTrigger>
           <DialogContent className="rounded-[2rem] max-w-2xl">
             <DialogHeader><DialogTitle>Adicionar Bot ao Pool</DialogTitle></DialogHeader>
-            <div className="space-y-4 py-4">
-              <Label>Nome de Referência</Label><Input value={newBot.name} onChange={e => setNewBot({...newBot, name: e.target.value})} placeholder="FastLine X"/>
-              <Label>LINE Basic ID</Label><Input value={newBot.lineBasicId} onChange={e => setNewBot({...newBot, lineBasicId: e.target.value})} placeholder="@..."/>
+            <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2"><Label>Nome de Referência</Label><Input value={newBot.name} onChange={e => setNewBot({...newBot, name: e.target.value})} placeholder="FastLine X"/></div>
+                <div className="space-y-2"><Label>LINE Basic ID</Label><Input value={newBot.lineBasicId} onChange={e => setNewBot({...newBot, lineBasicId: e.target.value})} placeholder="@..."/></div>
+              </div>
+              <Label>Webhook URL</Label><Input value={newBot.webhook} onChange={e => setNewBot({...newBot, webhook: e.target.value})} placeholder="https://..."/>
               <Label>Channel Access Token</Label><Input value={newBot.lineChannelAccessToken} onChange={e => setNewBot({...newBot, lineChannelAccessToken: e.target.value})}/>
               <Label>Channel Secret</Label><Input value={newBot.lineChannelSecret} onChange={e => setNewBot({...newBot, lineChannelSecret: e.target.value})}/>
               <Label>Google Gen AI API Key</Label><Input value={newBot.googleGenAiApiKey} onChange={e => setNewBot({...newBot, googleGenAiApiKey: e.target.value})}/>
@@ -80,7 +83,10 @@ export function LineApiPoolTab({ t }: { t: any }) {
             <CardHeader className="flex flex-row items-start justify-between border-b pb-4">
               <div>
                 <CardTitle className="text-lg font-black">{bot.name}</CardTitle>
-                <Badge variant={bot.status === 'available' ? 'outline' : 'default'} className="text-[9px] mt-2">{bot.status?.toUpperCase()}</Badge>
+                <div className="flex gap-2 mt-2">
+                  <Badge variant={bot.status === 'available' ? 'outline' : 'default'} className="text-[9px]">{bot.status?.toUpperCase()}</Badge>
+                  {bot.webhook && <Badge variant="secondary" className="text-[9px] bg-blue-50 text-blue-600 border-none">WEBHOOK CONFIGURED</Badge>}
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => toggleKeyVis(bot.id)} className="rounded-xl h-8 text-[10px] uppercase font-black">
@@ -96,21 +102,25 @@ export function LineApiPoolTab({ t }: { t: any }) {
                 <p className="font-mono text-sm break-all font-bold text-slate-700">{bot.lineBasicId || '—'}</p>
               </div>
               <div className="space-y-1">
+                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Webhook URL</p>
+                <p className="font-mono text-[10px] break-all text-blue-500 font-bold underline">{bot.webhook || 'Não configurado'}</p>
+              </div>
+              <div className="space-y-1">
                 <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">LINE Channel Secret</p>
                 <p className="font-mono text-xs break-all bg-slate-50 p-2 rounded-xl text-slate-600">
                   {showKeys[bot.id] ? (bot.lineChannelSecret || '—') : '••••••••••••••••••••••••••••••••'}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Google Gen AI API Key</p>
+                <p className="font-mono text-xs break-all bg-slate-50 p-2 rounded-xl text-slate-600">
+                  {showKeys[bot.id] ? (bot.googleGenAiApiKey || '—') : '••••••••••••••••••••••••••••••••••••••'}
                 </p>
               </div>
               <div className="space-y-1 md:col-span-2">
                 <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">LINE Channel Access Token</p>
                 <p className="font-mono text-xs break-all bg-slate-50 p-2 rounded-xl text-slate-600">
                   {showKeys[bot.id] ? (bot.lineChannelAccessToken || '—') : '••••••••••••••••••••••••••••••••••••••••••••••••'}
-                </p>
-              </div>
-              <div className="space-y-1 md:col-span-2">
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Google Gen AI API Key</p>
-                <p className="font-mono text-xs break-all bg-slate-50 p-2 rounded-xl text-slate-600">
-                  {showKeys[bot.id] ? (bot.googleGenAiApiKey || '—') : '••••••••••••••••••••••••••••••••••••••'}
                 </p>
               </div>
             </CardContent>
@@ -130,13 +140,19 @@ export function LineApiPoolTab({ t }: { t: any }) {
           </div>
           
           <div className="p-8 space-y-4 max-h-[70vh] overflow-y-auto">
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Nome de Referência</Label>
-              <Input value={editingBot?.name || ''} onChange={e => setEditingBot({...editingBot, name: e.target.value})} className="h-12 rounded-2xl bg-slate-50 border-slate-100 font-bold" />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Nome de Referência</Label>
+                <Input value={editingBot?.name || ''} onChange={e => setEditingBot({...editingBot, name: e.target.value})} className="h-12 rounded-2xl bg-slate-50 border-slate-100 font-bold" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">LINE Basic ID</Label>
+                <Input value={editingBot?.lineBasicId || ''} onChange={e => setEditingBot({...editingBot, lineBasicId: e.target.value})} className="h-12 rounded-2xl bg-slate-50 border-slate-100 font-mono" />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">LINE Basic ID</Label>
-              <Input value={editingBot?.lineBasicId || ''} onChange={e => setEditingBot({...editingBot, lineBasicId: e.target.value})} className="h-12 rounded-2xl bg-slate-50 border-slate-100 font-mono" />
+              <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Webhook URL</Label>
+              <Input value={editingBot?.webhook || ''} onChange={e => setEditingBot({...editingBot, webhook: e.target.value})} className="h-12 rounded-2xl bg-slate-50 border-slate-100 font-mono text-xs" placeholder="https://..." />
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Channel Access Token</Label>

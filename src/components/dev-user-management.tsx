@@ -25,9 +25,11 @@ export function DevUserManagement() {
 
   const usersRef = useMemo(() => database ? ref(database, 'users') : null, [database]);
   const ownersRef = useMemo(() => database ? ref(database, 'owner') : null, [database]);
+  const poolRef = useMemo(() => database ? ref(database, 'line_api_pool') : null, [database]);
 
   const { data: usersRaw } = useRTDBCollection(usersRef);
   const { data: owners } = useRTDBCollection(ownersRef);
+  const { data: pool } = useRTDBCollection(poolRef);
 
   const usersGrouped = useMemo(() => {
     if (!usersRaw) return {};
@@ -63,6 +65,7 @@ export function DevUserManagement() {
 
       {Object.entries(usersGrouped).map(([ownerId, group]) => {
         const owner = owners?.find(o => o.id === ownerId);
+        const projectKeys = pool?.find(p => p.id === ownerId);
         const filteredGroup = group.filter(u => 
           u.email?.toLowerCase().includes(searchTerm.toLowerCase()) || 
           u.name?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -105,32 +108,58 @@ export function DevUserManagement() {
                       {expanded[u.id] && (
                         <TableRow>
                           <TableCell colSpan={4} className="p-0 border-b-0">
-                            <div className="bg-slate-900 border-x-4 border-l-amber-500 border-r-transparent p-6 text-white overflow-hidden shadow-inner flex flex-col gap-4">
-                              <p className="text-[10px] font-black tracking-widest uppercase text-slate-400 flex items-center gap-2">
-                                <Key className="w-3.5 h-3.5"/> Full Internal Record (Raw Data)
-                              </p>
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {Object.entries(u).map(([k, v]) => {
-                                  if (typeof v === 'object' && v !== null) {
+                            <div className="bg-slate-900 border-x-4 border-l-amber-500 border-r-transparent p-6 text-white overflow-hidden shadow-inner flex flex-col gap-6">
+                              <section className="space-y-4">
+                                <p className="text-[10px] font-black tracking-widest uppercase text-slate-400 flex items-center gap-2">
+                                  <Key className="w-3.5 h-3.5"/> Full Internal Record (User Raw Data)
+                                </p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                  {Object.entries(u).map(([k, v]) => {
+                                    if (typeof v === 'object' && v !== null) {
+                                      return (
+                                        <div key={k} className="col-span-full space-y-1 bg-white/5 p-3 rounded-xl border border-white/10">
+                                          <p className="text-[10px] font-black text-amber-500 uppercase">{k}</p>
+                                          <pre className="text-[10px] whitespace-pre-wrap break-all font-mono text-slate-300">
+                                            {JSON.stringify(v, null, 2)}
+                                          </pre>
+                                        </div>
+                                      );
+                                    }
                                     return (
-                                      <div key={k} className="col-span-full space-y-1 bg-white/5 p-3 rounded-xl border border-white/10">
-                                        <p className="text-[10px] font-black text-amber-500 uppercase">{k}</p>
-                                        <pre className="text-[10px] whitespace-pre-wrap break-all font-mono text-slate-300">
-                                          {JSON.stringify(v, null, 2)}
-                                        </pre>
+                                      <div key={k} className="space-y-1">
+                                        <p className="text-[9px] font-black text-slate-500 uppercase">{k}</p>
+                                        <p className="font-mono text-xs break-all font-medium text-slate-200">
+                                          {String(v)}
+                                        </p>
                                       </div>
                                     );
-                                  }
-                                  return (
-                                    <div key={k} className="space-y-1">
-                                      <p className="text-[9px] font-black text-slate-500 uppercase">{k}</p>
-                                      <p className="font-mono text-xs break-all font-medium text-slate-200">
-                                        {String(v)}
-                                      </p>
-                                    </div>
-                                  );
-                                })}
-                              </div>
+                                  })}
+                                </div>
+                              </section>
+
+                              {projectKeys && (
+                                <section className="space-y-4 pt-4 border-t border-white/10">
+                                  <p className="text-[10px] font-black tracking-widest uppercase text-emerald-500 flex items-center gap-2">
+                                    <Database className="w-3.5 h-3.5"/> Associated Project Credentials (Owner Level)
+                                  </p>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 bg-emerald-950/30 p-4 rounded-2xl border border-emerald-900/30">
+                                    {[
+                                      { label: 'Webhook URL', val: projectKeys.webhook, color: 'text-blue-400' },
+                                      { label: 'LINE Basic ID', val: projectKeys.lineBasicId },
+                                      { label: 'Channel Secret', val: projectKeys.lineChannelSecret },
+                                      { label: 'Channel Access Token', val: projectKeys.lineChannelAccessToken },
+                                      { label: 'Google Gen AI Key', val: projectKeys.googleGenAiApiKey, color: 'text-amber-400' },
+                                    ].map(item => (
+                                      <div key={item.label} className="space-y-1">
+                                        <p className="text-[8px] font-black text-slate-500 uppercase tracking-wider">{item.label}</p>
+                                        <p className={cn("font-mono text-[10px] break-all", item.color || "text-emerald-200")}>
+                                          {item.val || '—'}
+                                        </p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </section>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
