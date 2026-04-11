@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Edit2, Plus, Database, Eye, EyeOff } from "lucide-react";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -78,54 +78,77 @@ export function LineApiPoolTab({ t }: { t: any }) {
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        {pool?.map(bot => (
-          <Card key={bot.id} className="rounded-[2rem] border shadow-sm bg-white">
-            <CardHeader className="flex flex-row items-start justify-between border-b pb-4">
-              <div>
-                <CardTitle className="text-lg font-black">{bot.name}</CardTitle>
-                <div className="flex gap-2 mt-2">
-                  <Badge variant={bot.status === 'available' ? 'outline' : 'default'} className="text-[9px]">{bot.status?.toUpperCase()}</Badge>
-                  {bot.webhook && <Badge variant="secondary" className="text-[9px] bg-blue-50 text-blue-600 border-none">WEBHOOK CONFIGURED</Badge>}
+        {pool?.map(bot => {
+          const isUsed = bot.status === 'used';
+          return (
+            <Card key={bot.id} className={cn(
+              "rounded-[2rem] border transition-all duration-300",
+              isUsed 
+                ? "border-amber-200 bg-amber-50/40 shadow-inner" 
+                : "border-slate-100 bg-white shadow-sm"
+            )}>
+              <CardHeader className="flex flex-row items-start justify-between border-b pb-4">
+                <div className="flex items-start gap-4">
+                  <div className={cn(
+                    "w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-sm",
+                    isUsed ? "bg-amber-100 text-amber-600" : "bg-emerald-100 text-emerald-600"
+                  )}>
+                    {bot.name?.charAt(0) || <Database />}
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-black flex items-center gap-2">
+                      {bot.name}
+                      {isUsed && <Badge className="bg-amber-500 hover:bg-amber-600 text-[9px] font-black uppercase">Em Uso</Badge>}
+                    </CardTitle>
+                    <div className="flex flex-col gap-1 mt-1">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className={cn("text-[9px] font-black", isUsed ? "border-amber-200 text-amber-700" : "border-emerald-200 text-emerald-700")}>
+                          {bot.status?.toUpperCase()}
+                        </Badge>
+                        {bot.ownerName && <span className="text-[10px] font-black text-amber-700 uppercase">Tenant: {bot.ownerName}</span>}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => toggleKeyVis(bot.id)} className="rounded-xl h-8 text-[10px] uppercase font-black">
-                   {showKeys[bot.id] ? <><EyeOff className="w-3 h-3 mr-1"/> Ocultar</> : <><Eye className="w-3 h-3 mr-1"/> Mostrar Chaves</>}
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => setEditingBot(bot)} className="rounded-xl h-8 w-8 hover:bg-slate-100"><Edit2 className="w-3.5 h-3.5 text-slate-500"/></Button>
-                <Button variant="ghost" size="icon" onClick={() => handleDelete(bot.id)} className="rounded-xl h-8 w-8 hover:bg-red-50"><Trash2 className="w-3.5 h-3.5 text-red-500"/></Button>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-              <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">LINE Basic ID</p>
-                <p className="font-mono text-sm break-all font-bold text-slate-700">{bot.lineBasicId || '—'}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Webhook URL</p>
-                <p className="font-mono text-[10px] break-all text-blue-500 font-bold underline">{bot.webhook || 'Não configurado'}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">LINE Channel Secret</p>
-                <p className="font-mono text-xs break-all bg-slate-50 p-2 rounded-xl text-slate-600">
-                  {showKeys[bot.id] ? (bot.lineChannelSecret || '—') : '••••••••••••••••••••••••••••••••'}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Google Gen AI API Key</p>
-                <p className="font-mono text-xs break-all bg-slate-50 p-2 rounded-xl text-slate-600">
-                  {showKeys[bot.id] ? (bot.googleGenAiApiKey || '—') : '••••••••••••••••••••••••••••••••••••••'}
-                </p>
-              </div>
-              <div className="space-y-1 md:col-span-2">
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">LINE Channel Access Token</p>
-                <p className="font-mono text-xs break-all bg-slate-50 p-2 rounded-xl text-slate-600">
-                  {showKeys[bot.id] ? (bot.lineChannelAccessToken || '—') : '••••••••••••••••••••••••••••••••••••••••••••••••'}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => toggleKeyVis(bot.id)} className="rounded-xl h-8 text-[10px] uppercase font-black bg-white/50">
+                     {showKeys[bot.id] ? <><EyeOff className="w-3 h-3 mr-1"/> Ocultar</> : <><Eye className="w-3 h-3 mr-1"/> Ver Chaves</>}
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => setEditingBot(bot)} className="rounded-xl h-8 w-8 hover:bg-slate-100"><Edit2 className="w-3.5 h-3.5 text-slate-500"/></Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(bot.id)} className="rounded-xl h-8 w-8 hover:bg-red-50"><Trash2 className="w-3.5 h-3.5 text-red-500"/></Button>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">LINE Basic ID</p>
+                  <p className="font-mono text-sm break-all font-black text-slate-700">{bot.lineBasicId || '—'}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Webhook URL (Dinamíco)</p>
+                  <p className="font-mono text-[9px] break-all text-blue-500 font-bold underline cursor-help" title={bot.webhook}>{bot.webhook || 'Não configurado'}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">LINE Channel Secret</p>
+                  <p className="font-mono text-xs break-all bg-slate-50/80 p-2 rounded-xl text-slate-600 border border-slate-100/50">
+                    {showKeys[bot.id] ? (bot.lineChannelSecret || '—') : '••••••••••••••••••••••••••••••••'}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Google Gen AI API Key</p>
+                  <p className="font-mono text-xs break-all bg-slate-50/80 p-2 rounded-xl text-slate-600 border border-slate-100/50">
+                    {showKeys[bot.id] ? (bot.googleGenAiApiKey || '—') : '••••••••••••••••••••••••••••••••••••••'}
+                  </p>
+                </div>
+                <div className="space-y-1 md:col-span-2">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">LINE Channel Access Token</p>
+                  <p className="font-mono text-[10px] break-all bg-slate-50/80 p-2 rounded-xl text-slate-600 border border-slate-100/50">
+                    {showKeys[bot.id] ? (bot.lineChannelAccessToken || '—') : '••••••••••••••••••••••••••••••••••••••••••••••••'}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       <Dialog open={!!editingBot} onOpenChange={() => setEditingBot(null)}>

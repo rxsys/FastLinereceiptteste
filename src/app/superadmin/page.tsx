@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, ShieldCheck, Calendar, Building2, AlertTriangle, Edit2, Loader2, ArrowLeft, Trash2, Check } from "lucide-react";
+import { Plus, ShieldCheck, Calendar, Building2, AlertTriangle, Edit2, Loader2, ArrowLeft, Trash2, Check, ChevronDown, ChevronUp, Key, Globe } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +36,7 @@ export default function SuperAdminPage() {
   const [editingOwner, setEditingOwner] = useState<any | null>(null);
   const [newOwner, setNewOwner] = useState({ name: '', subscriptionStatus: 'trial', validUntil: '' });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [expandedOwnerId, setExpandedOwnerId] = useState<string | null>(null);
 
   const ownersRef = useMemoFirebase(() => database ? ref(database, 'owner') : null, [database]);
   const poolRef = useMemoFirebase(() => database ? ref(database, 'line_api_pool') : null, [database]);
@@ -141,37 +142,112 @@ export default function SuperAdminPage() {
 
         <Card className="rounded-[2.5rem] border shadow-xl overflow-hidden bg-white">
           <Table>
-             <TableHeader className="bg-slate-50"><TableRow><TableHead className="pl-10">Tenant</TableHead><TableHead>Status</TableHead><TableHead>Expira</TableHead><TableHead className="text-right pr-10">Ação</TableHead></TableRow></TableHeader>
+             <TableHeader className="bg-slate-50">
+               <TableRow>
+                 <TableHead className="w-10"></TableHead>
+                 <TableHead className="pl-6">Tenant</TableHead>
+                 <TableHead>Status</TableHead>
+                 <TableHead>Expira</TableHead>
+                 <TableHead>Módulos</TableHead>
+                 <TableHead className="text-right pr-10">Ação</TableHead>
+               </TableRow>
+             </TableHeader>
              <TableBody>
-                {owners?.map(o => (
-                  <TableRow key={o.id}>
-                    <TableCell className="pl-10 font-black">
-                      <div className="flex flex-col">
-                        <span>{o.name}</span>
-                        <span className="text-[9px] font-mono opacity-30 mt-1">ID: {o.id}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={cn("text-[9px] border-none font-black", (SUBSCRIPTION_STATUS as any)[o.subscriptionStatus]?.color)}>
-                        {(SUBSCRIPTION_STATUS as any)[o.subscriptionStatus]?.label || o.subscriptionStatus}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs font-bold">
-                      {o.validUntil ? format(new Date(o.validUntil), 'yyyy/MM/dd') : "N/A"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1 max-w-[200px]">
-                        {Object.entries(o.subscriptions || {}).filter(([, s]: any) => s.status === 'active').map(([id]) => (
-                          <Badge key={id} variant="outline" className="text-[8px] uppercase border-emerald-200 text-emerald-600 bg-emerald-50 px-1">{id}</Badge>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right pr-10 space-x-2">
-                      <Button variant="ghost" size="icon" onClick={() => setEditingOwner(o)} className="h-9 w-9 rounded-xl hover:bg-slate-100"><Edit2 className="w-4 h-4"/></Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteOwner(o.id, o.name)} className="h-9 w-9 rounded-xl hover:bg-red-50 text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4"/></Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {owners?.map(o => {
+                  const isExpanded = expandedOwnerId === o.id;
+                  const linkedBot = pool?.find(b => b.ownerId === o.id || b.id === o.id);
+
+                  return (
+                    <React.Fragment key={o.id}>
+                      <TableRow className={cn("cursor-pointer hover:bg-slate-50/50 transition-colors", isExpanded && "bg-slate-50/80")}>
+                        <TableCell className="w-10 text-center" onClick={() => setExpandedOwnerId(isExpanded ? null : o.id)}>
+                          {isExpanded ? <ChevronUp className="w-4 h-4 text-primary" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                        </TableCell>
+                        <TableCell className="pl-6 font-black" onClick={() => setExpandedOwnerId(isExpanded ? null : o.id)}>
+                          <div className="flex flex-col">
+                            <span>{o.name}</span>
+                            <span className="text-[9px] font-mono opacity-30 mt-1 uppercase tracking-tight">System ID: {o.id}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell onClick={() => setExpandedOwnerId(isExpanded ? null : o.id)}>
+                          <Badge className={cn("text-[9px] border-none font-black", (SUBSCRIPTION_STATUS as any)[o.subscriptionStatus]?.color)}>
+                            {(SUBSCRIPTION_STATUS as any)[o.subscriptionStatus]?.label || o.subscriptionStatus}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs font-bold" onClick={() => setExpandedOwnerId(isExpanded ? null : o.id)}>
+                          {o.validUntil ? format(new Date(o.validUntil), 'yyyy/MM/dd') : "N/A"}
+                        </TableCell>
+                        <TableCell onClick={() => setExpandedOwnerId(isExpanded ? null : o.id)}>
+                          <div className="flex flex-wrap gap-1 max-w-[200px]">
+                            {Object.entries(o.subscriptions || {}).filter(([, s]: any) => s.status === 'active').map(([id]) => (
+                              <Badge key={id} variant="outline" className="text-[8px] uppercase border-emerald-200 text-emerald-600 bg-emerald-50 px-1">{id}</Badge>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right pr-10 space-x-2">
+                          <Button variant="ghost" size="icon" onClick={() => setEditingOwner(o)} className="h-9 w-9 rounded-xl hover:bg-slate-100"><Edit2 className="w-4 h-4"/></Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDeleteOwner(o.id, o.name)} className="h-9 w-9 rounded-xl hover:bg-red-50 text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4"/></Button>
+                        </TableCell>
+                      </TableRow>
+                      
+                      {isExpanded && (
+                        <TableRow className="bg-slate-50/30 border-b-2 border-primary/10">
+                          <TableCell colSpan={6} className="p-0">
+                            <div className="p-8 space-y-6 animate-in slide-in-from-top-2 duration-300">
+                              <div className="flex items-center gap-3 border-b-2 border-slate-100 pb-3">
+                                <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                                <h3 className="text-sm font-black uppercase tracking-widest text-slate-500">Credenciais Vinculadas (Pool de APIs)</h3>
+                              </div>
+                              
+                              {linkedBot ? (
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                  <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2">
+                                    <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase"><Key className="w-3 h-3"/> LINE Identity</div>
+                                    <div className="space-y-1">
+                                      <p className="text-xs font-bold text-slate-500">Basic ID: <span className="text-slate-900 font-mono">{linkedBot.lineBasicId}</span></p>
+                                      <p className="text-xs font-bold text-slate-500">Bot Name: <span className="text-slate-900">{linkedBot.name}</span></p>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2">
+                                    <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase"><Globe className="w-3 h-3"/> Webhook URL</div>
+                                    <p className="text-[10px] font-mono break-all text-blue-600 font-bold underline leading-relaxed">{linkedBot.webhook || 'N/A'}</p>
+                                  </div>
+
+                                  <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2">
+                                    <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase">AI Key</div>
+                                    <p className="text-[10px] font-mono break-all text-slate-600 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                                      {linkedBot.googleGenAiApiKey || 'N/A'}
+                                    </p>
+                                  </div>
+
+                                  <div className="md:col-span-3 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                                    <div className="text-[10px] font-black text-slate-400 uppercase">Messaging API Keys</div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                      <div className="space-y-1">
+                                        <p className="text-[9px] font-black text-slate-300 uppercase">Channel Access Token</p>
+                                        <p className="text-[9px] font-mono break-all bg-slate-50 p-2 rounded-lg text-slate-500 leading-tight border border-slate-50">{linkedBot.lineChannelAccessToken}</p>
+                                      </div>
+                                      <div className="space-y-1">
+                                        <p className="text-[9px] font-black text-slate-300 uppercase">Channel Secret</p>
+                                        <p className="text-[9px] font-mono break-all bg-slate-50 p-2 rounded-lg text-slate-500 leading-tight border border-slate-50">{linkedBot.lineChannelSecret}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col items-center justify-center py-10 text-slate-300 gap-2 border-2 border-dashed border-slate-100 rounded-[2rem]">
+                                  <AlertTriangle className="w-8 h-8 opacity-20" />
+                                  <p className="text-xs font-black uppercase italic">Nenhuma chave do pool vinculada a este Owner</p>
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
                 {!isOwnersLoading && (!owners || owners.length === 0) && (
                   <TableRow>
                      <TableCell colSpan={5} className="py-20 text-center">
