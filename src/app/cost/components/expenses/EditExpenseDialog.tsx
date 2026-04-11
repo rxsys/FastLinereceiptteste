@@ -91,7 +91,7 @@ export const EditExpenseDialog = ({
           {(!expense.type || expense.type === 'expense' || expense.type === 'income') && (
             <div className="flex-1 bg-slate-900 flex flex-col min-h-[400px]">
               {/* Imagem */}
-              <div className="flex-1 flex items-center justify-center p-4">
+              <div className="flex-1 relative flex items-center justify-center p-4 min-h-0">
                 {expense.imageUrl ? (
                   <img src={expense.imageUrl} alt="Receipt" className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
                 ) : (
