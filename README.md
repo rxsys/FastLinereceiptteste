@@ -1,5 +1,9 @@
 # FastLine — Sistema de Gestão de Despesas via LINE + AI
 
+> [!CAUTION]
+> **RESTRICTED MODIFICATION POLICY**
+> É terminantemente PROIBIDO realizar qualquer alteração, refatoração ou exclusão de funcionalidades nas rotas `/src/app/developer` (**Developer Settings**) e `/src/app/superadmin` (**SuperAdmin / License Manager**) sem autorização prévia e ordem direta do proprietário. Estas são áreas críticas de infraestrutura e licenciamento.
+
 **Desenvolvido por Ricardo Yukio**
 
 Sistema multi-tenant de automação contábil com IA conversacional. Usuários enviam recibos via LINE e a IA extrai os dados, classifica e consolida no dashboard administrativo.
