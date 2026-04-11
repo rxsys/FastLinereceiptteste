@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Users, Trash2, Edit2, Save, Search, Building2, Link as LinkIcon, Plus, Send, ChevronRight, Loader2, Sparkles, ShieldCheck, Crown, Wallet } from "lucide-react";
+import { Users, Trash2, Edit2, Save, Search, Building2, Link as LinkIcon, Plus, Send, ChevronRight, Loader2, Sparkles, ShieldCheck, Crown, Wallet, MessageSquare, History } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UserWalletModal } from './lineusers/UserWalletModal';
+import { UserInteractionModal } from './lineusers/UserInteractionModal';
 import { EditExpenseDialog } from './expenses/EditExpenseDialog';
 import { Expense } from '@/types';
 
@@ -93,6 +94,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
   const [editing, setEditing] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [walletUser, setWalletUser] = useState<any | null>(null);
+  const [interactionUser, setInteractionUser] = useState<any | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   const [newInviteName, setNewInviteName] = useState('');
@@ -524,6 +526,22 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                     </div>
                     <ChevronRight className="w-4 h-4 text-emerald-400 group-hover/wallet:translate-x-0.5 transition-transform" />
                   </button>
+
+                  <button
+                    onClick={() => setInteractionUser(luser)}
+                    className="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 transition-all group/interaction"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-xl bg-indigo-500 flex items-center justify-center shrink-0">
+                        <History className="w-3.5 h-3.5 text-white" />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-[11px] font-black text-indigo-800">Bot インタラクション履歴</p>
+                        <p className="text-[9px] font-bold text-indigo-500">Log de Interações detalhado</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-indigo-400 group-hover/interaction:translate-x-0.5 transition-transform" />
+                  </button>
                </div>
             </CardContent>
           </Card>
@@ -536,6 +554,13 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
         user={walletUser}
         ownerId={effectiveOwnerId || ''}
         onOpenExpense={(exp) => setEditingExpense(exp)}
+      />
+
+      <UserInteractionModal
+        isOpen={!!interactionUser}
+        onClose={() => setInteractionUser(null)}
+        user={interactionUser}
+        ownerId={effectiveOwnerId || ''}
       />
 
       {/* MODAL DE EDIÇÃO DE USUÁRIO */}

@@ -78,6 +78,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
           // Aprende preferência do usuário
           saveUserPreference(companyId, userId, { lastPaymentType: paymentType }).catch(() => {});
           const msg = paymentType === 'company' ? i18n('paymentCompany', lang) : i18n('paymentReimburse', lang);
+          logInteraction(companyId, userId, { role: 'user', text: `Action: Set Payment (${paymentType})` });
+          logInteraction(companyId, userId, { role: 'ai', text: msg });
           await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: msg }] });
           continue;
         } else if (action === 'cancel') {
@@ -88,7 +90,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
           }
           await rtdb.ref(`owner_data/${companyId}/expenses/${expenseId}`).remove();
           await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/preferences/pendingExpenseId`).remove();
-          await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: i18n('cancelled', lang) }] });
+          const msg = i18n('cancelled', lang);
+          logInteraction(companyId, userId, { role: 'user', text: 'Action: Cancel Submission' });
+          logInteraction(companyId, userId, { role: 'ai', text: msg });
+          await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: msg }] });
         } else if (action === 'setcc') {
           const ccId = data.get('ccId');
           const pId = data.get('pId');
@@ -115,9 +120,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
           const pNameSnap = await rtdb.ref(`owner_data/${companyId}/projects/${pId}/name`).get();
           const pName = pNameSnap.val() || 'Project';
           
+          const msg = i18n('ccRegistered', lang, ccName, Number(expData.amount||0).toLocaleString(), expData.description||'---', expData.date||'', pName);
+          logInteraction(companyId, userId, { role: 'user', text: `Action: Select CC (${ccName})` });
+          logInteraction(companyId, userId, { role: 'ai', text: msg });
+
           await lineClient.replyMessage({ replyToken, messages: [{
             type: 'text',
-            text: i18n('ccRegistered', lang, ccName, Number(expData.amount||0).toLocaleString(), expData.description||'---', expData.date||'', pName),
+            text: msg,
           }]});
         } else if (action === 'cancel_duplicate') {
           await rtdb.ref(`owner_data/${companyId}/expenses/${expenseId}`).remove();
@@ -172,6 +181,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
         // Loading indicator para mensagens de texto
         if (userData.status === 2 && message.type === 'text' && !INVITE_HASH_RE.test(text.toUpperCase())) {
           lineClient.showLoadingAnimation({ chatId: userId, loadingSeconds: 20 }).catch(() => {});
+          logInteraction(companyId, userId, { role: 'user', text });
         }
 
           if (INVITE_HASH_RE.test(text.toUpperCase())) {
@@ -182,11 +192,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
           }
         } else if (userData.status === 2) {
           if (message.type === 'image') {
-            // Confirma o webhook imediatamente (replyToken expira em ~30s)
-            await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: i18n('aiProcessing', lang) }] }).catch(() => {});
-            // Processa via pushMessage (não depende de replyToken)
             const base64Image = await getLineContentAsBase64(message.id, channelAccessToken);
             const photoDataUri = `data:image/jpeg;base64,${base64Image}`;
+            
+            // Upload immediately to log the interaction with image
+            let interactionImageUrl = '';
+            try {
+              interactionImageUrl = await uploadBase64ToStorage(companyId, userId, base64Image, `${Date.now()}_log_input.jpg`);
+              logInteraction(companyId, userId, { role: 'user', imageUrl: interactionImageUrl });
+            } catch {}
+
+            // Confirma o webhook imediatamente (replyToken expira em ~30s)
+            const aiProcMsg = i18n('aiProcessing', lang);
+            logInteraction(companyId, userId, { role: 'ai', text: aiProcMsg });
+            await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: aiProcMsg }] }).catch(() => {});
             const multiInput = { photoDataUri, companyName: ownerData.companyName, apiKey: ownerData.googleGenAiApiKey };
 
             // Tenta extrair múltiplos recibos
@@ -220,6 +239,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
                 companyId, userId, userData, apiKey: ownerData.googleGenAiApiKey
               });
               if (aiResult.usage) await saveTokenUsage(companyId, aiResult.usage);
+              logInteraction(companyId, userId, { role: 'ai', text: aiResult.text });
               await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: aiResult.text }] });
             } else {
               await processExpense(lineClient, companyId, userId, userData, replyToken, { message: text, companyName: ownerData.companyName }, ownerData.googleGenAiApiKey, false, lang, behavior);
@@ -300,7 +320,35 @@ async function processInviteHash(lineClient: any, companyId: string, userId: str
   await rtdb.ref(`owner_data/${companyId}/invites/${inviteKey}`).update({ used: true, usedBy: userId, usedAt: new Date().toISOString() });
 
   const msg = isManager ? i18n('managerRegistered', inviteLang, inviteData.inviteName) : i18n('userRegistered', inviteLang, inviteData.inviteName);
+  logInteraction(companyId, userId, { role: 'ai', text: msg });
   await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: msg }] });
+}
+
+/**
+ * Registra interações detalhadas para consulta do administrador
+ */
+async function logInteraction(companyId: string, userId: string, data: { role: 'user' | 'ai' | 'system', text?: string, imageUrl?: string, metadata?: any }) {
+  try {
+    const logRef = rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/interactions`).push();
+    await logRef.set({
+      ...data,
+      ts: Date.now(),
+      createdAt: new Date().toISOString()
+    });
+    
+    // Manter as últimas 100 interações para cada usuário
+    const snap = await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/interactions`).get();
+    if (snap.numChildren() > 100) {
+      const keys: string[] = [];
+      snap.forEach(c => { keys.push(c.key!); });
+      const toDelete = keys.slice(0, keys.length - 100);
+      for (const k of toDelete) {
+        await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/interactions/${k}`).remove();
+      }
+    }
+  } catch (e) {
+    console.error('[logInteraction] failed:', e);
+  }
 }
 
 async function saveTokenUsage(companyId: string, usage: { input: number, output: number, total: number }) {
