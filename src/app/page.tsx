@@ -101,10 +101,12 @@ const ModuleIcon = ({
                <p className="text-[11px] font-bold text-[#00c48c] drop-shadow-[0_0_8px_rgba(0,196,140,0.3)] flex items-center justify-center gap-1">
                 <span>✅</span> 利用中
               </p>
-            ) : (
+            ) : priceId ? (
               <p className="text-[11px] font-bold text-[#ff6b35]">
                 <ModulePrice priceId={priceId} />
               </p>
+            ) : (
+              <p className="text-[11px] font-bold text-slate-400">無料</p>
             )
           ) : (
             <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase">近日公開</p>
