@@ -395,7 +395,7 @@ export default function LandingPage() {
                 priceId={stripeKeys?.receiptPriceId || (stripeKeys?.mode === 'live' ? stripeKeys?.livePriceId : stripeKeys?.testPriceId)}
                 isSubscribed={activeModules.includes('receipt')}
                 onModuleClick={handleModuleClick}
-                tooltip={<div className="space-y-3"><p className="font-black text-[14px]">{t.modules.receipt.fullTitle}</p><p className="text-[10px] leading-relaxed text-white/70">{t.modules.receipt.desc}</p></div>}
+                tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">💴 コスト管理</p><div className="space-y-1.5">{[["📱","LINEで写真を送るだけで経費登録"],["🤖","AIが金額・日付・税率を自動抽出"],["🏛️","NTA適格請求書をリアルタイム認証"],["📊","プロジェクト別の予算・実績を管理"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[10px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
               />
             </div>
             <div className="flex flex-col items-center gap-2 relative z-10">
@@ -413,7 +413,7 @@ export default function LandingPage() {
                 onModuleClick={handleModuleClick}
                 badge={t.modules.member.badge}
                 badgeColor="bg-[#6366f1]/20"
-                tooltip={<div className="space-y-3"><p className="font-black text-[14px]">{t.modules.member.fullTitle}</p><p className="text-[10px] leading-relaxed text-white/70">{t.modules.member.desc}</p></div>}
+                tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">🧑‍💼 メンバー管理</p><div className="space-y-1.5">{[["👥","正社員・PJ・外国人を一元管理"],["⏰","ビザ・契約期限を自動アラート"],["🕐","LINE打刻で勤怠を自動記録"],["💹","労務費をコスト管理へ自動連携"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[10px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
               />
             </div>
             <div className="flex flex-col items-center gap-2 relative z-10">
@@ -430,7 +430,7 @@ export default function LandingPage() {
                 onModuleClick={handleModuleClick}
                 badge={t.modules.mypage.badge}
                 badgeColor="bg-[#0ea5e9]/20"
-                tooltip={<div className="space-y-3"><p className="font-black text-[14px]">{t.modules.mypage.fullTitle}</p><p className="text-[10px] leading-relaxed text-white/70">{t.modules.mypage.desc}</p></div>}
+                tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">🪪 マイページ</p><div className="space-y-1.5">{[["📋","勤怠・給与・書類を一画面で確認"],["🔗","QRコードで複数企業に対応"],["🌐","6言語対応の個人ポータル"],["📄","書類の期限アラートを自己管理"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[10px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
               />
             </div>
             <ModuleIcon emoji="📁" id="project" title={t.modules.project.title} color="#6366f1" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('project')} badge={t.modules.project.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.project.desc}</p>} />
