@@ -55,10 +55,13 @@ import { CheckoutPanel } from '@/components/checkout-panel';
 
 const ModulePrice = ({ priceId, defaultPrice }: { priceId: string, defaultPrice: string }) => {
   const [price, setPrice] = useState<string>(defaultPrice);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!priceId) return;
+    if (!priceId || priceId === 'undefined') {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     fetch(`/api/stripe/price/${priceId}`)
       .then(res => res.json())
@@ -69,7 +72,7 @@ const ModulePrice = ({ priceId, defaultPrice }: { priceId: string, defaultPrice:
       .finally(() => setLoading(false));
   }, [priceId]);
 
-  if (loading) return <span className="animate-pulse opacity-50">...</span>;
+  if (loading && price === defaultPrice) return <span className="animate-pulse opacity-50">...</span>;
   return <span>{price} / 月</span>;
 };
 
