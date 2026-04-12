@@ -67,7 +67,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
           user: firebaseUser,
           ownerId: userData.ownerId || null,
           role: isDev ? 'developer' : (userData.role || 'user'),
-          subscriptionStatus: ownerData.subscriptionStatus || 'trial',
+          subscriptionStatus: userData.ownerId ? (ownerData.subscriptionStatus || 'trial') : 'none',
           validUntil: ownerData.validUntil || null,
           graceUntil: ownerData.graceUntil || null,
           lastPaymentFailedAt: ownerData.lastPaymentFailedAt || null,

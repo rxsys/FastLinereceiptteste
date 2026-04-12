@@ -139,7 +139,6 @@ export default function LandingPage() {
   const [currentLang, setCurrentLang] = useState('ja');
   const [isRegister, setIsRegister] = useState(false);
   const [userName, setUserName] = useState('');
-  const [companyNameInput, setCompanyNameInput] = useState('');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [selectedModule, setSelectedModule] = useState<any>(null);
@@ -237,8 +236,7 @@ export default function LandingPage() {
     try {
       const { createUserWithEmailAndPassword } = await import('firebase/auth');
       const cred = await createUserWithEmailAndPassword(auth!, email, password);
-      await set(ref(database!, `users/${cred.user.uid}`), { email, name: userName, ownerId: cred.user.uid, companyName: companyNameInput || userName, status: 'new', createdAt: new Date().toISOString(), role: 'user' });
-      await set(ref(database!, `owner/${cred.user.uid}`), { ownerId: cred.user.uid, name: companyNameInput || userName, companyName: companyNameInput || userName, subscriptionStatus: 'none', createdAt: new Date().toISOString() });
+      await set(ref(database!, `users/${cred.user.uid}`), { email, displayName: userName, status: 'new', emailVerified: false, createdAt: new Date().toISOString(), role: 'user' });
       try {
         await sendVerificationEmail(cred.user);
       } catch (verifyErr: any) {
@@ -555,11 +553,11 @@ export default function LandingPage() {
             <form onSubmit={isRegister ? handleRegister : handleLogin} className="space-y-5 mt-6">
               {isRegister && (
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t.dash.users.colName || 'Name'}</Label>
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">会社名またはお名前</Label>
                   <div className="relative group">
                     <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#ff6b35] transition-colors" />
                     <Input
-                      placeholder="Jane Doe"
+                      placeholder="株式会社○○ / 山田太郎"
                       className="bg-slate-50 border-slate-200 h-12 pl-11 rounded-xl focus:border-[#ff6b35]/50 focus:ring-0 transition-all placeholder:text-slate-300 text-slate-900"
                       value={userName}
                       onChange={(e) => setUserName(e.target.value)}
