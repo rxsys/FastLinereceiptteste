@@ -14,7 +14,8 @@ import {
   Loader2,
   Lock,
   ArrowRight,
-  X
+  X,
+  ShieldCheck
 } from "lucide-react";
 import { 
   Select,
