@@ -390,7 +390,7 @@ export default function LandingPage() {
               </button>
               <ModuleIcon
                 emoji="💴" id="receipt" title={t.modules.receipt.title} color="#22c55e" active
-                priceId={stripeKeys?.receiptPriceId || stripeKeys?.livePriceId || stripeKeys?.testPriceId}
+                priceId={stripeKeys?.receiptPriceId || (stripeKeys?.mode === 'live' ? stripeKeys?.livePriceId : stripeKeys?.testPriceId)}
                 isSubscribed={activeModules.includes('receipt')}
                 onModuleClick={handleModuleClick}
                 tooltip={<div className="space-y-3"><p className="font-black text-[14px]">{t.modules.receipt.fullTitle}</p><p className="text-[10px] leading-relaxed text-white/70">{t.modules.receipt.desc}</p></div>}
@@ -406,7 +406,7 @@ export default function LandingPage() {
               </button>
               <ModuleIcon
                 emoji="🧑‍💼" id="member" title={t.modules.member.title} color="#6366f1" active
-                priceId={stripeKeys?.memberPriceId || stripeKeys?.livePriceId || stripeKeys?.testPriceId}
+                priceId={stripeKeys?.memberPriceId || (stripeKeys?.mode === 'live' ? stripeKeys?.livePriceId : stripeKeys?.testPriceId)}
                 isSubscribed={activeModules.includes('member')}
                 onModuleClick={handleModuleClick}
                 badge={t.modules.member.badge}

@@ -288,6 +288,28 @@ export function StripeAdminPanel() {
     }
   };
 
+  const handleSyncModulePrices = async () => {
+    setConfigLoading(true);
+    try {
+      const authHeaders = await getAuthHeaders();
+      const res = await fetch('/api/stripe/admin/sync-module-prices', {
+        method: 'POST',
+        headers: authHeaders,
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      toast({ 
+        title: 'Preços Sincronizados', 
+        description: `Módulos mapeados com sucesso (${Object.keys(data.updated || {}).length} módulos encontrados).` 
+      });
+      await loadConfig();
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Erro na sincronização', description: e.message });
+    } finally {
+      setConfigLoading(false);
+    }
+  };
+
   const loadProducts = useCallback(async (modeOverride?: string) => {
     const mode = modeOverride || configForm.mode;
     const authHeaders = user ? { Authorization: `Bearer ${await user.getIdToken()}` } : {};
@@ -599,15 +621,25 @@ export function StripeAdminPanel() {
             ))}
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 mt-4">
             <Button
               onClick={handleSaveConfig}
               disabled={configLoading}
               className="flex-1 h-12 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black text-sm gap-2"
             >
               <Save className="w-4 h-4" />
-              Salvar e Aplicar
+              Salvar Configurações
             </Button>
+            <Button
+              onClick={handleSyncModulePrices}
+              disabled={configLoading}
+              variant="outline"
+              className="flex-1 h-12 border-slate-200 hover:bg-slate-50 text-slate-700 rounded-2xl font-black text-sm gap-2"
+            >
+              <RefreshCw className={cn("w-4 h-4", configLoading && "animate-spin")} />
+              Sincronizar Preços dos Módulos
+            </Button>
+          </div>
             <Button
               onClick={() => { loadConfig(); loadAll(); }}
               variant="outline"
