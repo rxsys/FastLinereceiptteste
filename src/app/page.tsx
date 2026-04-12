@@ -76,8 +76,8 @@ const ModulePrice = ({ priceId }: { priceId: string }) => {
   return <span>{price} / 月</span>;
 };
 
-const ModuleIcon = ({ 
-  emoji, title, color, badge, badgeColor, active, tooltip, id, priceId, onModuleClick, isSubscribed 
+const ModuleIcon = ({
+  emoji, title, color, badge, badgeColor, active, tooltip, id, priceId, onModuleClick, isSubscribed, priceLoading
 }: any) => (
   <Tooltip>
     <TooltipTrigger asChild>
@@ -101,6 +101,8 @@ const ModuleIcon = ({
                <p className="text-[11px] font-bold text-[#00c48c] drop-shadow-[0_0_8px_rgba(0,196,140,0.3)] flex items-center justify-center gap-1">
                 <span>✅</span> 利用中
               </p>
+            ) : priceLoading ? (
+              <p className="text-[11px] font-bold text-slate-300 animate-pulse">...</p>
             ) : priceId ? (
               <p className="text-[11px] font-bold text-[#ff6b35]">
                 <ModulePrice priceId={priceId} />
@@ -142,16 +144,18 @@ export default function LandingPage() {
   const [selectedModule, setSelectedModule] = useState<any>(null);
   const [activeModules, setActiveModules] = useState<string[]>([]);
   const [stripeKeys, setStripeKeys] = useState<any>(null);
+  const [stripeKeysLoading, setStripeKeysLoading] = useState(true);
   const [selectedModulePrice, setSelectedModulePrice] = useState<string>('');
 
   useEffect(() => {
     const savedLang = localStorage.getItem('fastline_lang');
     if (savedLang) setCurrentLang(savedLang);
-    
+
     fetch('/api/stripe/public-config')
       .then(r => r.json())
       .then(data => { if (data && !data.error) setStripeKeys(data); })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setStripeKeysLoading(false));
   }, []);
 
   useEffect(() => {
@@ -392,6 +396,7 @@ export default function LandingPage() {
               <ModuleIcon
                 emoji="💴" id="receipt" title={t.modules.receipt.title} color="#22c55e" active
                 priceId={stripeKeys?.receiptPriceId || (stripeKeys?.mode === 'live' ? stripeKeys?.livePriceId : stripeKeys?.testPriceId)}
+                priceLoading={stripeKeysLoading}
                 isSubscribed={activeModules.includes('receipt')}
                 onModuleClick={handleModuleClick}
                 tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">💴 コスト管理</p><div className="space-y-1.5">{[["📱","LINEで写真を送るだけで経費登録"],["🤖","AIが金額・日付・税率を自動抽出"],["🏛️","NTA適格請求書をリアルタイム認証"],["📊","プロジェクト別の予算・実績を管理"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[10px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
@@ -408,6 +413,7 @@ export default function LandingPage() {
               <ModuleIcon
                 emoji="🧑‍💼" id="member" title={t.modules.member.title} color="#6366f1" active
                 priceId={stripeKeys?.memberPriceId || (stripeKeys?.mode === 'live' ? stripeKeys?.livePriceId : stripeKeys?.testPriceId)}
+                priceLoading={stripeKeysLoading}
                 isSubscribed={activeModules.includes('member')}
                 onModuleClick={handleModuleClick}
                 badge={t.modules.member.badge}
@@ -425,6 +431,7 @@ export default function LandingPage() {
               </button>
               <ModuleIcon
                 emoji="🪪" id="mypage" title={t.modules.mypage.title} color="#0ea5e9" active
+                priceLoading={stripeKeysLoading}
                 isSubscribed={activeModules.includes('mypage')}
                 onModuleClick={handleModuleClick}
                 badge={t.modules.mypage.badge}
@@ -432,15 +439,15 @@ export default function LandingPage() {
                 tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">🪪 マイページ</p><div className="space-y-1.5">{[["📋","勤怠・給与・書類を一画面で確認"],["🔗","QRコードで複数企業に対応"],["🌐","6言語対応の個人ポータル"],["📄","書類の期限アラートを自己管理"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[10px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
               />
             </div>
-            <ModuleIcon emoji="📁" id="project" title={t.modules.project.title} color="#6366f1" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('project')} badge={t.modules.project.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.project.desc}</p>} />
+            <ModuleIcon emoji="📁" id="project" title={t.modules.project.title} color="#6366f1" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('project')} badge={t.modules.project.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.project.desc}</p>} priceLoading={stripeKeysLoading} />
 
-            <ModuleIcon emoji="📋" id="career" title={t.modules.career.title} color="#f59e0b" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('career')} badge={t.modules.career.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.career.desc}</p>} />
-            <ModuleIcon emoji="🆔" id="id" title={t.modules.id.title} color="#3b82f6" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('id')} badge={t.modules.id.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.id.desc}</p>} />
-            <ModuleIcon emoji="🔧" id="assets" title={t.modules.assets.title} color="#ef4444" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('assets')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.assets.desc}</p>} />
-            <ModuleIcon emoji="💰" id="sales" title={t.modules.sales.title} color="#10b981" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('sales')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.sales.desc}</p>} />
+            <ModuleIcon emoji="📋" id="career" title={t.modules.career.title} color="#f59e0b" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('career')} badge={t.modules.career.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.career.desc}</p>} priceLoading={stripeKeysLoading} />
+            <ModuleIcon emoji="🆔" id="id" title={t.modules.id.title} color="#3b82f6" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('id')} badge={t.modules.id.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.id.desc}</p>} priceLoading={stripeKeysLoading} />
+            <ModuleIcon emoji="🔧" id="assets" title={t.modules.assets.title} color="#ef4444" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('assets')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.assets.desc}</p>} priceLoading={stripeKeysLoading} />
+            <ModuleIcon emoji="💰" id="sales" title={t.modules.sales.title} color="#10b981" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('sales')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.sales.desc}</p>} priceLoading={stripeKeysLoading} />
 
-            <ModuleIcon emoji="🏢" id="kaigyo" title={t.modules.kaigyo.title} color="#f43f5e" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('kaigyo')} badge={t.modules.kaigyo.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.kaigyo.desc}</p>} />
-            <ModuleIcon emoji="📑" id="docs" title={t.modules.docs.title} color="#71717a" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('docs')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.docs.desc}</p>} />
+            <ModuleIcon emoji="🏢" id="kaigyo" title={t.modules.kaigyo.title} color="#f43f5e" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('kaigyo')} badge={t.modules.kaigyo.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.kaigyo.desc}</p>} priceLoading={stripeKeysLoading} />
+            <ModuleIcon emoji="📑" id="docs" title={t.modules.docs.title} color="#71717a" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('docs')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.docs.desc}</p>} priceLoading={stripeKeysLoading} />
 
           </div>
 
