@@ -76,6 +76,9 @@ type StripeConfigForm = {
   testWebhookSecret: string;
   livePublishableKey: string;
   testPublishableKey: string;
+  receiptPriceId: string;
+  memberPriceId: string;
+  mypagePriceId: string;
 };
 
 const EMPTY_CONFIG: StripeConfigForm = {
@@ -84,6 +87,7 @@ const EMPTY_CONFIG: StripeConfigForm = {
   livePriceId: '', testPriceId: '',
   liveWebhookSecret: '', testWebhookSecret: '',
   livePublishableKey: '', testPublishableKey: '',
+  receiptPriceId: '', memberPriceId: '', mypagePriceId: '',
 };
 
 const fmtDate = (ts: number | null | undefined) => {
@@ -544,6 +548,11 @@ export function StripeAdminPanel() {
                 { key: 'livePublishableKey', label: 'Publishable Key',  placeholder: 'pk_live_...' },
                 { key: 'livePriceId',        label: 'Price ID',         placeholder: 'price_...' },
                 { key: 'liveWebhookSecret',  label: 'Webhook Secret',   placeholder: 'whsec_...' },
+              ]},
+              { group: 'PREÇOS POR MÓDULO', color: 'bg-violet-50', fields: [
+                { key: 'receiptPriceId', label: 'コスト管理',   placeholder: 'price_...' },
+                { key: 'memberPriceId',  label: 'メンバー管理', placeholder: 'price_...' },
+                { key: 'mypagePriceId',  label: 'マイページ',   placeholder: 'price_...' },
               ]},
             ].map(group => (
               <div key={group.group}>

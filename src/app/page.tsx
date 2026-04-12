@@ -148,12 +148,11 @@ export default function LandingPage() {
     const savedLang = localStorage.getItem('fastline_lang');
     if (savedLang) setCurrentLang(savedLang);
     
-    if (database) {
-      get(ref(database, 'stripe_config/keys')).then(snap => {
-        setStripeKeys(snap.val());
-      });
-    }
-  }, [database]);
+    fetch('/api/stripe/public-config')
+      .then(r => r.json())
+      .then(data => { if (data && !data.error) setStripeKeys(data); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!user || !database) { setActiveModules([]); return; }
