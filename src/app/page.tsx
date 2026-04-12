@@ -213,12 +213,12 @@ export default function LandingPage() {
     if (!user) { setSelectedModule({ id: moduleId, priceId: priceId || '' }); setIsLoginOpen(true); return; }
     if (FREE_MODULES.includes(moduleId)) { router.push(MODULE_ROUTES[moduleId] || '/'); return; }
 
-    // Restrição para nível 'user'
-    if (role === 'user') {
-      toast({ 
-        variant: "destructive", 
-        title: "アクセス制限", 
-        description: "このモジュールへのアクセス権限がありません。管理者に問い合わせてください。" 
+    // Restrição: user vinculado a um owner (subordinado) não pode comprar
+    if (role === 'user' && ownerId) {
+      toast({
+        variant: "destructive",
+        title: "アクセス制限",
+        description: "このモジュールへのアクセス権限がありません。管理者に問い合わせてください。"
       });
       return;
     }
