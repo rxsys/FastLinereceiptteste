@@ -227,7 +227,12 @@ export default function LandingPage() {
       const cred = await createUserWithEmailAndPassword(auth!, email, password);
       await set(ref(database!, `users/${cred.user.uid}`), { email, name: userName, ownerId: cred.user.uid, companyName: companyNameInput || userName, status: 'new', createdAt: new Date().toISOString(), role: 'user' });
       await set(ref(database!, `owner/${cred.user.uid}`), { ownerId: cred.user.uid, name: companyNameInput || userName, companyName: companyNameInput || userName, subscriptionStatus: 'none', createdAt: new Date().toISOString() });
-      await sendVerificationEmail(cred.user);
+      try {
+        await sendVerificationEmail(cred.user);
+      } catch (verifyErr: any) {
+        console.error('Error sending verification email during registration:', verifyErr);
+        // We don't throw here so the user sees the account creation was successful
+      }
       setIsLoginOpen(false);
       setIsRegister(false);
       toast({ title: t.verifyEmailTitle, description: t.verifyEmailDesc });
@@ -343,14 +348,16 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => router.push('/cost')} 
-                      className="flex items-center px-4 h-9 rounded-xl bg-[#ff6b35]/10 border border-[#ff6b35]/20 hover:bg-[#ff6b35]/20 hover:scale-105 active:scale-95 transition-all shadow-sm"
-                    >
-                      <span className="text-base">📄</span>
-                      <span className="text-[11px] font-black tracking-tight text-[#ff6b35] ml-2">FastLineコスト管理</span>
-                      <ArrowRight className="w-3 h-3 ml-2 text-[#ff6b35]" />
-                    </button>
+                    {activeModules.includes('receipt') && (
+                      <button 
+                        onClick={() => router.push('/cost')} 
+                        className="flex items-center px-4 h-9 rounded-xl bg-[#ff6b35]/10 border border-[#ff6b35]/20 hover:bg-[#ff6b35]/20 hover:scale-105 active:scale-95 transition-all shadow-sm"
+                      >
+                        <span className="text-base">📄</span>
+                        <span className="text-[11px] font-black tracking-tight text-[#ff6b35] ml-2">FastLineコスト管理</span>
+                        <ArrowRight className="w-3 h-3 ml-2 text-[#ff6b35]" />
+                      </button>
+                    )}
                     <button onClick={() => signOut(auth!)} className="p-2.5 text-slate-400 hover:text-red-500 transition-colors" title="Logout"><LogOut className="w-5 h-5" /></button>
                   </div>
                 </div>
