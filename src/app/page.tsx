@@ -178,7 +178,8 @@ export default function LandingPage() {
   }, [selectedModule?.priceId]);
 
   const handleLangChange = (lang: string) => { setCurrentLang(lang); localStorage.setItem('fastline_lang', lang); };
-  const t = (translations as any)[currentLang] || translations.ja;
+  const rawT = (translations as any)[currentLang] || translations.ja;
+  const t = { ...rawT, modules: { ...translations.ja.modules, ...(rawT.modules || {}) } };
 
   const sendVerificationEmail = async (firebaseUser: any) => {
     try {
@@ -225,7 +226,15 @@ export default function LandingPage() {
       setIsLoginOpen(false);
       setIsRegister(false);
       toast({ title: t.verifyEmailTitle, description: t.verifyEmailDesc });
-    } catch (err: any) { setAuthError(err.message); } finally { setIsLocalLoading(false); }
+    } catch (err: any) {
+      if (err.code === 'auth/too-many-requests') {
+        setAuthError('リクエストが多すぎます。しばらくしてからもう一度お試しください。');
+      } else if (err.code === 'auth/email-already-in-use') {
+        setAuthError('このメールアドレスは既に使用されています。');
+      } else {
+        setAuthError(err.message);
+      }
+    } finally { setIsLocalLoading(false); }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
