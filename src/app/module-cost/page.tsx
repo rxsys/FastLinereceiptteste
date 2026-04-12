@@ -7,6 +7,7 @@ import { get, ref } from 'firebase/database';
 import { CheckoutPanel } from '@/components/checkout-panel';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, MessageCircle, Brain, ShieldCheck, BarChart3, ArrowRight, Loader2, Shield, Bell, Zap, CheckCircle2 } from 'lucide-react';
 
 const COLOR = '#22c55e';
@@ -61,8 +62,9 @@ const PROBLEMS = [
 
 export default function CostLandingPage() {
   const router = useRouter();
-  const { user, ownerId, isUserLoading } = useUser();
+  const { user, ownerId, isUserLoading, role } = useUser();
   const database = useDatabase();
+  const { toast } = useToast();
 
   const [activeModules, setActiveModules] = useState<string[]>([]);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);

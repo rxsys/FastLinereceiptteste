@@ -26,7 +26,7 @@ import { translations } from '@/lib/translations';
 import { useRTDBDoc } from '@/firebase/rtdb';
 
 export default function DashboardPage() {
-  const { user, isUserLoading, ownerId, role, subscriptionStatus, validUntil, graceUntil, lastPaymentFailedAt, companyName } = useUser();
+  const { user, isUserLoading, ownerId, role, subscriptionStatus, validUntil, graceUntil, lastPaymentFailedAt, companyName, subscriptions } = useUser();
   const auth = useAuth();
   const database = useDatabase();
   const router = useRouter();
@@ -97,8 +97,18 @@ export default function DashboardPage() {
     return false;
   }), [modules, isDeveloper, role]);
 
+  const hasReceiptAccess = isDeveloper || subscriptions?.receipt?.status === 'active' || subscriptions?.receipt?.status === 'trialing';
+
+  useEffect(() => {
+    if (!isUserLoading && hasMounted) {
+      if (!user || (!isDeveloper && !hasReceiptAccess)) {
+        router.push('/');
+      }
+    }
+  }, [user, isUserLoading, hasMounted, isDeveloper, hasReceiptAccess, router]);
+
   if (isUserLoading || !hasMounted) return <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]"><Loader2 className="animate-spin text-primary" /></div>;
-  if (!user) { router.push('/'); return null; }
+  if (!user || (!isDeveloper && !hasReceiptAccess)) return null;
 
   const ownerName = companyName || (isDeveloper ? 'Dev Console' : 'Loading...');
 

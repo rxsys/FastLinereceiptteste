@@ -8,6 +8,7 @@ import { CheckoutPanel } from '@/components/checkout-panel';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Users, FileText, Clock, Link2, CheckCircle2, ArrowRight, Loader2, Shield, Bell, Zap } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 const COLOR = '#6366f1';
@@ -62,8 +63,9 @@ const PROBLEMS = [
 
 export default function MemberLandingPage() {
   const router = useRouter();
-  const { user, ownerId, isUserLoading } = useUser();
+  const { user, ownerId, isUserLoading, role } = useUser();
   const database = useDatabase();
+  const { toast } = useToast();
 
   const [stripeKeys, setStripeKeys] = useState<any>(null);
   const [activeModules, setActiveModules] = useState<string[]>([]);

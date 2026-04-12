@@ -210,10 +210,13 @@ export default function LandingPage() {
 
   const handleModuleClick = async (moduleId: string, priceId?: string, isActive?: boolean) => {
     if (!isActive) { toast({ title: "近日公開", description: "公開予定です。" }); return; }
-    if (!user) { setSelectedModule({ id: moduleId, priceId: priceId || '' }); setIsLoginOpen(true); return; }
+    if (!user) { router.push('/login'); return; }
     if (FREE_MODULES.includes(moduleId)) { router.push(MODULE_ROUTES[moduleId] || '/'); return; }
 
     setSelectedModule({ id: moduleId, priceId: priceId || '' });
+
+    if (role === 'user') { setIsCheckoutOpen(true); return; }
+
     const snap = await get(ref(database!, `owner/${ownerId || user.uid}`));
     if (snap.val()?.subscriptions?.[moduleId]?.status === 'active') router.push(MODULE_ROUTES[moduleId] || '/cost');
     else setIsCheckoutOpen(true);

@@ -24,6 +24,7 @@ interface UserHookResult {
   graceUntil?: string | null;
   lastPaymentFailedAt?: string | null;
   companyName?: string | null;
+  subscriptions?: Record<string, { status: string; id: string; updatedAt?: string }>;
   isUserLoading: boolean;
   userError: Error | null;
 }
@@ -34,7 +35,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   children, firebaseApp, database, auth, storage,
 }) => {
   const [userState, setUserState] = useState<any>({
-    user: null, ownerId: null, role: null, isUserLoading: true, userError: null
+    user: null, ownerId: null, role: null, subscriptions: {}, isUserLoading: true, userError: null
   });
 
   useEffect(() => {
@@ -72,6 +73,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
           graceUntil: ownerData.graceUntil || null,
           lastPaymentFailedAt: ownerData.lastPaymentFailedAt || null,
           companyName: ownerData.name || null,
+          subscriptions: ownerData.subscriptions || {},
           isUserLoading: false,
           userError: null
         });
@@ -105,6 +107,7 @@ export const useUser = (): UserHookResult => {
     graceUntil: ctx?.graceUntil,
     lastPaymentFailedAt: ctx?.lastPaymentFailedAt,
     companyName: ctx?.companyName,
+    subscriptions: ctx?.subscriptions || {},
     isUserLoading: ctx?.isUserLoading ?? true,
     userError: ctx?.userError ?? null
   };

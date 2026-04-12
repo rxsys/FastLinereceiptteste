@@ -22,7 +22,7 @@ import { MemberSettingsTab } from './components/MemberSettingsTab';
 import { APP_VERSION } from '@/lib/version';
 
 export default function MemberPage() {
-  const { user, isUserLoading, ownerId, role, companyName } = useUser();
+  const { user, isUserLoading, ownerId, role, companyName, subscriptions } = useUser();
   const auth = useAuth();
   const router = useRouter();
 
@@ -47,12 +47,22 @@ export default function MemberPage() {
     ...(isManager ? [{ id: 'settings', label: '設定', icon: <Settings className="w-4 h-4" /> }] : []),
   ];
 
+  const hasMemberAccess = isDeveloper || subscriptions?.member?.status === 'active' || subscriptions?.member?.status === 'trialing';
+
+  useEffect(() => {
+    if (!isUserLoading && hasMounted) {
+      if (!user || (!isDeveloper && !hasMemberAccess)) {
+        router.push('/');
+      }
+    }
+  }, [user, isUserLoading, hasMounted, isDeveloper, hasMemberAccess, router]);
+
   if (isUserLoading || !hasMounted) return (
     <div className="min-h-screen flex items-center justify-center bg-[#06060b]">
       <Loader2 className="animate-spin text-[#6366f1]" />
     </div>
   );
-  if (!user) { router.push('/'); return null; }
+  if (!user || (!isDeveloper && !hasMemberAccess)) return null;
 
   const ownerName = companyName || (isDeveloper ? 'Dev Console' : '');
 
