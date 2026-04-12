@@ -1,24 +1,30 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth, useUser, useDatabase } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wallet, Loader2, AlertCircle } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, User as UserIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, AuthError } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, AuthError, sendEmailVerification } from 'firebase/auth';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ref, set } from 'firebase/database';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [userName, setUserName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  
   const auth = useAuth();
+  const database = useDatabase();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
@@ -29,144 +35,146 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router]);
 
+  const sendVerificationEmail = async (firebaseUser: any) => {
+    try {
+      const functions = getFunctions(auth!.app, 'asia-east1');
+      const fn = httpsCallable(functions, 'sendCustomVerificationEmail');
+      await fn({ uid: firebaseUser.uid, lang: 'ja' });
+    } catch (err: any) {
+      if (auth) auth.languageCode = 'ja';
+      await sendEmailVerification(firebaseUser, {
+        url: process.env.NEXT_PUBLIC_APP_URL || window.location.origin,
+        handleCodeInApp: false,
+      });
+    }
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
-    
     setIsLoading(true);
     setAuthError(null);
-    
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      toast({ title: "ログイン完了" });
     } catch (error: any) {
-      const firebaseError = error as AuthError;
-      console.error("Login error code:", firebaseError.code);
-      
       let message = "ログインに失敗しました。";
-      if (firebaseError.code === 'auth/invalid-credential' || firebaseError.code === 'auth/user-not-found' || firebaseError.code === 'auth/wrong-password') {
-        message = "メールアドレスまたはパスワードが正しくありません。";
-      } else if (firebaseError.code === 'auth/too-many-requests') {
-        message = "試行回数が多すぎます。後でもう一度お試しください。";
-      }
-      
+      if (error.code === 'auth/invalid-credential') message = "メールアドレスまたはパスワードが正しくありません。";
       setAuthError(message);
-      toast({
-        variant: "destructive",
-        title: "エラー",
-        description: message,
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    } finally { setIsLoading(false); }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
-
-    if (password.length < 6) {
-      setAuthError("パスワードは6文字以上で入力してください。");
-      return;
-    }
-
+    if (!email || !password || !userName) return;
     setIsLoading(true);
     setAuthError(null);
-    
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-    } catch (error: any) {
-      const firebaseError = error as AuthError;
-      console.error("Signup error details:", firebaseError.code, firebaseError.message);
-      
-      let message = "アカウント作成に失敗しました。";
-      
-      switch (firebaseError.code) {
-        case 'auth/email-already-in-use':
-          message = "このメールアドレスは既に登録されています。";
-          break;
-        case 'auth/invalid-email':
-          message = "メールアドレスの形式が正しくありません。";
-          break;
-        case 'auth/weak-password':
-          message = "パスワードが弱すぎます。";
-          break;
-        case 'auth/invalid-credential':
-          message = "認証エラーが発生しました。";
-          break;
-        case 'auth/operation-not-allowed':
-          message = "新規登録が許可されていません。";
-          break;
-        default:
-          message = `エラーが発生しました (${firebaseError.code})。`;
-      }
-      
-      setAuthError(message);
-      toast({
-        variant: "destructive",
-        title: "エラー",
-        description: message,
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await set(ref(database!, `users/${cred.user.uid}`), {
+        email,
+        displayName: userName,
+        status: 'new',
+        emailVerified: false,
+        createdAt: new Date().toISOString(),
+        role: 'user'
       });
-    } finally {
-      setIsLoading(false);
-    }
+      await sendVerificationEmail(cred.user);
+      toast({ title: "確認メールを送信しました", description: "メールボックスをご確認ください。" });
+    } catch (error: any) {
+      let message = "アカウント作成に失敗しました。";
+      if (error.code === 'auth/email-already-in-use') message = "このメールアドレスは既に登録されています。";
+      setAuthError(message);
+    } finally { setIsLoading(false); }
   };
 
   if (isUserLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
+        <Loader2 className="w-8 h-8 animate-spin text-[#ff6b35]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center space-y-2">
-          <div className="flex justify-center">
-            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg">
-              <Wallet className="text-white w-7 h-7" />
-            </div>
+    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] p-6">
+      <div className="w-full max-w-[400px] space-y-8 animate-in fade-in zoom-in-95 duration-500">
+        <div className="text-center space-y-4">
+          <div className="mx-auto w-14 h-14 bg-[#ff6b35] rounded-2xl flex items-center justify-center text-white font-black text-3xl shadow-xl rotate-3">
+            F
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-primary">Fast LINE</h1>
-          <p className="text-muted-foreground">管理コンソールにログイン</p>
+          <div className="space-y-1">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 uppercase">ACCESS FASTLINE</h1>
+            <p className="text-slate-400 text-xs font-bold tracking-[0.2em] uppercase">FastLine Platform Access</p>
+          </div>
         </div>
 
         {authError && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="border-red-500/20 bg-red-50 text-red-600 rounded-2xl">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>認証エラー</AlertTitle>
-            <AlertDescription>{authError}</AlertDescription>
+            <AlertTitle className="font-black">エラー</AlertTitle>
+            <AlertDescription className="font-bold">{authError}</AlertDescription>
           </Alert>
         )}
 
         <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">ログイン</TabsTrigger>
-            <TabsTrigger value="signup">新規登録</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 bg-slate-100 p-1 rounded-2xl mb-6">
+            <TabsTrigger value="login" className="rounded-xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">ログイン</TabsTrigger>
+            <TabsTrigger value="signup" className="rounded-xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">新規登録</TabsTrigger>
           </TabsList>
           
           <TabsContent value="login">
-            <Card>
+            <Card className="border-slate-200 shadow-2xl shadow-slate-200/50 rounded-3xl overflow-hidden border-none">
+              <div className="h-1 bg-gradient-to-r from-[#ff6b35] to-[#ff9f1c]" />
               <form onSubmit={handleSignIn}>
                 <CardHeader>
-                  <CardTitle>ログイン</CardTitle>
-                  <CardDescription>登録済みのメールアドレスでログインしてください。</CardDescription>
+                  <CardTitle className="text-xl font-black">おかえりなさい</CardTitle>
+                  <CardDescription className="font-medium">登録済みのメールアドレスでログイン</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">メールアドレス</Label>
-                    <Input id="email" type="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">メールアドレス</Label>
+                    <div className="relative group">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#ff6b35] transition-colors" />
+                      <Input
+                        type="email"
+                        placeholder="email@example.com"
+                        className="bg-slate-50 border-slate-200 h-12 pl-11 rounded-xl focus:border-[#ff6b35]/50 focus:ring-0 transition-all text-slate-900"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password">パスワード</Label>
-                    <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    <div className="flex items-center justify-between ml-1">
+                      <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">パスワード</Label>
+                      <button type="button" className="text-[9px] font-black text-[#ff6b35]/80 hover:text-[#ff6b35] transition-colors uppercase tracking-widest">忘れた場合</button>
+                    </div>
+                    <div className="relative group">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#ff6b35] transition-colors" />
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        className="bg-slate-50 border-slate-200 h-12 pl-11 pr-11 rounded-xl focus:border-[#ff6b35]/50 focus:ring-0 transition-all text-slate-900"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                 </CardContent>
-                <CardFooter>
-                  <Button className="w-full" type="submit" disabled={isLoading}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    ログイン
+                <CardFooter className="flex flex-col gap-4">
+                  <Button className="w-full h-12 bg-[#ff6b35] hover:bg-[#ff8555] text-white font-black rounded-xl shadow-lg shadow-[#ff6b35]/20 group relative overflow-hidden transition-all active:scale-[0.98]" type="submit" disabled={isLoading}>
+                    {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <span className="relative z-10">ログイン</span>}
+                    {!isLoading && <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />}
                   </Button>
                 </CardFooter>
               </form>
@@ -174,32 +182,69 @@ export default function LoginPage() {
           </TabsContent>
 
           <TabsContent value="signup">
-            <Card>
+            <Card className="border-slate-200 shadow-2xl shadow-slate-200/50 rounded-3xl overflow-hidden border-none">
+              <div className="h-1 bg-gradient-to-r from-slate-900 to-slate-700" />
               <form onSubmit={handleSignUp}>
                 <CardHeader>
-                  <CardTitle>新規アカウント作成</CardTitle>
-                  <CardDescription>必要情報を入力してアカウントを作成してください。</CardDescription>
+                  <CardTitle className="text-xl font-black">無料アカウント作成</CardTitle>
+                  <CardDescription className="font-medium">今すぐFastLineを始めましょう</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">メールアドレス</Label>
-                    <Input id="signup-email" type="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">会社名またはお名前</Label>
+                    <div className="relative group">
+                      <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
+                      <Input
+                        placeholder="株式会社○○ / 山田太郎"
+                        className="bg-slate-50 border-slate-200 h-12 pl-11 rounded-xl focus:border-slate-900/50 focus:ring-0 transition-all text-slate-900"
+                        value={userName}
+                        onChange={(e) => setUserName(e.target.value)}
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">パスワード</Label>
-                    <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">メールアドレス</Label>
+                    <div className="relative group">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
+                      <Input
+                        type="email"
+                        placeholder="name@example.com"
+                        className="bg-slate-50 border-slate-200 h-12 pl-11 rounded-xl focus:border-slate-900/50 focus:ring-0 transition-all text-slate-900"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">パスワード</Label>
+                    <div className="relative group">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        className="bg-slate-50 border-slate-200 h-12 pl-11 rounded-xl focus:border-slate-900/50 focus:ring-0 transition-all text-slate-900"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                    </div>
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" type="submit" disabled={isLoading}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    アカウント作成
+                  <Button className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-xl shadow-lg shadow-slate-200 group relative overflow-hidden transition-all active:scale-[0.98]" type="submit" disabled={isLoading}>
+                    {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <span className="relative z-10">アカウント作成</span>}
+                    {!isLoading && <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />}
                   </Button>
                 </CardFooter>
               </form>
             </Card>
           </TabsContent>
         </Tabs>
+
+        <p className="text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+          © 2024 FastLine Intelligence
+        </p>
       </div>
     </div>
   );
