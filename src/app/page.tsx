@@ -401,7 +401,7 @@ export default function LandingPage() {
             <div className="flex flex-col items-center gap-2 relative z-10">
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); router.push('/member'); }}
+                onClick={(e) => { e.stopPropagation(); router.push('/modules/member'); }}
                 className="px-4 py-1.5 rounded-full bg-[#6366f1]/10 border border-[#6366f1]/30 text-[10px] font-black text-[#6366f1] hover:bg-[#6366f1]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
               >
                 詳細はこちら →
