@@ -224,8 +224,9 @@ export function StripeAdminPanel() {
       const authHeaders = await (async () => { if (!user) return {}; const t = await user.getIdToken(); return { Authorization: `Bearer ${t}` }; })();
       const res = await fetch('/api/stripe/admin/config', { headers: authHeaders });
       const data = await res.json();
-      if (data.config) {
-        const { updatedAt, ...rest } = data.config;
+      const config = data.config ?? data;
+      if (config && typeof config === 'object' && !config.error) {
+        const { updatedAt, ...rest } = config;
         setConfigForm({ ...EMPTY_CONFIG, ...rest });
         if (updatedAt) setConfigUpdatedAt(updatedAt);
       }
@@ -246,7 +247,8 @@ export function StripeAdminPanel() {
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      if (data.config?.updatedAt) setConfigUpdatedAt(data.config.updatedAt);
+      const savedAt = data.config?.updatedAt ?? data.updatedAt ?? new Date().toISOString();
+      setConfigUpdatedAt(savedAt);
       await fetch('/api/stripe/admin/config/invalidate', { method: 'POST', headers: authHeaders }).catch(() => {});
       toast({ title: 'Configurações salvas', description: 'As novas chaves serão aplicadas na próxima requisição.' });
       await loadProducts();
