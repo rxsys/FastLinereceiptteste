@@ -25,10 +25,12 @@ export function initializeFirebase() {
   return getSdks(getApp());
 }
 
+const RTDB_URL = "https://studio-3353968200-c57b0-default-rtdb.firebaseio.com";
+
 export function getSdks(firebaseApp: FirebaseApp) {
   const auth = getAuth(firebaseApp);
   const storage = getStorage(firebaseApp);
-  const database = getDatabase(firebaseApp);
+  const database = getDatabase(firebaseApp, RTDB_URL);
 
   return {
     firebaseApp,
