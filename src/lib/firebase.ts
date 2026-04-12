@@ -4,8 +4,13 @@ import { getDatabase } from 'firebase-admin/database';
 import { getStorage } from 'firebase-admin/storage';
 
 function getFirebaseAdmin() {
+  const projectId = process.env.FIREBASE_PROJECT_ID || 'studio-3353968200-c57b0';
+  const databaseURL = process.env.FIREBASE_DATABASE_URL || `https://${projectId}-default-rtdb.asia-east1.firebasedatabase.app`;
+  
+  // Fallback para URL padrão se a regional falhar (comum em projetos antigos)
+  const legacyDatabaseURL = `https://${projectId}-default-rtdb.firebaseio.com`;
+
   if (!getApps().length) {
-    const projectId = process.env.FIREBASE_PROJECT_ID;
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
     let privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
@@ -13,24 +18,32 @@ function getFirebaseAdmin() {
       privateKey = privateKey.replace(/\\n/g, '\n').replace(/"/g, '');
     }
 
-    const config = {
-      databaseURL: "https://studio-3353968200-c57b0-default-rtdb.firebaseio.com"
-    };
-
     try {
       if (projectId && clientEmail && privateKey && privateKey.includes('BEGIN PRIVATE KEY')) {
+        console.log('[FirebaseAdmin] Initializing with Service Account');
         initializeApp({
           credential: cert({ projectId, clientEmail, privateKey }),
-          storageBucket: 'studio-3353968200-c57b0.firebasestorage.app',
-          ...config
+          storageBucket: `${projectId}.firebasestorage.app`,
+          databaseURL: databaseURL
         });
       } else {
-        initializeApp({ storageBucket: 'studio-3353968200-c57b0.firebasestorage.app', ...config });
+        console.log('[FirebaseAdmin] Initializing with Default Credentials');
+        initializeApp({ 
+          storageBucket: `${projectId}.firebasestorage.app`,
+          databaseURL: databaseURL
+        });
       }
     } catch (error) {
-      if (!getApps().length) initializeApp({ storageBucket: 'studio-3353968200-c57b0.firebasestorage.app', ...config });
+      console.error('[FirebaseAdmin] Init error, trying legacy URL:', error);
+      if (!getApps().length) {
+        initializeApp({ 
+          storageBucket: `${projectId}.firebasestorage.app`,
+          databaseURL: legacyDatabaseURL
+        });
+      }
     }
   }
+
   return {
     auth: getAuth(),
     rtdb: getDatabase(),
@@ -38,6 +51,5 @@ function getFirebaseAdmin() {
   };
 }
 
-// Desativando Firestore (db) para migração total RTDB
 export const { auth, rtdb, storage: adminStorage } = getFirebaseAdmin();
 export const db = null as any;
