@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(configSnap.val() || {});
   } catch (error: any) {
     console.error('[Stripe Config GET] Error:', error);
-    return new NextResponse(error.message || 'Internal Error', { status: error.status || 500 });
+    return NextResponse.json({ error: error.message || 'Internal Error' }, { status: error.status || 500 });
   }
 }
 
@@ -27,6 +27,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status: 'ok' });
   } catch (error: any) {
     console.error('[Stripe Config POST] Error:', error);
-    return new NextResponse(error.message || 'Internal Error', { status: error.status || 500 });
+    return NextResponse.json({ error: error.message || 'Internal Error' }, { status: error.status || 500 });
   }
 }

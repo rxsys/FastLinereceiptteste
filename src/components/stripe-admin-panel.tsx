@@ -268,9 +268,14 @@ export function StripeAdminPanel() {
         headers: { Authorization: `Bearer ${token}` } 
       });
       
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        console.error('[StripeAdminPanel] Config load failed:', res.status, errData);
+        return;
+      }
       const data = await res.json();
       console.log('[StripeAdminPanel] Config raw data:', data);
-      
+
       const config = data.config ?? data;
       
       if (config && typeof config === 'object' && !config.error) {
