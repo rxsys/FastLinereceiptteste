@@ -7,5 +7,4 @@ env:
     secret: STRIPE_SECRET_KEY
   - variable: STRIPE_WEBHOOK_SECRET
     secret: STRIPE_WEBHOOK_SECRET
-  - variable: NEXT_PUBLIC_APP_URL
-    value: https://fastline-app--studio-3353968200-c57b0.asia-east1.hosted.app
+# NEXT_PUBLIC_APP_URL será detectada automaticamente ou deve ser configurada no painel do App Hosting para cada ambiente (teste/prod)
