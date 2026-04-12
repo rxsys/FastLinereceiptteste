@@ -1,77 +1,53 @@
-import * as admin from 'firebase-admin';
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    databaseURL: "https://studio-3353968200-c57b0-default-rtdb.firebaseio.com"
-  });
-}
+const { initializeApp, cert } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
+const { getDatabase } = require('firebase-admin/database');
 
-const db = admin.firestore();
-const rtdb = admin.database();
+// Credenciais do ambiente (App Hosting já as possui ou usa as do sistema)
+const projectId = 'studio-3353968200-c57b0';
 
-async function migrate() {
-  console.log('🚀 Iniciando migração completa Firestore -> Realtime Database...');
+async function migrateKeys() {
+  console.log('--- Iniciando Migração Firestore -> RTDB ---');
+  
+  // Inicializa Admin com privilégios totais
+  const app = initializeApp({
+    projectId: projectId,
+    databaseURL: `https://${projectId}-default-rtdb.asia-east1.firebasedatabase.app`
+  }, 'migrator');
 
-  // 1. Migrar Usuários (Crítico para as Regras de Segurança)
-  console.log('👥 Migrando perfis de usuários...');
-  const usersSnap = await db.collection('users').get();
-  const usersData: any = {};
-  usersSnap.forEach(doc => { usersData[doc.id] = doc.data(); });
-  await rtdb.ref('users').set(usersData);
+  const fs = getFirestore(app);
+  const rtdb = getDatabase(app);
 
-  // 2. Migrar Dados de Owners
-  const ownersSnap = await db.collection('owner').get();
-  for (const ownerDoc of ownersSnap.docs) {
-    const ownerId = ownerDoc.id;
-    console.log(`📦 Processando Owner: ${ownerId}`);
+  try {
+    console.log('Lendo do Firestore: stripe_config/keys...');
+    const doc = await fs.collection('stripe_config').doc('keys').get();
     
-    const ownerData: any = {};
-
-    // lineUsers
-    const lineUsersSnap = await db.collection('owner').doc(ownerId).collection('lineUsers').get();
-    ownerData.lineUsers = {};
-    lineUsersSnap.forEach(doc => { ownerData.lineUsers[doc.id] = doc.data(); });
-
-    // invites
-    const invitesSnap = await db.collection('owner').doc(ownerId).collection('invites').get();
-    ownerData.invites = {};
-    invitesSnap.forEach(doc => { ownerData.invites[doc.id] = doc.data(); });
-
-    // expenses
-    const expensesSnap = await db.collection('owner').doc(ownerId).collection('expenses').get();
-    ownerData.expenses = {};
-    expensesSnap.forEach(doc => { ownerData.expenses[doc.id] = doc.data(); });
-
-    // projects e costcenters
-    const projectsSnap = await db.collection('owner').doc(ownerId).collection('projects').get();
-    ownerData.projects = {};
-    for (const projDoc of projectsSnap.docs) {
-      const projId = projDoc.id;
-      const projData = projDoc.data();
-      
-      const ccsSnap = await db.collection('owner').doc(ownerId).collection('projects').doc(projId).collection('costcenter').get();
-      const costcenters: any = {};
-      ccsSnap.forEach(doc => { costcenters[doc.id] = doc.data(); });
-      
-      ownerData.projects[projId] = { ...projData, costcenters };
+    if (!doc.exists) {
+      console.error('ERRO: Nenhuma chave encontrada no Firestore!');
+      process.exit(1);
     }
 
-    await rtdb.ref(`owner_data/${ownerId}`).set(ownerData);
+    const data = doc.data();
+    console.log('Chaves encontradas! Migrando para o RTDB...');
+    
+    // Oculta chaves no log por segurança
+    const maskedData = { ...data };
+    Object.keys(maskedData).forEach(k => {
+      if (typeof maskedData[k] === 'string') maskedData[k] = maskedData[k].substring(0, 8) + '...';
+    });
+    console.log('Dados detectados:', JSON.stringify(maskedData, null, 2));
+
+    await rtdb.ref('stripe_config/keys').set({
+      ...data,
+      migratedAt: new Date().toISOString()
+    });
+
+    console.log('✅ SUCESSO! As chaves foram migradas para o Realtime Database.');
+  } catch (err) {
+    console.error('FALHA NA MIGRAÇÃO:', err);
+  } finally {
+    process.exit(0);
   }
-
-  // 3. Coleções Globais
-  console.log('🌍 Migrando coleções globais...');
-  const poolSnap = await db.collection('line_api_pool').get();
-  const poolData: any = {};
-  poolSnap.forEach(doc => { poolData[doc.id] = doc.data(); });
-  await rtdb.ref('line_api_pool').set(poolData);
-
-  const configSnap = await db.collection('stripe_config').get();
-  const configData: any = {};
-  configSnap.forEach(doc => { configData[doc.id] = doc.data(); });
-  await rtdb.ref('stripe_config').set(configData);
-
-  console.log('✨ Migração concluída!');
 }
 
-migrate().catch(console.error);
+migrateKeys();

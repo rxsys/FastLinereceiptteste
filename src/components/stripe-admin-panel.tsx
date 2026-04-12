@@ -152,7 +152,6 @@ function SubscriptionCard({ sub, mode, onReload }: { sub: StripeSubscription, mo
 
   return (
     <div className="border border-slate-100 rounded-2xl overflow-hidden bg-white hover:shadow-sm transition-all relative">
-      {/* Header row */}
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors text-left"
@@ -178,7 +177,6 @@ function SubscriptionCard({ sub, mode, onReload }: { sub: StripeSubscription, mo
         </div>
       </button>
 
-      {/* Expanded details */}
       {open && (
         <div className="border-t border-slate-100 px-6 py-5 bg-slate-50/50">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -270,12 +268,9 @@ export function StripeAdminPanel() {
         headers: { Authorization: `Bearer ${token}` } 
       });
       
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Failed to load config: ${res.status} ${text}`);
-      }
-
       const data = await res.json();
+      console.log('[StripeAdminPanel] Config raw data:', data);
+      
       const config = data.config ?? data;
       
       if (config && typeof config === 'object' && !config.error) {
@@ -283,7 +278,6 @@ export function StripeAdminPanel() {
         // Merge with EMPTY_CONFIG to ensure all fields exist
         setConfigForm(prev => ({ ...prev, ...rest }));
         if (updatedAt) setConfigUpdatedAt(updatedAt);
-        console.log('[StripeAdminPanel] Config loaded successfully');
       }
     } catch (e) {
       console.error('[StripeAdminPanel] Error loading config:', e);
@@ -611,7 +605,7 @@ export function StripeAdminPanel() {
                       <Input
                         type="text"
                         placeholder={field.placeholder}
-                        value={(configForm as any)[field.key]}
+                        value={(configForm as any)[field.key] || ''}
                         onChange={e => setConfigForm(f => ({ ...f, [field.key]: e.target.value }))}
                         className="h-9 rounded-xl font-mono text-xs border-slate-200 flex-1"
                       />
