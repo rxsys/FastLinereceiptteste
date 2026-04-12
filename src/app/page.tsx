@@ -371,15 +371,15 @@ export default function LandingPage() {
           </div>
         )}
 
-        <main className="pt-44 pb-32 px-6 flex flex-col items-center">
+        <main className="pt-32 pb-32 px-6 flex flex-col items-center">
           <h1 className="text-2xl md:text-5xl font-black text-center uppercase tracking-tighter leading-tight text-slate-900">{t.heroTitle[0]}<span className="text-[#ff6b35]">{t.heroTitle[1]}</span>{t.heroTitle[2]}</h1>
-          <p className="text-slate-500 mt-6 max-w-2xl text-center font-medium text-lg">{t.heroDesc}</p>
+          <p className="text-slate-500 mt-4 max-w-2xl text-center font-medium text-lg">{t.heroDesc}</p>
 
-          <div className="flex flex-nowrap justify-center gap-2 mt-12 mb-16 w-full overflow-x-auto">
+          <div className="flex flex-nowrap justify-center gap-2 mt-8 mb-10 w-full overflow-x-auto">
             {t.categories.map((cat: string) => <span key={cat} className="px-4 py-2.5 rounded-full bg-white border border-slate-200 text-[11px] font-black tracking-widest text-slate-500 shadow-sm whitespace-nowrap shrink-0">{cat}</span>)}
           </div>
 
-          <div className="mt-8 w-full max-w-[1000px] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-x-8 gap-y-12 pb-24">
+          <div className="mt-4 w-full max-w-[1000px] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-x-8 gap-y-12 pb-24">
             <div className="flex flex-col items-center gap-2 relative z-10">
               <button
                 type="button"
