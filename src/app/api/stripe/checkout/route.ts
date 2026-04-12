@@ -18,8 +18,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Stripe publishable key not found.' }, { status: 500 });
     }
 
-    // Use price from server config based on mode; fall back to client-supplied priceId
-    const configPriceId = config?.mode === 'live' ? config?.livePriceId : config?.testPriceId;
+    // Use module-specific price from config; fall back to generic or client-supplied
+    const modulePriceMap: Record<string, string> = {
+      receipt: config?.receiptPriceId,
+      member: config?.memberPriceId,
+      mypage: config?.mypagePriceId,
+    };
+    const configPriceId = modulePriceMap[moduleId] || (config?.mode === 'live' ? config?.livePriceId : config?.testPriceId);
     const priceId = configPriceId || clientPriceId;
 
     if (!priceId) {

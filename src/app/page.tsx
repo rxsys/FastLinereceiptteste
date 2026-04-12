@@ -287,7 +287,9 @@ export default function LandingPage() {
         }),
       });
       const data = await response.json();
+      if (data.error) throw new Error(data.error);
       if (data.url) window.location.href = data.url;
+      else throw new Error('Checkout URL not received');
     } catch (error: any) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
     finally { setCheckoutLoading(false); }
   };
