@@ -220,17 +220,31 @@ export function StripeAdminPanel() {
   };
 
   const loadConfig = useCallback(async () => {
+    if (!user) return;
     try {
-      const authHeaders = await (async () => { if (!user) return {}; const t = await user.getIdToken(); return { Authorization: `Bearer ${t}` }; })();
-      const res = await fetch('/api/stripe/admin/config', { headers: authHeaders });
+      const token = await user.getIdToken();
+      const res = await fetch('/api/stripe/admin/config', { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
+      
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Failed to load config: ${res.status} ${text}`);
+      }
+
       const data = await res.json();
       const config = data.config ?? data;
+      
       if (config && typeof config === 'object' && !config.error) {
         const { updatedAt, ...rest } = config;
-        setConfigForm({ ...EMPTY_CONFIG, ...rest });
+        // Merge with EMPTY_CONFIG to ensure all fields exist
+        setConfigForm(prev => ({ ...prev, ...rest }));
         if (updatedAt) setConfigUpdatedAt(updatedAt);
+        console.log('[StripeAdminPanel] Config loaded successfully');
       }
-    } catch { /* ignore */ } finally {
+    } catch (e) {
+      console.error('[StripeAdminPanel] Error loading config:', e);
+    } finally {
       setConfigLoaded(true);
     }
   }, [user]);
