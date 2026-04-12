@@ -21,7 +21,7 @@ export const translations = {
     emailNotVerified: "メールアドレスが未確認です。受信ボックスをご確認ください。",
     registerTitle: "アカウントを作成",
     registerBtn: "登録する",
-    registerFree: "無料で登録",
+    registerFree: "ユーザー登録",
     version: "現在のバージョン",
     build: "ビルド",
     modules: {
