@@ -42,29 +42,44 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     if (!auth || !database) return;
 
     return onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('[Auth] State changed:', firebaseUser?.email);
+      
       if (!firebaseUser) {
         setUserState({ user: null, ownerId: null, role: null, isUserLoading: false, userError: null });
         return;
       }
 
       try {
-        const userRef = ref(database, `users/${firebaseUser.uid}`);
-        const snapshot = await get(userRef);
-        
         const isDev = ["rxsysjp@gmail.com", "ricardoyukio@gmail.com"].includes(firebaseUser.email || "");
-        let userData = snapshot.val() || { email: firebaseUser.email, role: isDev ? 'developer' : 'user', status: 'new' };
+        console.log('[Auth] Is Developer:', isDev);
 
-        if (!snapshot.exists()) {
-          await set(userRef, userData);
+        const userRef = ref(database, `users/${firebaseUser.uid}`);
+        let userData: any = null;
+        
+        try {
+          const snapshot = await get(userRef);
+          if (snapshot.exists()) {
+            userData = snapshot.val();
+          } else {
+            userData = { email: firebaseUser.email, role: isDev ? 'developer' : 'user', status: 'new' };
+            await set(userRef, userData);
+          }
+        } catch (dbErr) {
+          console.error('[Auth] Database fetch error:', dbErr);
+          userData = { email: firebaseUser.email, role: isDev ? 'developer' : 'user', status: 'new' };
         }
 
         let ownerData: any = {};
         if (userData.ownerId) {
-          const ownerSnap = await get(ref(database, `owner/${userData.ownerId}`));
-          ownerData = ownerSnap.val() || {};
+          try {
+            const ownerSnap = await get(ref(database, `owner/${userData.ownerId}`));
+            ownerData = ownerSnap.val() || {};
+          } catch (ownerErr) {
+            console.error('[Auth] Owner fetch error:', ownerErr);
+          }
         }
 
-        setUserState({
+        const newState = {
           user: firebaseUser,
           ownerId: userData.ownerId || null,
           role: isDev ? 'developer' : (userData.role || 'user'),
@@ -76,8 +91,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
           subscriptions: ownerData.subscriptions || {},
           isUserLoading: false,
           userError: null
-        });
+        };
+        
+        console.log('[Auth] New State set for role:', newState.role);
+        setUserState(newState);
       } catch (e: any) {
+        console.error('[Auth] Critical provider error:', e);
         setUserState(prev => ({ ...prev, isUserLoading: false, userError: e }));
       }
     });
