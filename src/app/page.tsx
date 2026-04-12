@@ -92,26 +92,26 @@ const ModuleIcon = ({
           )}
         >
           <span className="text-4xl">{emoji}</span>
-          {badge && <div className={cn("absolute -top-3 -right-3 px-3 py-1 rounded-full text-[10px] font-black text-white shadow-xl", badgeColor)}>{badge}</div>}
+          {badge && <div className={cn("absolute -top-3 -right-3 px-3 py-1 rounded-full text-[11px] font-black text-white shadow-xl", badgeColor)}>{badge}</div>}
         </div>
         <div className="text-center space-y-1">
-          <p className="text-[12px] font-black text-slate-500 group-hover:text-slate-900 transition-colors tracking-tight whitespace-nowrap">{title}</p>
+          <p className="text-[14px] font-black text-slate-500 group-hover:text-slate-900 transition-colors tracking-tight whitespace-nowrap">{title}</p>
           {active ? (
             isSubscribed ? (
-               <p className="text-[11px] font-bold text-[#00c48c] drop-shadow-[0_0_8px_rgba(0,196,140,0.3)] flex items-center justify-center gap-1">
+               <p className="text-[13px] font-bold text-[#00c48c] drop-shadow-[0_0_8px_rgba(0,196,140,0.3)] flex items-center justify-center gap-1">
                 <span>✅</span> 利用中
               </p>
             ) : priceLoading ? (
-              <p className="text-[11px] font-bold text-slate-300 animate-pulse">...</p>
+              <p className="text-[13px] font-bold text-slate-300 animate-pulse">...</p>
             ) : priceId ? (
-              <p className="text-[11px] font-bold text-[#ff6b35]">
+              <p className="text-[13px] font-bold text-[#ff6b35]">
                 <ModulePrice priceId={priceId} />
               </p>
             ) : (
-              <p className="text-[11px] font-bold text-slate-400">無料</p>
+              <p className="text-[13px] font-bold text-slate-400">無料</p>
             )
           ) : (
-            <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase">近日公開</p>
+            <p className="text-[12px] font-black text-slate-400 tracking-widest uppercase">近日公開</p>
           )}
         </div>
       </div>
@@ -399,7 +399,7 @@ export default function LandingPage() {
           <p className="text-slate-500 mt-4 max-w-2xl text-center font-medium text-lg">{t.heroDesc}</p>
 
           <div className="flex flex-nowrap justify-center gap-2 mt-8 mb-10 w-full overflow-x-auto">
-            {t.categories.map((cat: string) => <span key={cat} className="px-4 py-2.5 rounded-full bg-white border border-slate-200 text-[11px] font-black tracking-widest text-slate-500 shadow-sm whitespace-nowrap shrink-0">{cat}</span>)}
+            {t.categories.map((cat: string) => <span key={cat} className="px-4 py-2.5 rounded-full bg-white border border-slate-200 text-[13px] font-black tracking-widest text-slate-500 shadow-sm whitespace-nowrap shrink-0">{cat}</span>)}
           </div>
 
           <div className="mt-4 w-full max-w-[1000px] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-x-8 gap-y-12 pb-24">
@@ -407,7 +407,7 @@ export default function LandingPage() {
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); router.push('/module-cost'); }}
-                className="px-4 py-1.5 rounded-full bg-[#22c55e]/10 border border-[#22c55e]/30 text-[10px] font-black text-[#22c55e] hover:bg-[#22c55e]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
+                className="px-4 py-1.5 rounded-full bg-[#22c55e]/10 border border-[#22c55e]/30 text-[12px] font-black text-[#22c55e] hover:bg-[#22c55e]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
               >
                 詳細はこちら →
               </button>
@@ -417,14 +417,14 @@ export default function LandingPage() {
                 priceLoading={stripeKeysLoading}
                 isSubscribed={activeModules.includes('receipt')}
                 onModuleClick={handleModuleClick}
-                tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">💴 コスト管理</p><div className="space-y-1.5">{[["📱","LINEで写真を送るだけで経費登録"],["🤖","AIが金額・日付・税率を自動抽出"],["🏛️","NTA適格請求書をリアルタイム認証"],["📊","プロジェクト別の予算・実績を管理"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[10px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
+                tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">💴 コスト管理</p><div className="space-y-1.5">{[["📱","LINEで写真を送るだけで経費登録"],["🤖","AIが金額・日付・税率を自動抽出"],["🏛️","NTA適格請求書をリアルタイム認証"],["📊","プロジェクト別の予算・実績を管理"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[12px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
               />
             </div>
             <div className="flex flex-col items-center gap-2 relative z-10">
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); router.push('/modules/member'); }}
-                className="px-4 py-1.5 rounded-full bg-[#6366f1]/10 border border-[#6366f1]/30 text-[10px] font-black text-[#6366f1] hover:bg-[#6366f1]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
+                className="px-4 py-1.5 rounded-full bg-[#6366f1]/10 border border-[#6366f1]/30 text-[12px] font-black text-[#6366f1] hover:bg-[#6366f1]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
               >
                 詳細はこちら →
               </button>
@@ -436,14 +436,14 @@ export default function LandingPage() {
                 onModuleClick={handleModuleClick}
                 badge={t.modules.member.badge}
                 badgeColor="bg-[#6366f1]/20"
-                tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">🧑‍💼 メンバー管理</p><div className="space-y-1.5">{[["👥","正社員・業務委託・外国人を一元管理"],["⏰","ビザ・契約期限を自動アラート"],["🕐","LINE打刻で勤怠を自動記録"],["💹","労務費をコスト管理へ自動連携"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[10px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
+                tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">🧑‍💼 メンバー管理</p><div className="space-y-1.5">{[["👥","正社員・業務委託・外国人を一元管理"],["⏰","ビザ・契約期限を自動アラート"],["🕐","LINE打刻で勤怠を自動記録"],["💹","労務費をコスト管理へ自動連携"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[12px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
               />
             </div>
             <div className="flex flex-col items-center gap-2 relative z-10">
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); router.push('/mypage'); }}
-                className="px-4 py-1.5 rounded-full bg-[#0ea5e9]/10 border border-[#0ea5e9]/30 text-[10px] font-black text-[#0ea5e9] hover:bg-[#0ea5e9]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
+                className="px-4 py-1.5 rounded-full bg-[#0ea5e9]/10 border border-[#0ea5e9]/30 text-[12px] font-black text-[#0ea5e9] hover:bg-[#0ea5e9]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
               >
                 詳細はこちら →
               </button>
@@ -454,7 +454,7 @@ export default function LandingPage() {
                 onModuleClick={handleModuleClick}
                 badge={t.modules.mypage.badge}
                 badgeColor="bg-[#0ea5e9]/20"
-                tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">🪪 マイページ</p><div className="space-y-1.5">{[["📋","勤怠・給与・書類を一画面で確認"],["🔗","QRコードで複数企業に対応"],["🌐","6言語対応の個人ポータル"],["📄","書類の期限アラートを自己管理"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[10px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
+                tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">🪪 マイページ</p><div className="space-y-1.5">{[["📋","勤怠・給与・書類を一画面で確認"],["🔗","QRコードで複数企業に対応"],["🌐","6言語対応の個人ポータル"],["📄","書類の期限アラートを自己管理"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[12px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
               />
             </div>
             <ModuleIcon emoji="📁" id="project" title={t.modules.project.title} color="#6366f1" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('project')} badge={t.modules.project.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.project.desc}</p>} priceLoading={stripeKeysLoading} />
