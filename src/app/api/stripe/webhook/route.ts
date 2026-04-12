@@ -8,8 +8,7 @@ export async function POST(req: NextRequest) {
   let event: Stripe.Event;
   let stripe: Stripe;
   const now = new Date().toISOString();
-
-  console.log('[StripeWebhook] Received request');
+  const logsRef = rtdb.ref('api_debug/stripe_webhook_logs');
 
   try {
     const config = await getStripeConfig();
@@ -20,197 +19,123 @@ export async function POST(req: NextRequest) {
     const sig = req.headers.get('stripe-signature');
     const endpointSecret = config?.mode === 'live' ? config.liveWebhookSecret : config?.testWebhookSecret;
 
-    console.log(`[StripeWebhook] Mode: ${config?.mode}, Secret configured: ${!!endpointSecret}`);
-
-    if (!sig) return new NextResponse('Missing stripe-signature', { status: 400 });
-    if (!endpointSecret) {
-      console.error('[StripeWebhook] Webhook secret not found in config');
-      return new NextResponse('Webhook secret not configured', { status: 500 });
+    if (!sig || !endpointSecret) {
+      const msg = !sig ? 'Missing signature' : 'Missing endpoint secret';
+      await logsRef.push({ t: now, m: msg, status: 'error' });
+      return new NextResponse(msg, { status: 400 });
     }
 
     event = stripe.webhooks.constructEvent(body, sig, endpointSecret);
-    console.log(`[StripeWebhook] Event constructed: ${event.type} (${event.id})`);
+    await logsRef.child(event.id).set({ t: now, type: event.type, step: 'received' });
   } catch (err: any) {
     console.error(`[StripeWebhook] Construction Error: ${err.message}`);
+    await logsRef.push({ t: now, m: 'Construction Error', error: err.message });
     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
-  }
-
-  // Deduplicação
-  try {
-    const dedupRef = rtdb.ref(`webhook_events/${event.id}`);
-    const snap = await dedupRef.get();
-    if (snap.exists()) {
-      console.log(`[StripeWebhook] Duplicate event ignored: ${event.id}`);
-      return NextResponse.json({ received: true, duplicate: true });
-    }
-    await dedupRef.set({ type: event.type, receivedAt: now });
-  } catch (err: any) {
-    console.error(`[StripeWebhook] Dedup failed: ${err.message}`);
-    // Continuamos mesmo se o dedup falhar para não perder a venda
   }
 
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        const { ownerId, userId, moduleId = 'receipt' } = session.metadata || {};
+        const meta = session.metadata || {};
+        const { ownerId, userId, moduleId = 'receipt' } = meta;
         
-        console.log(`[StripeWebhook] Checkout Meta: user=${userId}, owner=${ownerId}, module=${moduleId}`);
+        await logsRef.child(event.id).update({ 
+          step: 'processing_checkout',
+          meta,
+          customerId: session.customer 
+        });
 
         if (!ownerId || !userId) {
-          console.error('[StripeWebhook] Missing critical metadata: userId or ownerId');
+          await logsRef.child(event.id).update({ step: 'error', m: 'Missing metadata' });
           break;
         }
 
-        // 1. Obter dados atuais
-        const [userSnap, ownerSnap] = await Promise.all([
-          rtdb.ref(`users/${userId}`).get(),
-          rtdb.ref(`owner/${ownerId}`).get(),
-        ]);
-
-        const userData = userSnap.val() || {};
-        const ownerData = ownerSnap.val() || {};
-        const companyName = userData.displayName || userData.companyName || ownerData.companyName || ownerData.name || 'Nova Empresa';
-
-        console.log(`[StripeWebhook] Processing for ${companyName}`);
-
-        // 2. Determinar validade
-        let validUntil: string | null = null;
-        if (session.subscription) {
-          try {
+        // 1. Atualizar Owner
+        try {
+          const ownerUpdates: any = {
+            stripeCustomerId: session.customer,
+            subscriptionStatus: 'active',
+            updatedAt: now,
+          };
+          
+          if (session.subscription) {
             const sub = await stripe.subscriptions.retrieve(session.subscription as string);
-            validUntil = new Date(sub.current_period_end * 1000).toISOString();
-            console.log(`[StripeWebhook] Subscription valid until: ${validUntil}`);
-          } catch (e) {
-            console.error('[StripeWebhook] Error retrieving sub details:', e);
+            ownerUpdates.validUntil = new Date(sub.current_period_end * 1000).toISOString();
           }
+
+          await rtdb.ref(`owner/${ownerId}`).update(ownerUpdates);
+          await rtdb.ref(`owner/${ownerId}/subscriptions/${moduleId}`).set({
+            status: 'active',
+            id: session.subscription || 'manual',
+            updatedAt: now,
+          });
+          await logsRef.child(event.id).update({ step: 'owner_updated' });
+        } catch (e: any) {
+          await logsRef.child(event.id).update({ step: 'owner_error', error: e.message });
         }
 
-        // 3. Atualizar/Criar Owner
-        const ownerUpdates: any = {
-          stripeCustomerId: session.customer,
-          subscriptionStatus: 'active',
-          companyName,
-          name: companyName,
-          updatedAt: now,
-          lastPaymentFailedAt: null,
-          graceUntil: null,
-        };
-        if (validUntil) ownerUpdates.validUntil = validUntil;
+        // 2. Atualizar Usuário para Manager
+        try {
+          const userSnap = await rtdb.ref(`users/${userId}`).get();
+          const userData = userSnap.val() || {};
+          
+          await rtdb.ref(`users/${userId}`).update({
+            status: 'active',
+            role: userData.role === 'developer' ? 'developer' : 'manager',
+            ownerId,
+            updatedAt: now,
+          });
+          await logsRef.child(event.id).update({ step: 'user_upgraded' });
+        } catch (e: any) {
+          await logsRef.child(event.id).update({ step: 'user_error', error: e.message });
+        }
 
-        await rtdb.ref(`owner/${ownerId}`).update(ownerUpdates);
-        await rtdb.ref(`owner/${ownerId}/subscriptions/${moduleId}`).set({
-          status: 'active',
-          id: session.subscription || 'manual',
-          updatedAt: now,
-        });
-        console.log(`[StripeWebhook] Owner ${ownerId} updated`);
-
-        // 4. Transformar User em Manager
-        await rtdb.ref(`users/${userId}`).update({
-          status: 'active',
-          role: userData.role === 'developer' ? 'developer' : 'manager',
-          ownerId,
-          updatedAt: now,
-        });
-        console.log(`[StripeWebhook] User ${userId} upgraded to manager`);
-
-        // 5. Vincular LINE API Pool (Se não tiver uma)
+        // 3. Pool do LINE
         try {
           const poolAssignedSnap = await rtdb.ref('line_api_pool').orderByChild('ownerId').equalTo(ownerId).limitToFirst(1).get();
           if (!poolAssignedSnap.exists()) {
-            console.log('[StripeWebhook] Searching for available LINE API pool...');
             const availableSnap = await rtdb.ref('line_api_pool').orderByChild('status').equalTo('available').limitToFirst(1).get();
             if (availableSnap.exists()) {
-              const pools = availableSnap.val();
-              const poolId = Object.keys(pools)[0];
+              const poolId = Object.keys(availableSnap.val())[0];
               await rtdb.ref(`line_api_pool/${poolId}`).update({
                 status: 'used',
                 ownerId,
-                ownerName: companyName,
                 assignedAt: now,
               });
-              console.log(`[StripeWebhook] LINE pool ${poolId} assigned to ${ownerId}`);
-            } else {
-              console.warn('[StripeWebhook] No available LINE API pools found');
+              await logsRef.child(event.id).update({ step: 'pool_assigned', poolId });
             }
-          } else {
-            console.log('[StripeWebhook] Owner already has a LINE API pool assigned');
           }
-        } catch (poolErr) {
-          console.error('[StripeWebhook] Error assigning LINE pool:', poolErr);
+        } catch (e: any) {
+          await logsRef.child(event.id).update({ step: 'pool_error', error: e.message });
         }
 
-        console.log(`[StripeWebhook] Full checkout processing completed for ${ownerId}`);
+        await logsRef.child(event.id).update({ step: 'completed' });
         break;
       }
 
-      case 'customer.subscription.updated': {
-        const sub = event.data.object as Stripe.Subscription;
-        const { ownerId, moduleId = 'receipt' } = sub.metadata || {};
-        if (!ownerId) break;
-
-        const validUntil = new Date(sub.current_period_end * 1000).toISOString();
-        const status = sub.status;
-        let internalStatus = 'expired';
-
-        if (status === 'active' || status === 'trialing') internalStatus = 'active';
-        else if (status === 'past_due') internalStatus = 'grace';
-
-        const updates: any = { subscriptionStatus: internalStatus, updatedAt: now, validUntil };
-        if (internalStatus === 'active') {
-          updates.graceUntil = null;
-          updates.lastPaymentFailedAt = null;
-        } else if (internalStatus === 'grace') {
-          updates.graceUntil = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
-        }
-
-        await rtdb.ref(`owner/${ownerId}`).update(updates);
-        await rtdb.ref(`owner/${ownerId}/subscriptions/${moduleId}`).update({ status: internalStatus, updatedAt: now });
-        console.log(`[StripeWebhook] Sub updated for ${ownerId}: ${status} -> ${internalStatus}`);
-        break;
-      }
-
+      case 'customer.subscription.updated':
       case 'customer.subscription.deleted': {
         const sub = event.data.object as Stripe.Subscription;
         const { ownerId, moduleId = 'receipt' } = sub.metadata || {};
         if (!ownerId) break;
 
-        await rtdb.ref(`owner/${ownerId}`).update({
-          subscriptionStatus: 'expired',
+        const isDeleted = event.type === 'customer.subscription.deleted';
+        const internalStatus = isDeleted ? 'expired' : (sub.status === 'active' || sub.status === 'trialing' ? 'active' : 'grace');
+
+        await rtdb.ref(`owner/${ownerId}`).update({ 
+          subscriptionStatus: internalStatus, 
           updatedAt: now,
-          graceUntil: null
+          validUntil: new Date(sub.current_period_end * 1000).toISOString()
         });
-        await rtdb.ref(`owner/${ownerId}/subscriptions/${moduleId}`).update({ status: 'expired', updatedAt: now });
-        console.log(`[StripeWebhook] Sub deleted for ${ownerId}`);
+        await rtdb.ref(`owner/${ownerId}/subscriptions/${moduleId}`).update({ status: internalStatus, updatedAt: now });
+        await logsRef.child(event.id).update({ step: 'subscription_updated', status: internalStatus });
         break;
       }
-
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object as Stripe.Invoice;
-        const customerId = typeof invoice.customer === 'string' ? invoice.customer : (invoice.customer as any)?.id;
-        if (!customerId) break;
-
-        const ownerSnap = await rtdb.ref('owner').orderByChild('stripeCustomerId').equalTo(customerId).limitToFirst(1).get();
-        if (ownerSnap.exists()) {
-          const ownerId = Object.keys(ownerSnap.val())[0];
-          await rtdb.ref(`owner/${ownerId}`).update({
-            subscriptionStatus: 'grace',
-            graceUntil: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-            lastPaymentFailedAt: now,
-            updatedAt: now
-          });
-          console.log(`[StripeWebhook] Payment failed for owner ${ownerId}`);
-        }
-        break;
-      }
-
-      default:
-        console.log(`[StripeWebhook] Unhandled event type: ${event.type}`);
     }
   } catch (err: any) {
-    console.error(`[StripeWebhook] Processing Error (${event!.type}): ${err.message}`);
-    return new NextResponse('Internal Webhook Processing Error', { status: 500 });
+    await logsRef.child(event.id).update({ step: 'critical_error', error: err.message });
+    return new NextResponse('Error', { status: 500 });
   }
 
   return NextResponse.json({ received: true });
