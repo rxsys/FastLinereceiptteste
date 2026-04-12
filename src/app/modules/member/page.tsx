@@ -15,7 +15,7 @@ const COLOR = '#6366f1';
 const FEATURES = [
   {
     icon: <Users className="w-6 h-6" />,
-    title: '従業員・PJ・外国人対応',
+    title: '従業員・業務委託・外国人対応',
     desc: '正社員・業務委託・外国人労働者を一つの画面で管理。在留資格や契約形態に合わせた項目を自動表示。',
   },
   {

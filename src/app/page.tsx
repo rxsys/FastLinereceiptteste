@@ -412,7 +412,7 @@ export default function LandingPage() {
                 onModuleClick={handleModuleClick}
                 badge={t.modules.member.badge}
                 badgeColor="bg-[#6366f1]/20"
-                tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">🧑‍💼 メンバー管理</p><div className="space-y-1.5">{[["👥","正社員・PJ・外国人を一元管理"],["⏰","ビザ・契約期限を自動アラート"],["🕐","LINE打刻で勤怠を自動記録"],["💹","労務費をコスト管理へ自動連携"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[10px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
+                tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">🧑‍💼 メンバー管理</p><div className="space-y-1.5">{[["👥","正社員・業務委託・外国人を一元管理"],["⏰","ビザ・契約期限を自動アラート"],["🕐","LINE打刻で勤怠を自動記録"],["💹","労務費をコスト管理へ自動連携"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[10px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
               />
             </div>
             <div className="flex flex-col items-center gap-2 relative z-10">
