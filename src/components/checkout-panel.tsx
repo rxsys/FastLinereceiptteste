@@ -9,9 +9,10 @@ interface CheckoutPanelProps {
   onClose: () => void;
   onUpgrade: () => void;
   loading?: boolean;
+  price?: string;
 }
 
-export function CheckoutPanel({ isOpen, onClose, onUpgrade, loading }: CheckoutPanelProps) {
+export function CheckoutPanel({ isOpen, onClose, onUpgrade, loading, price }: CheckoutPanelProps) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -37,16 +38,16 @@ export function CheckoutPanel({ isOpen, onClose, onUpgrade, loading }: CheckoutP
                 </div>
                 <h3 className="text-xl font-bold">Fast LINE Pro</h3>
               </div>
-              <Button variant="ghost" size="icon" onClick={onClose}>
+              <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/10">
                 <X className="h-5 w-5" />
               </Button>
             </div>
             
-            <div className="text-4xl font-bold mb-4 text-primary">¥10,000 <span className="text-sm font-normal text-muted-foreground">/ 月</span></div>
+            <div className="text-4xl font-bold mb-4 text-[#ff6b35]">{price || '...'} <span className="text-sm font-normal text-slate-400">/ 月</span></div>
             
             <ul className="space-y-3 mb-8">
               {[ "無制限の領収書AI解析", "複数の現場・会社管理", "Excelエクスポート機能", "LINE連携フルアクセス" ].map((item, i) => (
-                <li key={i} className="flex items-center gap-3 text-sm">
+                <li key={i} className="flex items-center gap-3 text-sm text-slate-300">
                   <CheckCircle2 className="w-5 h-5 text-[#00c48c]" />
                   <span>{item}</span>
                 </li>
@@ -62,7 +63,7 @@ export function CheckoutPanel({ isOpen, onClose, onUpgrade, loading }: CheckoutP
               )}
             </Button>
             
-            <p className="text-xs text-muted-foreground text-center mt-6">
+            <p className="text-xs text-slate-500 text-center mt-6">
               お支払いは Stripe を通じて安全に処理されます。<br/>
               いつでもキャンセル可能です。
             </p>

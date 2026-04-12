@@ -53,8 +53,8 @@ import { APP_VERSION } from '@/lib/version';
 import { translations } from '@/lib/translations';
 import { CheckoutPanel } from '@/components/checkout-panel';
 
-const ModulePrice = ({ priceId, defaultPrice }: { priceId: string, defaultPrice: string }) => {
-  const [price, setPrice] = useState<string>(defaultPrice);
+const ModulePrice = ({ priceId }: { priceId: string }) => {
+  const [price, setPrice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -72,7 +72,7 @@ const ModulePrice = ({ priceId, defaultPrice }: { priceId: string, defaultPrice:
       .finally(() => setLoading(false));
   }, [priceId]);
 
-  if (loading && price === defaultPrice) return <span className="animate-pulse opacity-50">...</span>;
+  if (loading || !price) return <span className="animate-pulse opacity-50">...</span>;
   return <span>{price} / 月</span>;
 };
 
@@ -103,7 +103,7 @@ const ModuleIcon = ({
               </p>
             ) : (
               <p className="text-[11px] font-bold text-[#ff6b35]">
-                <ModulePrice priceId={priceId} defaultPrice="¥10,000" />
+                <ModulePrice priceId={priceId} />
               </p>
             )
           ) : (
@@ -140,6 +140,7 @@ export default function LandingPage() {
   const [selectedModule, setSelectedModule] = useState<any>(null);
   const [activeModules, setActiveModules] = useState<string[]>([]);
   const [stripeKeys, setStripeKeys] = useState<any>(null);
+  const [selectedModulePrice, setSelectedModulePrice] = useState<string>('');
 
   useEffect(() => {
     const savedLang = localStorage.getItem('fastline_lang');
@@ -162,6 +163,19 @@ export default function LandingPage() {
       setActiveModules(active);
     }).catch(() => {});
   }, [user, ownerId, database]);
+
+  useEffect(() => {
+    if (!selectedModule?.priceId) {
+      setSelectedModulePrice('');
+      return;
+    }
+    fetch(`/api/stripe/price/${selectedModule.priceId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.formattedPrice) setSelectedModulePrice(data.formattedPrice);
+      })
+      .catch(console.error);
+  }, [selectedModule?.priceId]);
 
   const handleLangChange = (lang: string) => { setCurrentLang(lang); localStorage.setItem('fastline_lang', lang); };
   const t = (translations as any)[currentLang] || translations.ja;
@@ -563,6 +577,14 @@ export default function LandingPage() {
             </form>
           </DialogContent>
         </Dialog>
+
+        <CheckoutPanel 
+          isOpen={isCheckoutOpen} 
+          onClose={() => setIsCheckoutOpen(false)} 
+          onUpgrade={handleUpgrade} 
+          loading={checkoutLoading} 
+          price={selectedModulePrice}
+        />
       </div>
     </TooltipProvider>
   );
