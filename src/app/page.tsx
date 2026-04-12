@@ -652,12 +652,13 @@ export default function LandingPage() {
           </DialogContent>
         </Dialog>
 
-        <CheckoutPanel 
-          isOpen={isCheckoutOpen} 
-          onClose={() => setIsCheckoutOpen(false)} 
-          onUpgrade={handleUpgrade} 
-          loading={checkoutLoading} 
+        <CheckoutPanel
+          isOpen={isCheckoutOpen}
+          onClose={() => setIsCheckoutOpen(false)}
+          onUpgrade={handleUpgrade}
+          loading={checkoutLoading}
           price={selectedModulePrice}
+          moduleId={selectedModule?.id}
         />
       </div>
     </TooltipProvider>

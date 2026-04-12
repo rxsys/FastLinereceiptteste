@@ -324,6 +324,7 @@ export default function CostLandingPage() {
         onUpgrade={handleUpgrade}
         loading={checkoutLoading}
         price={price}
+        moduleId="receipt"
       />
     </div>
   );

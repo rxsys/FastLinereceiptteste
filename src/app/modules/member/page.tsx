@@ -324,6 +324,7 @@ export default function MemberLandingPage() {
         onUpgrade={handleUpgrade}
         loading={checkoutLoading}
         price={price}
+        moduleId="member"
       />
     </div>
   );
