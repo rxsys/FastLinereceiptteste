@@ -34,7 +34,16 @@ export async function GET(
       interval: price.recurring?.interval || 'month'
     });
   } catch (error: any) {
-    console.error('Error fetching price from Stripe:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error(`[Stripe Price GET] Error for ID ${params.priceId}:`, {
+      message: error.message,
+      type: error.type,
+      statusCode: error.statusCode,
+      code: error.code
+    });
+    return NextResponse.json({ 
+      error: error.message,
+      type: error.type,
+      code: error.code
+    }, { status: error.statusCode || 500 });
   }
 }
