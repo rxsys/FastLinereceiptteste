@@ -102,8 +102,11 @@ const intervalLabel: Record<string, string> = {
   day: 'dia', week: 'semana', month: 'mês', year: 'ano',
 };
 
-function SubscriptionCard({ sub }: { sub: StripeSubscription }) {
+function SubscriptionCard({ sub, mode, onReload }: { sub: StripeSubscription, mode: string, onReload: () => void }) {
   const [open, setOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
+  const { user } = useUser();
   const sc = statusConfig[sub.status] || { label: sub.status, color: 'bg-slate-100 text-slate-500 border-slate-200' };
   const isCancelPending = sub.cancel_at_period_end && sub.status === 'active';
 
@@ -128,8 +131,27 @@ function SubscriptionCard({ sub }: { sub: StripeSubscription }) {
     ...(sub.latest_invoice ? [{ label: 'Última fatura ID', value: sub.latest_invoice }] : []),
   ];
 
+  const handleDelete = async () => {
+    if (!confirm('Excluir esta compra vai cancelar o plano imediatamente. Deseja prosseguir?')) return;
+    setIsDeleting(true);
+    try {
+      const token = await user?.getIdToken();
+      const res = await fetch(`/api/stripe/admin/subscriptions?subscriptionId=${sub.id}&mode=${mode}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      toast({ title: 'Assinatura excluída (cancelada)' });
+      onReload();
+    } catch(err: any) {
+      toast({ variant: 'destructive', title: 'Erro ao excluir', description: err.message });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <div className="border border-slate-100 rounded-2xl overflow-hidden bg-white hover:shadow-sm transition-all">
+    <div className="border border-slate-100 rounded-2xl overflow-hidden bg-white hover:shadow-sm transition-all relative">
       {/* Header row */}
       <button
         onClick={() => setOpen(o => !o)}
@@ -167,16 +189,33 @@ function SubscriptionCard({ sub }: { sub: StripeSubscription }) {
               </div>
             ))}
           </div>
+          
+          {mode === 'test' && sub.status !== 'canceled' && (
+            <div className="mt-4 flex justify-end">
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="rounded-xl h-8 text-[11px] font-black tracking-wide"
+              >
+                {isDeleting ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : <Trash2 className="w-3 h-3 mr-2" />}
+                Excluir Teste e Cancelar
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-function SubscriptionsTab({ subscriptions, loading, loadError }: {
+function SubscriptionsTab({ subscriptions, loading, loadError, mode, onReload }: {
   subscriptions: StripeSubscription[];
   loading: boolean;
   loadError: string | null;
+  mode: string;
+  onReload: () => void;
 }) {
   return (
     <div className="space-y-3">
@@ -190,7 +229,7 @@ function SubscriptionsTab({ subscriptions, loading, loadError }: {
         </div>
       )}
       {subscriptions.map(sub => (
-        <SubscriptionCard key={sub.id} sub={sub} />
+        <SubscriptionCard key={sub.id} sub={sub} mode={mode} onReload={onReload} />
       ))}
     </div>
   );
@@ -445,7 +484,13 @@ export function StripeAdminPanel() {
       )}
 
       {activeTab === 'subscriptions' && (
-        <SubscriptionsTab subscriptions={subscriptions} loading={loading} loadError={loadError} />
+        <SubscriptionsTab 
+          subscriptions={subscriptions} 
+          loading={loading} 
+          loadError={loadError} 
+          mode={configForm.mode}
+          onReload={() => loadSubscriptions()}
+        />
       )}
 
       {activeTab === 'config' && (

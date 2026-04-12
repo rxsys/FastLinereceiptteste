@@ -114,3 +114,27 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: error.message }, { status });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    await verifyAdminRequest(req);
+    const { searchParams } = new URL(req.url);
+    const subscriptionId = searchParams.get('subscriptionId');
+    const mode = (searchParams.get('mode') || undefined) as 'live' | 'test' | undefined;
+    
+    if (!subscriptionId) {
+      return NextResponse.json({ error: 'subscriptionId is required' }, { status: 400 });
+    }
+
+    const stripe = await getStripeInstance(mode);
+    
+    // Cancela e exclui a assinatura imediatamente
+    const deletedSubscription = await stripe.subscriptions.cancel(subscriptionId);
+    
+    return NextResponse.json({ success: true, subscription: deletedSubscription });
+  } catch (error: any) {
+    console.error('[stripe/admin/subscriptions] DELETE error:', error?.message);
+    const status = error.status ?? 500;
+    return NextResponse.json({ error: error.message }, { status });
+  }
+}
