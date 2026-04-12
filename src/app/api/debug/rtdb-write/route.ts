@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { rtdb } from '@/lib/firebase';
-import { getApps } from 'firebase-admin/app';
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -8,27 +7,41 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  try {
-    const app = getApps()[0];
-    const appOptions = app?.options || {};
+  const action = url.searchParams.get('action');
 
-    // Check what's in the root
-    const rootSnap = await rtdb.ref('/').get();
-    const rootKeys = rootSnap.exists() ? Object.keys(rootSnap.val()) : [];
+  // Fix owner name: ?action=fix-owner&ownerId=xxx
+  if (action === 'fix-owner') {
+    const ownerId = url.searchParams.get('ownerId');
+    if (!ownerId) return NextResponse.json({ error: 'Missing ownerId' }, { status: 400 });
 
-    // Try to find users
-    const usersSnap = await rtdb.ref('users').limitToFirst(3).get();
-    const usersPreview = usersSnap.exists() ? Object.keys(usersSnap.val()) : [];
+    const userSnap = await rtdb.ref(`users/${ownerId}`).get();
+    const userData = userSnap.val();
+    const name = userData?.displayName || userData?.companyName || 'Unknown';
 
-    return NextResponse.json({
-      adminDbUrl: (appOptions as any).databaseURL || 'auto',
-      projectId: (appOptions as any).projectId || 'auto',
-      rootKeys,
-      usersPreview,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error: any) {
-    console.error('[Debug Write] Error:', error);
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    await rtdb.ref(`owner/${ownerId}`).update({ name, companyName: name });
+    return NextResponse.json({ ok: true, ownerId, name });
   }
+
+  // Assign LINE pool: ?action=assign-pool&ownerId=xxx
+  if (action === 'assign-pool') {
+    const ownerId = url.searchParams.get('ownerId');
+    if (!ownerId) return NextResponse.json({ error: 'Missing ownerId' }, { status: 400 });
+
+    const allPoolSnap = await rtdb.ref('line_api_pool').get();
+    if (!allPoolSnap.exists()) return NextResponse.json({ error: 'No pool entries' });
+
+    const allPool = allPoolSnap.val();
+    const alreadyAssigned = Object.values(allPool).some((p: any) => p.ownerId === ownerId);
+    if (alreadyAssigned) return NextResponse.json({ ok: true, message: 'Already assigned' });
+
+    const availableEntry = Object.entries(allPool).find(([, p]: any) => p.status === 'available');
+    if (!availableEntry) return NextResponse.json({ error: 'No available pool' });
+
+    const [poolId] = availableEntry;
+    const now = new Date().toISOString();
+    await rtdb.ref(`line_api_pool/${poolId}`).update({ status: 'used', ownerId, assignedAt: now });
+    return NextResponse.json({ ok: true, poolId, ownerId });
+  }
+
+  return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
 }

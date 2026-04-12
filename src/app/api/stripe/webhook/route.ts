@@ -51,14 +51,27 @@ export async function POST(req: NextRequest) {
           break;
         }
 
-        // 1. Atualizar Owner
+        // 1. Buscar dados do user para nome da empresa
+        let userData: any = {};
+        try {
+          const userSnap = await rtdb.ref(`users/${userId}`).get();
+          userData = userSnap.val() || {};
+        } catch (e: any) {
+          await logsRef.child(event.id).update({ step: 'user_fetch_error', error: e.message });
+        }
+
+        const companyName = userData.displayName || userData.companyName || session.customer_details?.name || 'Unknown';
+
+        // 2. Atualizar Owner
         try {
           const ownerUpdates: any = {
             stripeCustomerId: session.customer,
             subscriptionStatus: 'active',
+            name: companyName,
+            companyName,
             updatedAt: now,
           };
-          
+
           if (session.subscription) {
             const sub = await stripe.subscriptions.retrieve(session.subscription as string);
             ownerUpdates.validUntil = new Date(sub.current_period_end * 1000).toISOString();
@@ -70,16 +83,13 @@ export async function POST(req: NextRequest) {
             id: session.subscription || 'manual',
             updatedAt: now,
           });
-          await logsRef.child(event.id).update({ step: 'owner_updated' });
+          await logsRef.child(event.id).update({ step: 'owner_updated', companyName });
         } catch (e: any) {
           await logsRef.child(event.id).update({ step: 'owner_error', error: e.message });
         }
 
-        // 2. Atualizar Usuário para Manager
+        // 3. Atualizar Usuário para Manager
         try {
-          const userSnap = await rtdb.ref(`users/${userId}`).get();
-          const userData = userSnap.val() || {};
-          
           await rtdb.ref(`users/${userId}`).update({
             status: 'active',
             role: userData.role === 'developer' ? 'developer' : 'manager',
@@ -91,19 +101,29 @@ export async function POST(req: NextRequest) {
           await logsRef.child(event.id).update({ step: 'user_error', error: e.message });
         }
 
-        // 3. Pool do LINE
+        // 4. Pool do LINE — busca manual sem orderByChild para evitar erro de index
         try {
-          const poolAssignedSnap = await rtdb.ref('line_api_pool').orderByChild('ownerId').equalTo(ownerId).limitToFirst(1).get();
-          if (!poolAssignedSnap.exists()) {
-            const availableSnap = await rtdb.ref('line_api_pool').orderByChild('status').equalTo('available').limitToFirst(1).get();
-            if (availableSnap.exists()) {
-              const poolId = Object.keys(availableSnap.val())[0];
-              await rtdb.ref(`line_api_pool/${poolId}`).update({
-                status: 'used',
-                ownerId,
-                assignedAt: now,
-              });
-              await logsRef.child(event.id).update({ step: 'pool_assigned', poolId });
+          const allPoolSnap = await rtdb.ref('line_api_pool').get();
+          if (allPoolSnap.exists()) {
+            const allPool = allPoolSnap.val();
+            const alreadyAssigned = Object.values(allPool).some((p: any) => p.ownerId === ownerId);
+
+            if (!alreadyAssigned) {
+              const availableEntry = Object.entries(allPool).find(([, p]: any) => p.status === 'available');
+              if (availableEntry) {
+                const [poolId] = availableEntry;
+                await rtdb.ref(`line_api_pool/${poolId}`).update({
+                  status: 'used',
+                  ownerId,
+                  ownerName: companyName,
+                  assignedAt: now,
+                });
+                await logsRef.child(event.id).update({ step: 'pool_assigned', poolId });
+              } else {
+                await logsRef.child(event.id).update({ step: 'pool_none_available' });
+              }
+            } else {
+              await logsRef.child(event.id).update({ step: 'pool_already_assigned' });
             }
           }
         } catch (e: any) {
