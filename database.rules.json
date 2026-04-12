@@ -10,6 +10,7 @@
     },
     "owner": {
       ".read": "root.child('users').child(auth.uid).child('role').val() === 'developer'",
+      ".indexOn": ["stripeCustomerId"],
       "$ownerId": {
         ".read": "root.child('users').child(auth.uid).child('ownerId').val() === $ownerId || root.child('users').child(auth.uid).child('role').val() === 'developer'",
         ".write": "root.child('users').child(auth.uid).child('role').val() === 'developer'",
@@ -34,7 +35,11 @@
     "line_api_pool": {
       ".read": "auth != null",
       ".write": "root.child('users').child(auth.uid).child('role').val() === 'developer'",
-      ".indexOn": ["ownerId"]
+      ".indexOn": ["ownerId", "status"]
+    },
+    "webhook_events": {
+      ".read": false,
+      ".write": true
     },
     "stripe_config": {
       ".read": "auth != null",
