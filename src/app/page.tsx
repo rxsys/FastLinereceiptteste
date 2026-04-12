@@ -406,15 +406,15 @@ export default function LandingPage() {
               />
             </div>
             <ModuleIcon emoji="📁" id="project" title={t.modules.project.title} color="#6366f1" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('project')} badge={t.modules.project.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.project.desc}</p>} />
-            <ModuleIcon emoji="👥" id="staff" title={t.modules.staff.title} color="#00c48c" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('staff')} badge={t.modules.staff.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.staff.desc}</p>} />
+
             <ModuleIcon emoji="📋" id="career" title={t.modules.career.title} color="#f59e0b" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('career')} badge={t.modules.career.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.career.desc}</p>} />
             <ModuleIcon emoji="🆔" id="id" title={t.modules.id.title} color="#3b82f6" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('id')} badge={t.modules.id.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.id.desc}</p>} />
             <ModuleIcon emoji="🔧" id="assets" title={t.modules.assets.title} color="#ef4444" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('assets')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.assets.desc}</p>} />
             <ModuleIcon emoji="💰" id="sales" title={t.modules.sales.title} color="#10b981" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('sales')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.sales.desc}</p>} />
-            <ModuleIcon emoji="⏱️" id="attendance" title={t.modules.attendance.title} color="#8b5cf6" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('attendance')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.attendance.desc}</p>} />
+
             <ModuleIcon emoji="🏢" id="kaigyo" title={t.modules.kaigyo.title} color="#f43f5e" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('kaigyo')} badge={t.modules.kaigyo.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.kaigyo.desc}</p>} />
             <ModuleIcon emoji="📑" id="docs" title={t.modules.docs.title} color="#71717a" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('docs')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.docs.desc}</p>} />
-            <ModuleIcon emoji="⚙️" id="setup" title={t.modules.settings.title} color="#64748b" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('settings')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.settings.desc}</p>} />
+
           </div>
 
           {/* Footer Area with Legal links */}
