@@ -212,6 +212,17 @@ export default function LandingPage() {
     if (!isActive) { toast({ title: "近日公開", description: "公開予定です。" }); return; }
     if (!user) { setSelectedModule({ id: moduleId, priceId: priceId || '' }); setIsLoginOpen(true); return; }
     if (FREE_MODULES.includes(moduleId)) { router.push(MODULE_ROUTES[moduleId] || '/'); return; }
+
+    // Restrição para nível 'user'
+    if (role === 'user') {
+      toast({ 
+        variant: "destructive", 
+        title: "アクセス制限", 
+        description: "このモジュールへのアクセス権限がありません。管理者に問い合わせてください。" 
+      });
+      return;
+    }
+
     setSelectedModule({ id: moduleId, priceId: priceId || '' });
     const snap = await get(ref(database!, `owner/${ownerId || user.uid}`));
     if (snap.val()?.subscriptions?.[moduleId]?.status === 'active') router.push(MODULE_ROUTES[moduleId] || '/cost');
@@ -348,7 +359,7 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {activeModules.includes('receipt') && (
+                    {activeModules.includes('receipt') && role !== 'user' && (
                       <button 
                         onClick={() => router.push('/cost')} 
                         className="flex items-center px-4 h-9 rounded-xl bg-[#ff6b35]/10 border border-[#ff6b35]/20 hover:bg-[#ff6b35]/20 hover:scale-105 active:scale-95 transition-all shadow-sm"
