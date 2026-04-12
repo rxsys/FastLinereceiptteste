@@ -189,7 +189,7 @@ export default function MemberLandingPage() {
               className="h-14 px-10 rounded-2xl font-black text-white text-base shadow-xl"
               style={{ backgroundColor: COLOR, boxShadow: `0 12px 40px ${COLOR}40` }}
             >
-              {isSubscribed ? 'ダッシュボードを開く' : '無料で試す'}
+              {isSubscribed ? 'ダッシュボードを開く' : user ? '今すぐ始める' : 'ログインして始める'}
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             {!isSubscribed && price && (
