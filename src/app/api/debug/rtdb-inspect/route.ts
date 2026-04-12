@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { rtdb } from '@/lib/firebase';
-import { verifyAdminRequest } from '@/lib/admin-auth';
+import { getApps } from 'firebase-admin/app';
+import { getDatabase } from 'firebase-admin/database';
 
 export async function GET(req: Request) {
   try {
@@ -10,12 +11,16 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const path = url.searchParams.get('path') || 'stripe_config/keys';
+    const dbUrl = url.searchParams.get('db');
 
-    const snap = await rtdb.ref(path).get();
+    // Use alternative DB URL if provided
+    const db = dbUrl ? getDatabase(getApps()[0], dbUrl) : rtdb;
+
+    const snap = await db.ref(path).get();
     const val = snap.val();
 
     if (!val) {
-      return NextResponse.json({ path, data: null, message: 'No data at this path' });
+      return NextResponse.json({ path, dbUrl: dbUrl || 'default', data: null, message: 'No data at this path' });
     }
 
     // For stripe_config, mask secrets
@@ -25,10 +30,10 @@ export async function GET(req: Request) {
         const v = val[k];
         inspection[k] = typeof v === 'string' ? `${v.substring(0, 8)}... (len: ${v.length})` : typeof v;
       });
-      return NextResponse.json({ path, structure: inspection });
+      return NextResponse.json({ path, dbUrl: dbUrl || 'default', structure: inspection });
     }
 
-    return NextResponse.json({ path, data: val });
+    return NextResponse.json({ path, dbUrl: dbUrl || 'default', data: val });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
