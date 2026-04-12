@@ -213,16 +213,6 @@ export default function LandingPage() {
     if (!user) { setSelectedModule({ id: moduleId, priceId: priceId || '' }); setIsLoginOpen(true); return; }
     if (FREE_MODULES.includes(moduleId)) { router.push(MODULE_ROUTES[moduleId] || '/'); return; }
 
-    // Restrição: user vinculado a um owner (subordinado) não pode comprar
-    if (role === 'user' && ownerId) {
-      toast({
-        variant: "destructive",
-        title: "アクセス制限",
-        description: "このモジュールへのアクセス権限がありません。管理者に問い合わせてください。"
-      });
-      return;
-    }
-
     setSelectedModule({ id: moduleId, priceId: priceId || '' });
     const snap = await get(ref(database!, `owner/${ownerId || user.uid}`));
     if (snap.val()?.subscriptions?.[moduleId]?.status === 'active') router.push(MODULE_ROUTES[moduleId] || '/cost');
