@@ -14,11 +14,16 @@ export async function GET(req: Request) {
     const ownerId = url.searchParams.get('ownerId');
     if (!ownerId) return NextResponse.json({ error: 'Missing ownerId' }, { status: 400 });
 
-    const userSnap = await rtdb.ref(`users/${ownerId}`).get();
-    const userData = userSnap.val();
-    const name = userData?.displayName || userData?.companyName || 'Unknown';
+    const customName = url.searchParams.get('name');
+    let name = customName;
+    if (!name) {
+      const userSnap = await rtdb.ref(`users/${ownerId}`).get();
+      const userData = userSnap.val();
+      name = userData?.displayName || userData?.companyName || 'Unknown';
+    }
 
     await rtdb.ref(`owner/${ownerId}`).update({ name, companyName: name });
+    await rtdb.ref(`users/${ownerId}`).update({ displayName: name });
     return NextResponse.json({ ok: true, ownerId, name });
   }
 
