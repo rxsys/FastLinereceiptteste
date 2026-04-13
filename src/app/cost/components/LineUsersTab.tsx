@@ -443,7 +443,10 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                               <div className="w-full py-6 flex flex-col items-center justify-center text-center gap-2 text-red-600 bg-red-50 rounded-2xl border border-red-100 mb-4">
                                 <span className="text-2xl">⚠️</span>
                                 <p className="text-[10px] font-black leading-tight">{t.users?.errorNoBotId || 'LINE Bot IDが設定されていません'}</p>
-                                <p className="text-[8px] mt-1 text-red-500 opacity-70">Owner settings {'>'} Bot ID</p>
+                                <p className="text-[8px] mt-1 text-red-500 opacity-70">
+                                  Owner settings {'>'} Bot ID | ID: {effectiveOwnerId?.slice(0, 8)}... | 
+                                  Pool: {pool && pool.length > 0 ? `${pool.length} bots (${pool.map(p => p.lineBasicId ? 'YES' : 'NO').join(',')})` : 'EMPTY'}
+                                </p>
                               </div>
                             ) : (
                               <div className="relative group">
