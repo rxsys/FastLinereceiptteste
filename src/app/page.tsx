@@ -424,14 +424,14 @@ export default function LandingPage() {
                 詳細はこちら →
               </button>
               <ModuleIcon
-                emoji="🧑‍💼" id="member" title={t.modules.member.title} color="#6366f1" active
+                emoji="🧑‍💼" id="member" title={t.modules.member.title} color="#6366f1" active={false}
                 priceId={stripeKeys?.memberPriceId || (stripeKeys?.mode === 'live' ? stripeKeys?.livePriceId : stripeKeys?.testPriceId)}
                 priceLoading={stripeKeysLoading}
                 isSubscribed={activeModules.includes('member')}
                 onModuleClick={handleModuleClick}
                 badge={t.modules.member.badge}
                 badgeColor="bg-[#6366f1]/20"
-                tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">🧑‍💼 メンバー管理</p><div className="space-y-1.5">{[["👥","正社員・業務委託・外国人を一元管理"],["⏰","ビザ・契約期限を自動アラート"],["🕐","LINE打刻で勤怠を自動記録"],["💹","労務費をコスト管理へ自動連携"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[12px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
+                tooltip={<div className="space-y-2.5 p-1"><p className="font-black text-[13px] text-slate-800">🧑‍💼 メンバー管理</p><p className="text-[12px] text-amber-600 font-bold bg-amber-50 p-3 rounded-xl border border-amber-100">🚧 このモジュールは現在開発中です。まもなく公開されます。</p></div>}
               />
             </div>
             <div className="flex flex-col items-center gap-2 relative z-10">
