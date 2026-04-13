@@ -128,6 +128,8 @@ export default function DashboardPage() {
 
           <div className="flex items-center gap-4">
              <div className="hidden md:flex items-center gap-2 px-5 py-2 bg-white/70 backdrop-blur-md border border-white rounded-[2rem] shadow-sm">
+                <span className="text-[10px] font-black text-slate-500">{user?.email}</span>
+                <div className="w-1 h-1 rounded-full bg-slate-200" />
                 <span className="text-[10px] font-black text-primary uppercase">{ownerName}</span>
                 <div className="w-1 h-1 rounded-full bg-slate-200" />
                 <Badge variant="outline" className="text-[10px] font-black bg-primary/5 text-primary">{role || 'USER'}</Badge>
