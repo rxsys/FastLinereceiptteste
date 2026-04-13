@@ -111,7 +111,7 @@ export default function DemoTestDrive() {
               <div className="mt-12 p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col md:flex-row items-center gap-8 animate-in fade-in slide-in-from-bottom-4">
                 <div className="bg-white p-3 rounded-2xl shadow-xl">
                   {/* QR Code Demo - Usando o ID do Bot Demo */}
-                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://line.me/R/oaMessage/2009522176/" className="w-[120px] h-[120px]" alt="QR" />
+                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://line.me/R/oaMessage/@776dxgni/" className="w-[120px] h-[120px]" alt="QR" />
                 </div>
                 <div className="text-center md:text-left">
                   <p className="text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-1">Passo 1: LINEで送信</p>
