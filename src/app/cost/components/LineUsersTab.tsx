@@ -129,7 +129,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
   const costCenters = allCostCenters; // Alias for the dialog prop
 
   const poolRef = useMemoFirebase(() => database ? ref(database, 'line_api_pool') : null, [database]);
-  const { data: poolRaw } = useRTDBCollection(poolRef);
+  const { data: poolRaw, error: poolError } = useRTDBCollection(poolRef);
   
   // No ambiente de teste, os bots podem estar no root (fastline3, fastline4, etc)
   const rootRef = useMemoFirebase(() => database ? ref(database, '/') : null, [database]);
@@ -466,7 +466,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                                 <p className="text-[10px] font-black leading-tight">{t.users?.errorNoBotId || 'LINE Bot IDが設定されていません'}</p>
                                 <p className="text-[8px] mt-1 text-red-500 opacity-70">
                                   Owner settings {'>'} Bot ID | ID: {effectiveOwnerId} | 
-                                  Pool: {pool && pool.length > 0 ? `${pool.length} bots (${pool.map(p => p.id).join(',')})` : 'EMPTY'}
+                                  Pool: {poolError ? `ERR: ${poolError.message}` : (pool && pool.length > 0 ? `${pool.length} bots (${pool.map(p => p.id).join(',')})` : 'EMPTY')}
                                 </p>
                               </div>
                             ) : (
