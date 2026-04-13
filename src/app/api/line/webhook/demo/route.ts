@@ -64,11 +64,20 @@ export async function POST(req: NextRequest) {
         // Marcar como processando no Firebase (para a landing page mostrar loader)
         await rtdb.ref(`demo_sessions/${sessionCode}`).update({ status: 'processing', ts: Date.now() });
 
+        // Enviar feedback imediato no LINE
+        await lineClient.replyMessage({
+          replyToken,
+          messages: [{ type: 'text', text: `📄 領収書を受信しました！\nAIが解析してデモ画面に結果を表示します。少々お待ちください...` }]
+        });
+
         // Extrair Dados (Gemini)
         try {
           // Obter imagem do LINE
           const imgRes = await fetch(`https://api-data.line.me/v2/bot/message/${message.id}/content`, {
-            headers: { 'Authorization': `Bearer ${demoBot.lineChannelAccessToken}` }
+            headers: { 
+              'Authorization': `Bearer ${demoBot.lineChannelAccessToken}`,
+              'Accept': 'image/jpeg'
+            }
           });
           const buffer = await imgRes.arrayBuffer();
           const base64Image = Buffer.from(buffer).toString('base64');
@@ -86,10 +95,8 @@ export async function POST(req: NextRequest) {
             ts: Date.now()
           });
 
-          await lineClient.replyMessage({
-            replyToken,
-            messages: [{ type: 'text', text: `✅ 抽出が完了しました！Landing Pageのデモ画面をご確認ください。` }]
-          });
+          // Opcional: Notificar no LINE que terminou (Embora o resultado apareça na tela)
+          // await lineClient.pushMessage({ to: userId, messages: [...] });
 
         } catch (e: any) {
           await rtdb.ref(`demo_sessions/${sessionCode}`).update({ status: 'error', error: e.message });
