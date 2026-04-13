@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, MessageCircle, Brain, ShieldCheck, BarChart3, ArrowRight, Loader2, Shield, Bell, Zap, CheckCircle2 } from 'lucide-react';
+import DemoTestDrive from './components/DemoTestDrive';
 
 const COLOR = '#22c55e';
 
@@ -26,7 +27,7 @@ const FEATURES = [
   {
     icon: <ShieldCheck className="w-6 h-6" />,
     title: 'NTA適格請求書リアルタイム認証',
-    desc: 'インボイス制度に完全対応。登録番号（T番号）をAIが抽出し、国税庁APIで即時認証。重複・不正も自動検知。',
+    desc: 'インボイス制度に完全対応。登録番号（T番号）をAIが抽出し、国税庁APIで即時認証. 重複・不正も自動検知。',
   },
   {
     icon: <BarChart3 className="w-6 h-6" />,
@@ -39,17 +40,17 @@ const STEPS = [
   {
     num: '01',
     title: 'LINEで撮影・送信',
-    desc: '現場で領収書を撮影してLINEに送るだけ。GPSと時刻も自動記録され、管理者にリアルタイム通知。',
+    desc: '現場で領収書を撮影してLINEに送るだけ. GPSと時刻も自動記録され、管理者にリアルタイム通知。',
   },
   {
     num: '02',
     title: 'AIが自動処理',
-    desc: 'AIが金額・日付・税率を抽出し、NTA認証・重複チェックを自動実行。承認待ちキューに即時追加。',
+    desc: 'AIが金額・日付・税率を抽出し、NTA認証・重複チェックを自動実行. 承認待ちキューに即時追加。',
   },
   {
     num: '03',
     title: '集計・レポート出力',
-    desc: 'プロジェクト別・月別の集計がワンクリックで完成。会計ソフト向けCSVエクスポートにも対応。',
+    desc: 'プロジェクト別・月別の集計がワンクリックで完成. 会計ソフト向けCSVエクスポートにも対応。',
   },
 ];
 
@@ -143,7 +144,7 @@ export default function CostLandingPage() {
 
       {/* Nav */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <button
             onClick={() => router.push('/')}
             className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors text-sm font-bold"
@@ -169,7 +170,7 @@ export default function CostLandingPage() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6">
+      <main className="max-w-6xl mx-auto px-6">
 
         {/* Hero */}
         <section className="pt-24 pb-20 text-center">
@@ -182,7 +183,7 @@ export default function CostLandingPage() {
           </h1>
           <p className="text-slate-500 text-lg max-w-xl mx-auto mb-10 leading-relaxed">
             LINEで写真を送るだけで経費登録完了。<br />
-            AIがNTA認証・重複検知・集計まで完全自動化。
+            AIがNTA認証・重複検知・集計まで完全自動化.
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <Button
@@ -199,6 +200,9 @@ export default function CostLandingPage() {
             )}
           </div>
         </section>
+
+        {/* TEST DRIVE SECTION */}
+        <DemoTestDrive />
 
         {/* Problems */}
         <section className="py-16">
@@ -311,7 +315,7 @@ export default function CostLandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 py-12 mt-8">
-        <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex flex-col md:flex-row items-center justify-between gap-4">
           <button onClick={() => router.push('/')} className="flex items-center gap-2 text-slate-400 hover:text-slate-700 transition-colors">
             <ArrowLeft className="w-4 h-4" />
             <span className="text-sm font-bold">FastLine トップへ戻る</span>
