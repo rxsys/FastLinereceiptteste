@@ -116,9 +116,18 @@ export default function DemoTestDrive() {
                 <div className="text-center md:text-left">
                   <p className="text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-1">Passo 1: LINEで送信</p>
                   <p className="text-white text-2xl font-black tracking-tighter mb-4">このコードを送信 👇</p>
-                  <div className="inline-block bg-white text-slate-900 px-6 py-3 rounded-2xl text-4xl font-black tracking-[0.2em]">
+                  <div className="inline-block bg-white text-slate-900 px-6 py-3 rounded-2xl text-4xl font-black tracking-[0.2em] mb-4">
                     #{code}
                   </div>
+                  <a 
+                    href="https://line.me/R/oaMessage/@776dxgni/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex lg:hidden items-center justify-center gap-2 w-full h-12 bg-[#06C755] text-white rounded-xl font-black text-sm hover:bg-[#05b34c] transition-all"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    LINEで開く
+                  </a>
                 </div>
               </div>
             )}
