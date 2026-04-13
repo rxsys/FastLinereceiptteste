@@ -2,12 +2,12 @@
 
 import { useRTDBCollection } from '@/firebase/rtdb';
 import { useMemoFirebase, useUser, useDatabase } from '@/firebase';
-import { ref, update, set, push, remove, query, orderByChild, equalTo } from 'firebase/database';
+import { ref, update, set, push, remove, query, orderByChild, equalTo, onValue } from 'firebase/database';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { UserPlus, Edit2, Users, Loader2, Mail, Lock, ShieldCheck, Trash2 } from "lucide-react";
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -24,12 +24,29 @@ export function SettingsTab({ version, hideUserManagement = false, t, ownerIdOve
 
   const usersRef = useMemoFirebase(() => {
     if (!database) return null;
-    if (role === 'developer') return ref(database, 'users'); // Desenvolvedores podem ler todos os usuários
-    if (!ownerId) return null; // Sem ownerId, não pode ler a lista
-    return query(ref(database, 'users'), orderByChild('ownerId'), equalTo(ownerId));
+    if (role === 'developer') return ref(database, 'users');
+    if (ownerId) return query(ref(database, 'users'), orderByChild('ownerId'), equalTo(ownerId));
+    return null;
   }, [database, ownerId, role]);
-  
-  const { data: allUsers } = useRTDBCollection(usersRef);
+
+  const { data: allUsersRaw } = useRTDBCollection(usersRef);
+
+  // Se não há ownerId mas tem user logado, incluir o próprio user
+  const [selfUser, setSelfUser] = useState<any>(null);
+  useEffect(() => {
+    if (!database || !user?.uid || ownerId || role === 'developer') { setSelfUser(null); return; }
+    const selfRef = ref(database, `users/${user.uid}`);
+    return onValue(selfRef, (snap) => {
+      if (snap.exists()) setSelfUser({ id: user.uid, ...snap.val() });
+      else setSelfUser(null);
+    });
+  }, [database, user?.uid, ownerId, role]);
+
+  const allUsers = useMemo(() => {
+    if (allUsersRaw && allUsersRaw.length > 0) return allUsersRaw;
+    if (selfUser) return [selfUser];
+    return [];
+  }, [allUsersRaw, selfUser]);
 
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
