@@ -31,21 +31,23 @@ export function SettingsTab({ version, hideUserManagement = false, t, ownerIdOve
 
   const { data: allUsersRaw } = useRTDBCollection(usersRef);
 
-  // Se não há ownerId mas tem user logado, incluir o próprio user
+  // Sempre buscar o próprio user logado
   const [selfUser, setSelfUser] = useState<any>(null);
   useEffect(() => {
-    if (!database || !user?.uid || ownerId || role === 'developer') { setSelfUser(null); return; }
+    if (!database || !user?.uid) { setSelfUser(null); return; }
     const selfRef = ref(database, `users/${user.uid}`);
     return onValue(selfRef, (snap) => {
       if (snap.exists()) setSelfUser({ id: user.uid, ...snap.val() });
       else setSelfUser(null);
     });
-  }, [database, user?.uid, ownerId, role]);
+  }, [database, user?.uid]);
 
   const allUsers = useMemo(() => {
-    if (allUsersRaw && allUsersRaw.length > 0) return allUsersRaw;
-    if (selfUser) return [selfUser];
-    return [];
+    const list = allUsersRaw && allUsersRaw.length > 0 ? [...allUsersRaw] : [];
+    if (selfUser && !list.some(u => u.id === selfUser.id)) {
+      list.unshift(selfUser);
+    }
+    return list;
   }, [allUsersRaw, selfUser]);
 
   const [isAddingUser, setIsAddingUser] = useState(false);

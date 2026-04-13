@@ -86,11 +86,40 @@ export default function SuperAdminPage() {
   };
 
   const handleDeleteOwner = async (id: string, name: string) => {
-    if (!database || !confirm(`Remover permanentemente o tenant "${name}"?`)) return;
+    if (!database || !confirm(`Remover permanentemente o tenant "${name}"?\n\nIsso irá excluir: owner, usuários vinculados, projetos, centros de custo, despesas, LINE users e liberar o pool.`)) return;
     try {
-      await remove(ref(database, `owner/${id}`));
-      await update(ref(database, `line_api_pool/${id}`), { status: 'available', ownerId: null, ownerName: null });
-      toast({ title: 'Tenant removido com sucesso' });
+      // 1. Liberar pool LINE vinculado ao owner
+      const poolSnap = await get(ref(database, 'line_api_pool'));
+      if (poolSnap.exists()) {
+        const allPool = poolSnap.val();
+        for (const [poolId, poolData] of Object.entries(allPool) as [string, any][]) {
+          if (poolData.ownerId === id) {
+            await update(ref(database, `line_api_pool/${poolId}`), { status: 'available', ownerId: null, ownerName: null, assignedAt: null });
+          }
+        }
+      }
+
+      // 2. Limpar ownerId dos users vinculados
+      const usersSnap = await get(ref(database, 'users'));
+      if (usersSnap.exists()) {
+        for (const [uid, userData] of Object.entries(usersSnap.val()) as [string, any][]) {
+          if (userData.ownerId === id) {
+            await update(ref(database, `users/${uid}`), { ownerId: null, role: 'user', status: 'new' });
+          }
+        }
+      }
+
+      // 3. Remover coleções vinculadas ao owner
+      const pathsToRemove = [
+        `owner/${id}`,
+        `owner_data/${id}`,
+        `expenses/${id}`,
+        `lineUsers/${id}`,
+        `lineuser/${id}`,
+      ];
+      await Promise.all(pathsToRemove.map(p => remove(ref(database, p))));
+
+      toast({ title: 'Tenant removido com sucesso', description: 'Owner, usuários, despesas, LINE users e pool liberados.' });
     } catch (e: any) { toast({ variant: 'destructive', title: 'Erro ao remover', description: e.message }); }
   };
 
