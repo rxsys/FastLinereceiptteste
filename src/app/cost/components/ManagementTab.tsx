@@ -27,6 +27,8 @@ const formatCurrency = (val: string | number) => {
 
 const parseCurrency = (val: string) => val.replace(/[^0-9]/g, '');
 
+import { GuideBalloon } from "./GuideBalloon";
+
 export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string, t: any }) {
   const { ownerId: userOwnerId, user, role } = useUser();
   const database = useDatabase();
@@ -121,6 +123,8 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
     toast({ title: "削除しました" });
   };
 
+  const isEmpty = !isProjectsLoading && (!projects || projects.length === 0);
+
   if (isProjectsLoading) {
     return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-primary" /></div>;
   }
@@ -128,7 +132,14 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-20">
        {/* Botão novo projeto */}
-       <div className="flex justify-end">
+       <div className="flex justify-end relative">
+         {isEmpty && (
+           <GuideBalloon 
+             message="ここをクリックして最初のプロジェクトを作成しましょう。現場管理の第一歩です！" 
+             position="left" 
+             className="hidden md:block"
+           />
+         )}
          <Button onClick={() => setIsAddProjectDialogOpen(true)} className="h-12 rounded-2xl gap-2 font-black bg-slate-900 shadow-lg shadow-slate-200 px-6">
            <Plus className="w-4 h-4"/> 新規プロジェクト
          </Button>

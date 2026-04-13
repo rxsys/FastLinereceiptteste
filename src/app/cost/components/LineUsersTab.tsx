@@ -85,6 +85,8 @@ function UserBalanceBadge({ userId, lineUserId, ownerId }: { userId: string; lin
   );
 }
 
+import { GuideBalloon, InfoHint } from "./GuideBalloon";
+
 export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string, t: any }) {
   const { ownerId: userOwnerId } = useUser();
   const database = useDatabase();
@@ -129,7 +131,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
   const poolRef = useMemoFirebase(() => database ? ref(database, 'line_api_pool') : null, [database]);
   const { data: pool } = useRTDBCollection(poolRef);
 
-  const { data: lineUsers } = useRTDBCollection(usersRef);
+  const { data: lineUsers, isLoading: isUsersLoading } = useRTDBCollection(usersRef);
   const { data: invitesRaw } = useRTDBCollection(invitesRef);
 
   const invites = useMemo(() => invitesRaw?.filter(i => !i.used) || [], [invitesRaw]);
@@ -255,59 +257,73 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
     setGeneratedHash(null);
   };
 
+  const isEmpty = !isUsersLoading && (!lineUsers || lineUsers.length === 0);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center bg-white p-6 rounded-[2.5rem] border shadow-sm">
         <h2 className="text-xl font-black flex items-center gap-3"><Users className="text-primary" /> ユーザー名簿管理</h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 relative">
+           {isEmpty && (
+             <GuideBalloon 
+               message="QRコードを発行して、スタッフをLINEから招待しましょう！" 
+               position="left" 
+               className="hidden md:block"
+             />
+           )}
            <Dialog onOpenChange={(open) => !open && resetInviteForm()}>
               <DialogTrigger asChild><Button variant="outline" className="rounded-2xl gap-2 font-black"><Plus /> QR招待コード発行</Button></DialogTrigger>
               <DialogContent className="rounded-[2.5rem] max-w-lg">
                  <DialogHeader><DialogTitle className="font-black text-xl text-slate-800 tracking-tight">新規招待の発行</DialogTitle></DialogHeader>
                  <div className="space-y-6 py-4">
                     {/* Seletor de nível */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setInviteRole('user')}
-                        className={cn(
-                          'flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all text-left',
-                          inviteRole === 'user'
-                            ? 'border-indigo-500 bg-indigo-50'
-                            : 'border-slate-200 bg-white hover:border-slate-300'
-                        )}
-                      >
-                        <Users className={cn('w-5 h-5', inviteRole === 'user' ? 'text-indigo-600' : 'text-slate-400')} />
-                        <div>
-                          <p className={cn('text-xs font-black', inviteRole === 'user' ? 'text-indigo-700' : 'text-slate-600')}>ユーザー</p>
-                          <p className="text-[9px] text-slate-400 font-medium mt-0.5">レシート送信・CC連携</p>
-                        </div>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setInviteRole('manager')}
-                        className={cn(
-                          'flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all text-left',
-                          inviteRole === 'manager'
-                            ? 'border-violet-500 bg-violet-50'
-                            : 'border-slate-200 bg-white hover:border-slate-300'
-                        )}
-                      >
-                        <Crown className={cn('w-5 h-5', inviteRole === 'manager' ? 'text-violet-600' : 'text-slate-400')} />
-                        <div>
-                          <p className={cn('text-xs font-black', inviteRole === 'manager' ? 'text-violet-700' : 'text-slate-600')}>マネージャー</p>
-                          <p className="text-[9px] text-slate-400 font-medium mt-0.5">管理者権限・CC不要</p>
-                        </div>
-                      </button>
+                    <div className="space-y-2">
+                       <Label className="text-[10px] font-black uppercase text-slate-400">招待の種類を選んでください</Label>
+                       <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setInviteRole('user')}
+                            className={cn(
+                              'flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden',
+                              inviteRole === 'user'
+                                ? 'border-indigo-500 bg-indigo-50'
+                                : 'border-slate-200 bg-white hover:border-slate-300'
+                            )}
+                          >
+                            <Users className={cn('w-5 h-5', inviteRole === 'user' ? 'text-indigo-600' : 'text-slate-400')} />
+                            <div className="text-center">
+                              <p className={cn('text-xs font-black', inviteRole === 'user' ? 'text-indigo-700' : 'text-slate-600')}>ユーザー</p>
+                              <p className="text-[9px] text-slate-400 font-medium mt-0.5">レシート送信・CC連携</p>
+                            </div>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setInviteRole('manager')}
+                            className={cn(
+                              'flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden',
+                              inviteRole === 'manager'
+                                ? 'border-violet-500 bg-violet-50'
+                                : 'border-slate-200 bg-white hover:border-slate-300'
+                            )}
+                          >
+                            <Crown className={cn('w-5 h-5', inviteRole === 'manager' ? 'text-violet-600' : 'text-slate-400')} />
+                            <div className="text-center">
+                              <p className={cn('text-xs font-black', inviteRole === 'manager' ? 'text-violet-700' : 'text-slate-600')}>マネージャー</p>
+                              <p className="text-[9px] text-slate-400 font-medium mt-0.5">管理者権限・CC不要</p>
+                            </div>
+                          </button>
+                       </div>
+                       <InfoHint message="一般スタッフ用か、管理者用かを選択します。" />
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label className="text-[10px] font-black uppercase text-slate-400">招待者氏名</Label>
                       <Input placeholder="例: 山田 太郎" value={newInviteName} onChange={e => setNewInviteName(e.target.value)} className="h-12 rounded-xl font-bold" />
+                      <InfoHint message="管理画面の名簿で使用される名前です。" />
                     </div>
 
                     {inviteRole === 'user' && (
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label className="text-[10px] font-black uppercase text-slate-400">担当プロジェクト及び原価センター</Label>
                       <ScrollArea className="h-64 border rounded-2xl p-4 bg-slate-50/50">
                         {projects?.map(project => (
@@ -347,6 +363,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                           </div>
                         ))}
                       </ScrollArea>
+                      <InfoHint message="ユーザーがLINEで選択できる現場をチェックします。" />
                     </div>
                     )}
 
@@ -356,13 +373,13 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                       <div>
                         <p className="text-xs font-black text-violet-700">マネージャー権限で登録</p>
                         <p className="text-[10px] text-violet-500 mt-0.5 font-medium leading-relaxed">
-                          QRコードをスキャンするとLINE IDが自動的に取得され、管理者権限（招待・承認・全社レポート）が付与されます。プロジェクトやCCへの割り当ては不要です。
+                          QRコードをスキャンするとLINE IDが自動的に取得され、管理者権限（招待・承認・全社レポート）が付赋予されます。プロジェクトやCCへの割り当ては不要です。
                         </p>
                       </div>
                     </div>
                     )}
 
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label className="text-[10px] font-black uppercase text-slate-400">優先言語</Label>
                       <Select value={selectedInviteLanguage} onValueChange={setSelectedInviteLanguage}>
                         <SelectTrigger className="h-12 rounded-xl font-bold">
@@ -374,6 +391,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                           <SelectItem value="en" className="font-bold">English 🇺🇸</SelectItem>
                         </SelectContent>
                       </Select>
+                      <InfoHint message="LINEボットがこのユーザーに返信する際の言語です。" />
                     </div>
 
                     {generatedHash && (
