@@ -225,6 +225,7 @@ export default function LandingPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLocalLoading) return;
+    if (!userName.trim()) { setAuthError('会社名またはお名前を入力してください'); return; }
     setIsLocalLoading(true);
     try {
       const { createUserWithEmailAndPassword } = await import('firebase/auth');
