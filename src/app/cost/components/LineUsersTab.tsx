@@ -136,11 +136,36 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
 
   const invites = useMemo(() => invitesRaw?.filter(i => !i.used) || [], [invitesRaw]);
 
-  const poolEntry = pool?.find((k: any) => k.ownerId === effectiveOwnerId && k.lineBasicId) || pool?.find((k: any) => k.ownerId === effectiveOwnerId) || (pool?.length === 1 ? pool[0] : null);
-  const botId = owner?.lineBasicId || poolEntry?.lineBasicId;
-  const regMessage = generatedHash ? `#${generatedHash}` : '';
-  const qrData = botId ? `https://line.me/R/oaMessage/${botId}/?${encodeURIComponent(regMessage)}` : '';
-  const qrUrl = qrData ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrData)}` : '';
+  // Resolve Bot ID mais robustamente
+  const botId = useMemo(() => {
+    // 1. Tenta do objeto owner (Firestore/RTDB merge)
+    if (owner?.lineBasicId) return owner.lineBasicId.startsWith('@') ? owner.lineBasicId : `@${owner.lineBasicId}`;
+    
+    // 2. Busca no pool pelo ownerId
+    if (pool && effectiveOwnerId) {
+      const entry = pool.find((k: any) => k.ownerId === effectiveOwnerId || k.id === effectiveOwnerId);
+      if (entry?.lineBasicId) return entry.lineBasicId.startsWith('@') ? entry.lineBasicId : `@${entry.lineBasicId}`;
+    }
+
+    // 3. Fallback para o primeiro item se for o único (comum em setups simples)
+    if (pool?.length === 1 && pool[0].lineBasicId) {
+      const bId = pool[0].lineBasicId;
+      return bId.startsWith('@') ? bId : `@${bId}`;
+    }
+
+    return null;
+  }, [owner, pool, effectiveOwnerId]);
+
+  const qrData = useMemo(() => {
+    if (!botId || !generatedHash) return '';
+    const regMessage = `#${generatedHash}`;
+    return `https://line.me/R/oaMessage/${botId}/?${encodeURIComponent(regMessage)}`;
+  }, [botId, generatedHash]);
+
+  const qrUrl = useMemo(() => {
+    if (!qrData) return '';
+    return `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrData)}`;
+  }, [qrData]);
 
 
 
@@ -394,7 +419,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                       <div>
                         <p className="text-xs font-black text-violet-700">マネージャー権限で登録</p>
                         <p className="text-[10px] text-violet-500 mt-0.5 font-medium leading-relaxed">
-                          QRコードをスキャンするとLINE IDが自動的に取得され、管理者権限（招待・承認・全社レポート）が付与されます。プロジェクトやCCへの割り当ては不要です。
+                          QRコードをスキャンするとLINE ID가自動的に取得され、管理者権限（招待・承認・全社レポート）が付与されます。プロジェクトやCCへの割り当ては不要です。
                         </p>
                       </div>
                     </div>
@@ -403,26 +428,31 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
 
                     {generatedHash && (
                       <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-[2rem] border border-slate-100 gap-4 animate-in zoom-in-95 duration-500">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">招待コード発行完了</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('users.qrTitle') || '招待コード発行完了'}</p>
                         
                         <div className="bg-white p-5 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col items-center w-full">
                             {!botId ? (
-                              <div className="w-full py-6 flex flex-col items-center justify-center text-center gap-2 text-amber-600 bg-amber-50 rounded-2xl border border-amber-100 mb-4">
+                              <div className="w-full py-6 flex flex-col items-center justify-center text-center gap-2 text-red-600 bg-red-50 rounded-2xl border border-red-100 mb-4">
                                 <span className="text-2xl">⚠️</span>
-                                <p className="text-[10px] font-black leading-tight">LINE Bot IDが未設定のためQRコードを生成できません</p>
-                                <p className="text-[8px] mt-1 text-amber-500">Ownerの設定からBot IDを登録してください</p>
+                                <p className="text-[10px] font-black leading-tight">{t('users.errorNoBotId') || 'LINE Bot IDが設定されていません'}</p>
+                                <p className="text-[8px] mt-1 text-red-500 opacity-70">Owner settings {'>'} Bot ID</p>
                               </div>
                             ) : (
-                              <img src={qrUrl} className="w-44 h-44 mb-4" alt="Invite QR" />
+                              <div className="relative group">
+                                <img src={qrUrl} className="w-44 h-44 mb-4 transition-transform group-hover:scale-105" alt="Invite QR" />
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-white/20 pointer-events-none rounded-xl">
+                                  <LinkIcon className="w-8 h-8 text-indigo-500 drop-shadow-md" />
+                                </div>
+                              </div>
                             )}
                             <div className="bg-slate-50 px-4 py-3 rounded-xl text-center mb-4 border border-slate-100 w-full">
-                              <p className="text-[10px] text-slate-400 font-bold mb-1">招待ハッシュコード</p>
+                              <p className="text-[10px] text-slate-400 font-bold mb-1">HASH</p>
                               <p className="text-xl font-black text-slate-700 tracking-[0.2em]">{generatedHash}</p>
                             </div>
                             {qrData && (
                               <div className="bg-slate-50 px-4 py-3 rounded-xl mb-4 border border-slate-100 w-full break-all">
-                                <p className="text-[10px] text-slate-400 font-bold mb-1">招待リンク</p>
-                                <p className="text-[10px] font-mono text-slate-600">{qrData}</p>
+                                <p className="text-[10px] text-slate-400 font-bold mb-1">LINK</p>
+                                <p className="text-[10px] font-mono text-slate-500 overflow-hidden text-ellipsis whitespace-nowrap">{qrData}</p>
                               </div>
                             )}
                             <Button
@@ -432,16 +462,16 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                               onClick={() => {
                                 const textToCopy = qrData || `招待コード: ${generatedHash}`;
                                 navigator.clipboard.writeText(textToCopy);
-                                toast({ title: "コピーしました" });
+                                toast({ title: t('users.linkCopied') || "コピーしました" });
                               }}
                             >
-                              <LinkIcon className="w-4 h-4" /> {qrData ? '招待リンクをコピーする' : 'コードをコピーする'}
+                              <LinkIcon className="w-4 h-4" /> {qrData ? (t('users.btnCopy') || 'リンクをコピー') : 'HASHをコピー'}
                             </Button>
                         </div>
                         <div className="text-center space-y-1 px-4 mt-2">
-                            <p className="text-xs font-black text-slate-900">QRコードをスキャンして完了</p>
+                            <p className="text-xs font-black text-slate-900">{t('users.stepScan') || 'QRコードをスキャンして完了'}</p>
                             <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
-                                招待された人は、LINEでこのQRを読み取り、送信ボタンを押すだけで登録が完了します。
+                                {t('users.qrDesc') || '招待された人は、LINEでこのQRを読み取り、送信ボタンを押すだけで登録が完了します。'}
                             </p>
                         </div>
                       </div>
