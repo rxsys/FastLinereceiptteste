@@ -495,31 +495,82 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Secure Payment Section (Stripe Trust Badge) */}
-          <div className="mt-24 w-full max-w-4xl px-8 py-10 rounded-[2.5rem] bg-gradient-to-br from-slate-50/50 to-white border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-8 shadow-sm">
-            <div className="flex flex-col gap-2 text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
-                <ShieldCheck className="w-5 h-5 text-emerald-500" />
-                <span className="text-[12px] font-black text-emerald-600 uppercase tracking-widest">Secure Payments</span>
+          {/* Infrastructure & Trust Section */}
+          <div className="mt-24 w-full max-w-5xl px-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              
+              {/* Stripe */}
+              <div className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Secure Payments</span>
+                </div>
+                <h3 className="text-lg font-black text-slate-800 leading-tight">100%安全な決済システム</h3>
+                <p className="text-slate-500 text-[11px] font-medium leading-relaxed flex-1">
+                  世界最高水準のセキュリティを誇る <span className="text-[#635bff] font-bold">Stripe</span> を採用。銀行レベルの暗号化技術で情報を保護します。
+                </p>
+                <div className="pt-2 flex items-center h-8 opacity-60 grayscale hover:grayscale-0 transition-all">
+                  <svg viewBox="0 0 60 25" className="h-6 fill-[#635bff]">
+                    <path d="M59.64 14.28c0-4.59-2.29-8.7-7.44-8.7-5.22 0-8.96 4.16-8.96 10.43 0 6.67 3.86 10.12 9.28 10.12 2.23 0 4.27-.6 5.8-1.59v-3.5c-1.27.76-2.73 1.2-4.33 1.2-2.59 0-4.31-1.31-4.31-3.61h10.03c.01-.15.01-.21.01-.35zm-7.12-3.1c1.92 0 3.03 1.06 3.03 2.94h-6.19c.14-1.88 1.24-2.94 3.16-2.94zM33.26 6.15c-1.14 0-2.64.47-3.4 1.18V6.44h-5.13v18.53l5.51-1.17V17.3c.76.68 2.26 1.15 3.4 1.15 4.38 0 7.16-3.34 7.16-7.99 0-4.62-2.8-8.31-7.54-8.31zm-1.58 8.27c-1.32 0-2.31-.34-2.31-1.63V11.2c0-1.29.99-1.63 2.31-1.63 1.63 0 2.35 1.05 2.35 2.47 0 1.42-.72 2.38-2.35 2.38zM11.48 6.15c-4.43 0-7.39 3.1-7.39 7.63 0 4.54 2.96 7.64 7.39 7.64 2.25 0 4.04-.54 5.37-1.39V15.7c-1.12.63-2.61 1.01-4.14 1.01-1.92 0-2.81-1.02-2.81-2.4V6.44h4.14v-4l-4.14 1.14V6.15zM22.09 6.44h-5.51v12.03h5.51V6.44zM22.09 2.05h-5.51v4.39h5.51V2.05zM0 6.44h5.51v12.03H0V6.44z"/>
+                  </svg>
+                </div>
               </div>
-              <h3 className="text-xl font-black text-slate-800">100%安全な決済システム</h3>
-              <p className="text-slate-500 text-sm font-medium max-w-md leading-relaxed">
-                すべてのお取引は世界最高水準のセキュリティを誇る <a href="https://stripe.com" target="_blank" rel="noopener noreferrer" className="text-[#635bff] font-black hover:underline transition-all">Stripe</a> によって安全に処理されます。銀行レベルの暗号化技術により、お客様の情報は厳重に保護されます。
-              </p>
+
+              {/* Gemini AI */}
+              <div className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+                <div className="flex items-center gap-2">
+                  <Brain className="w-4 h-4 text-violet-500" />
+                  <span className="text-[10px] font-black text-violet-600 uppercase tracking-widest">Advanced AI</span>
+                </div>
+                <h3 className="text-lg font-black text-slate-800 leading-tight">Google Gemini 1.5 Pro</h3>
+                <p className="text-slate-500 text-[11px] font-medium leading-relaxed flex-1">
+                  世界最高峰のAIエンジンを搭載。領収書の複雑な項目を高精度で自動抽出し、業務効率化を極限まで高めます。
+                </p>
+                <div className="pt-2 flex items-center h-8 opacity-70 grayscale hover:grayscale-0 transition-all">
+                  <div className="flex items-center gap-1">
+                    <div className="w-5 h-5 bg-gradient-to-br from-blue-400 to-violet-600 rounded-full blur-[2px] opacity-80" />
+                    <span className="text-[12px] font-black tracking-tighter text-slate-900">Google Gemini</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Firebase */}
+              <div className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-orange-500" />
+                  <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Data Infrastructure</span>
+                </div>
+                <h3 className="text-lg font-black text-slate-800 leading-tight">Real-time Data Sync</h3>
+                <p className="text-slate-500 text-[11px] font-medium leading-relaxed flex-1">
+                  Google Firebaseを採用し、情報の即時同期を実現。強固なGoogleのインフラが24時間体制でデータを保護します。
+                </p>
+                <div className="pt-2 flex items-center h-8 opacity-70 grayscale hover:grayscale-0 transition-all">
+                   <div className="flex items-center gap-1.5">
+                     <svg viewBox="0 0 32 32" className="h-5 fill-[#FFA611]"><path d="M5.442,22.846L3.109,8.586c-0.101-0.613,0.373-1.189,0.992-1.189c0.128,0,0.252,0.025,0.364,0.076L16,13.26L5.442,22.846z"/><path d="M5.442,22.846L2.348,25.66c-0.457,0.416-0.344,1.164,0.224,1.424l12.448,5.659c0.618,0.281,1.332,0.281,1.95,0l12.451-5.659c0.569-0.259,0.686-1.011,0.226-1.427l-3.219-2.909L16,32.001L5.442,22.846z"/><path d="M16,13.26l1.233-0.56L16,12L5.442,22.846L16,13.26L16,13.26z"/><path d="M26.216,22.75l-4.225-18.04c-0.125-0.531-0.688-0.811-1.171-0.582L16,13.261l10.216,9.489L26.216,22.75z"/></svg>
+                     <span className="text-[11px] font-bold text-[#2C3E50]">Firebase</span>
+                   </div>
+                </div>
+              </div>
+
+              {/* LINE Messaging */}
+              <div className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4 text-green-500" />
+                  <span className="text-[10px] font-black text-green-600 uppercase tracking-widest">Smart Communication</span>
+                </div>
+                <h3 className="text-lg font-black text-slate-800 leading-tight">LINE Messaging API</h3>
+                <p className="text-slate-500 text-[11px] font-medium leading-relaxed flex-1">
+                  公式APIを通じた最高水準の機密通信。使い慣れたLINEを、安全かつシームレスにビジネスツールへと進化させます。
+                </p>
+                <div className="pt-2 flex items-center h-8 opacity-70 grayscale hover:grayscale-0 transition-all">
+                   <div className="flex items-center gap-1.5">
+                     <div className="w-6 h-6 bg-[#06C755] rounded-lg flex items-center justify-center font-black text-white text-[10px]">LINE</div>
+                     <span className="text-[10px] font-bold text-slate-900">Official Partner</span>
+                   </div>
+                </div>
+              </div>
+
             </div>
-            
-            <a 
-              href="https://stripe.com" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="flex items-center gap-6 group grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500 bg-white px-8 py-5 rounded-3xl border border-slate-50 shadow-sm"
-            >
-              <div className="w-px h-8 bg-slate-200" />
-              <svg viewBox="0 0 60 25" className="h-8 w-auto fill-[#635bff]">
-                <path d="M59.64 14.28c0-4.59-2.29-8.7-7.44-8.7-5.22 0-8.96 4.16-8.96 10.43 0 6.67 3.86 10.12 9.28 10.12 2.23 0 4.27-.6 5.8-1.59v-3.5c-1.27.76-2.73 1.2-4.33 1.2-2.59 0-4.31-1.31-4.31-3.61h10.03c.01-.15.01-.21.01-.35zm-7.12-3.1c1.92 0 3.03 1.06 3.03 2.94h-6.19c.14-1.88 1.24-2.94 3.16-2.94zM33.26 6.15c-1.14 0-2.64.47-3.4 1.18V6.44h-5.13v18.53l5.51-1.17V17.3c.76.68 2.26 1.15 3.4 1.15 4.38 0 7.16-3.34 7.16-7.99 0-4.62-2.8-8.31-7.54-8.31zm-1.58 8.27c-1.32 0-2.31-.34-2.31-1.63V11.2c0-1.29.99-1.63 2.31-1.63 1.63 0 2.35 1.05 2.35 2.47 0 1.42-.72 2.38-2.35 2.38zM11.48 6.15c-4.43 0-7.39 3.1-7.39 7.63 0 4.54 2.96 7.64 7.39 7.64 2.25 0 4.04-.54 5.37-1.39V15.7c-1.12.63-2.61 1.01-4.14 1.01-1.92 0-2.81-1.02-2.81-2.4V6.44h4.14v-4l-4.14 1.14V6.15zM22.09 6.44h-5.51v12.03h5.51V6.44zM22.09 2.05h-5.51v4.39h5.51V2.05zM0 6.44h5.51v12.03H0V6.44z"/>
-              </svg>
-              <div className="w-px h-8 bg-slate-200" />
-            </a>
           </div>
 
           <div className="mt-20 opacity-10 select-none pointer-events-none">
