@@ -129,7 +129,23 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
   const costCenters = allCostCenters; // Alias for the dialog prop
 
   const poolRef = useMemoFirebase(() => database ? ref(database, 'line_api_pool') : null, [database]);
-  const { data: pool } = useRTDBCollection(poolRef);
+  const { data: poolRaw } = useRTDBCollection(poolRef);
+  
+  // No ambiente de teste, os bots podem estar no root (fastline3, fastline4, etc)
+  const rootRef = useMemoFirebase(() => database ? ref(database, '/') : null, [database]);
+  const { data: rootData } = useRTDBCollection(rootRef);
+
+  const pool = useMemo(() => {
+    const p = [...(poolRaw || [])];
+    if (rootData) {
+      rootData.forEach(item => {
+        if (item.lineBasicId && !p.find(x => x.id === item.id)) {
+          p.push(item);
+        }
+      });
+    }
+    return p;
+  }, [poolRaw, rootData]);
 
   const { data: lineUsers, isLoading: isUsersLoading } = useRTDBCollection(usersRef);
   const { data: invitesRaw } = useRTDBCollection(invitesRef);
@@ -141,9 +157,14 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
     // 1. Tenta do objeto owner (Firestore/RTDB merge)
     if (owner?.lineBasicId) return owner.lineBasicId.startsWith('@') ? owner.lineBasicId : `@${owner.lineBasicId}`;
     
-    // 2. Busca no pool pelo ownerId (match exato)
+    // 2. Busca no pool pelo ownerId (match exato ou id do pool)
     if (pool && effectiveOwnerId) {
-      const entry = pool.find((k: any) => k.ownerId === effectiveOwnerId || k.id === effectiveOwnerId);
+      const target = effectiveOwnerId.trim().toLowerCase();
+      const entry = pool.find((k: any) => {
+        const pOwnerId = String(k.ownerId || '').trim().toLowerCase();
+        const pId = String(k.id || '').trim().toLowerCase();
+        return pOwnerId === target || pId === target;
+      });
       if (entry?.lineBasicId) return entry.lineBasicId.startsWith('@') ? entry.lineBasicId : `@${entry.lineBasicId}`;
     }
 
@@ -444,8 +465,8 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                                 <span className="text-2xl">⚠️</span>
                                 <p className="text-[10px] font-black leading-tight">{t.users?.errorNoBotId || 'LINE Bot IDが設定されていません'}</p>
                                 <p className="text-[8px] mt-1 text-red-500 opacity-70">
-                                  Owner settings {'>'} Bot ID | ID: {effectiveOwnerId?.slice(0, 8)}... | 
-                                  Pool: {pool && pool.length > 0 ? `${pool.length} bots (${pool.map(p => p.lineBasicId ? 'YES' : 'NO').join(',')})` : 'EMPTY'}
+                                  Owner settings {'>'} Bot ID | ID: {effectiveOwnerId} | 
+                                  Pool: {pool && pool.length > 0 ? `${pool.length} bots (${pool.map(p => p.id).join(',')})` : 'EMPTY'}
                                 </p>
                               </div>
                             ) : (
