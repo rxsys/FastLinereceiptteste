@@ -134,7 +134,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
 
   const invites = useMemo(() => invitesRaw?.filter(i => !i.used) || [], [invitesRaw]);
 
-  const poolEntry = pool?.find((k: any) => k.ownerId === effectiveOwnerId) || (pool?.length === 1 ? pool[0] : null);
+  const poolEntry = pool?.find((k: any) => k.ownerId === effectiveOwnerId && k.lineBasicId) || pool?.find((k: any) => k.ownerId === effectiveOwnerId) || (pool?.length === 1 ? pool[0] : null);
   const botId = owner?.lineBasicId || poolEntry?.lineBasicId;
   const regMessage = generatedHash ? `#${generatedHash}` : '';
   const qrData = botId ? `https://line.me/R/oaMessage/${botId}/?${encodeURIComponent(regMessage)}` : '';

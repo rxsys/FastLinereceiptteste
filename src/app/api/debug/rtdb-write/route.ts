@@ -48,5 +48,13 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: true, poolId, ownerId });
   }
 
+  // Release pool: ?action=release-pool&poolId=xxx
+  if (action === 'release-pool') {
+    const poolId = url.searchParams.get('poolId');
+    if (!poolId) return NextResponse.json({ error: 'Missing poolId' }, { status: 400 });
+    await rtdb.ref(`line_api_pool/${poolId}`).update({ status: 'available', ownerId: null, ownerName: null, assignedAt: null });
+    return NextResponse.json({ ok: true, poolId, status: 'available' });
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
 }

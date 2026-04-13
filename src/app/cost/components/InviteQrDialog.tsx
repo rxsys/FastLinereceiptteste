@@ -91,7 +91,7 @@ export function InviteQrDialog({ projects, owners, pool, effectiveOwnerId, t }: 
   const getBotId = () => {
     const targetId = effectiveOwnerId || (owners as any)?.[0]?.id;
     const ownerObj = owners?.find((o: any) => o.id === targetId);
-    const poolKey = pool?.find((k: any) => k.ownerId === targetId || k.id === targetId) || (pool?.length === 1 ? pool[0] : null);
+    const poolKey = pool?.find((k: any) => (k.ownerId === targetId || k.id === targetId) && k.lineBasicId) || pool?.find((k: any) => k.ownerId === targetId || k.id === targetId) || (pool?.length === 1 ? pool[0] : null);
     return ownerObj?.lineBasicId || poolKey?.lineBasicId;
   };
 
