@@ -329,10 +329,10 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                     {inviteRole === 'user' && (
                     <div className="space-y-1">
                       <Label className="text-[10px] font-black uppercase text-slate-400">担当プロジェクト及び原価センター</Label>
-                      <ScrollArea className="h-64 border rounded-2xl p-4 bg-slate-50/50">
+                      <div className="border rounded-2xl p-6 bg-slate-50/30">
                         {projects?.map(project => (
-                          <div key={project.id} className="mb-4">
-                            <div className="flex items-center gap-2 mb-2">
+                          <div key={project.id} className="mb-6 last:mb-0">
+                            <div className="flex items-center gap-2 mb-3">
                               <Checkbox
                                 id={`invite-proj-${project.id}`}
                                 checked={selectedInviteProjectIds.includes(project.id)}
@@ -348,7 +348,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                               />
                               <Label htmlFor={`invite-proj-${project.id}`} className="font-black text-sm text-slate-700 flex items-center gap-2"><Building2 className="w-3.5 h-3.5"/> {project.name}</Label>
                             </div>
-                            <div className="pl-6 space-y-2">
+                            <div className="pl-6 space-y-3">
                               {project.costcenters && Object.entries(project.costcenters).map(([id, cc]: [string, any]) => (
                                 <div key={id} className="flex items-center gap-2">
                                   <Checkbox
@@ -366,7 +366,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                             </div>
                           </div>
                         ))}
-                      </ScrollArea>
+                      </div>
                       <InfoHint message="ユーザーがLINEで選択できる現場をチェックします。" />
                     </div>
                     )}
@@ -377,7 +377,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                       <div>
                         <p className="text-xs font-black text-violet-700">マネージャー権限で登録</p>
                         <p className="text-[10px] text-violet-500 mt-0.5 font-medium leading-relaxed">
-                          QRコードをスキャンするとLINE IDが自動的に取得され、管理者権限（招待・承認・全社レポート）が付赋予されます。プロジェクトやCCへの割り当ては不要です。
+                          QRコードをスキャンするとLINE IDが自動的に取得され、管理者権限（招待・承認・全社レポート）が付与されます。プロジェクトやCCへの割り当ては不要です。
                         </p>
                       </div>
                     </div>
