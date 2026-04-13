@@ -380,32 +380,39 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                       <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-[2rem] border border-slate-100 gap-4 animate-in zoom-in-95 duration-500">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">招待コード発行完了</p>
                         
-                        {!botId ? (
-                            <div className="w-full py-8 flex flex-col items-center justify-center text-center gap-2 text-red-500 bg-white rounded-[2rem] border border-red-100 shadow-sm">
+                        <div className="bg-white p-5 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col items-center w-full">
+                            {!botId ? (
+                              <div className="w-full py-6 flex flex-col items-center justify-center text-center gap-2 text-amber-600 bg-amber-50 rounded-2xl border border-amber-100 mb-4">
                                 <span className="text-2xl">⚠️</span>
-                                <p className="text-[10px] font-black leading-tight">LINE IDが設定されていません</p>
-                                <p className="text-[8px] mt-1 text-red-400">Ownerの設定からBot IDを登録してください</p>
+                                <p className="text-[10px] font-black leading-tight">LINE Bot IDが未設定のためQRコードを生成できません</p>
+                                <p className="text-[8px] mt-1 text-amber-500">Ownerの設定からBot IDを登録してください</p>
+                              </div>
+                            ) : (
+                              <img src={qrUrl} className="w-44 h-44 mb-4" alt="Invite QR" />
+                            )}
+                            <div className="bg-slate-50 px-4 py-3 rounded-xl text-center mb-4 border border-slate-100 w-full">
+                              <p className="text-[10px] text-slate-400 font-bold mb-1">招待ハッシュコード</p>
+                              <p className="text-xl font-black text-slate-700 tracking-[0.2em]">{generatedHash}</p>
                             </div>
-                        ) : (
-                            <div className="bg-white p-5 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col items-center w-full">
-                                <img src={qrUrl} className="w-44 h-44 mb-4" alt="Invite QR" />
-                                <div className="bg-slate-50 px-4 py-3 rounded-xl text-center mb-4 border border-slate-100 w-full">
-                                    <p className="text-[10px] text-slate-400 font-bold mb-1">招待ハッシュコード</p>
-                                    <p className="text-xl font-black text-slate-700 tracking-[0.2em]">{generatedHash}</p>
-                                </div>
-                                <Button 
-                                    variant="secondary" 
-                                    size="sm" 
-                                    className="h-10 rounded-full text-[12px] font-black gap-2 px-6 shadow-sm bg-slate-900 text-white hover:bg-slate-800"
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(qrData);
-                                        toast({ title: "リンクをコピーしました" });
-                                    }}
-                                >
-                                    <LinkIcon className="w-4 h-4" /> 招待リンクをコピーする
-                                </Button>
-                            </div>
-                        )}
+                            {qrData && (
+                              <div className="bg-slate-50 px-4 py-3 rounded-xl mb-4 border border-slate-100 w-full break-all">
+                                <p className="text-[10px] text-slate-400 font-bold mb-1">招待リンク</p>
+                                <p className="text-[10px] font-mono text-slate-600">{qrData}</p>
+                              </div>
+                            )}
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className="h-10 rounded-full text-[12px] font-black gap-2 px-6 shadow-sm bg-slate-900 text-white hover:bg-slate-800"
+                              onClick={() => {
+                                const textToCopy = qrData || `招待コード: ${generatedHash}`;
+                                navigator.clipboard.writeText(textToCopy);
+                                toast({ title: "コピーしました" });
+                              }}
+                            >
+                              <LinkIcon className="w-4 h-4" /> {qrData ? '招待リンクをコピーする' : 'コードをコピーする'}
+                            </Button>
+                        </div>
                         <div className="text-center space-y-1 px-4 mt-2">
                             <p className="text-xs font-black text-slate-900">QRコードをスキャンして完了</p>
                             <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
