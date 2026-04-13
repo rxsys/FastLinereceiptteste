@@ -15,7 +15,9 @@ import {
   Lock,
   ArrowRight,
   X,
-  ShieldCheck
+  ShieldCheck,
+  Brain,
+  Zap
 } from "lucide-react";
 import { 
   Select,
