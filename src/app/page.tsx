@@ -17,7 +17,8 @@ import {
   X,
   ShieldCheck,
   Brain,
-  Zap
+  Zap,
+  MessageCircle
 } from "lucide-react";
 import { 
   Select,
