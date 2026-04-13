@@ -383,13 +383,13 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                     </div>
                     )}
 
-                    <div className="space-y-1">
+                    <div className="space-y-1 pb-10">
                       <Label className="text-[10px] font-black uppercase text-slate-400">優先言語</Label>
                       <Select value={selectedInviteLanguage} onValueChange={setSelectedInviteLanguage}>
-                        <SelectTrigger className="h-12 rounded-xl font-bold">
-                          <SelectValue />
+                        <SelectTrigger className="h-12 w-full rounded-xl font-bold border-slate-200 bg-white">
+                          <SelectValue placeholder="言語を選択" />
                         </SelectTrigger>
-                        <SelectContent className="rounded-xl">
+                        <SelectContent className="rounded-xl" position="popper" sideOffset={5}>
                           <SelectItem value="ja" className="font-bold">日本語 🇯🇵</SelectItem>
                           <SelectItem value="pt" className="font-bold">Português 🇧🇷</SelectItem>
                           <SelectItem value="en" className="font-bold">English 🇺🇸</SelectItem>
