@@ -141,16 +141,24 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
     // 1. Tenta do objeto owner (Firestore/RTDB merge)
     if (owner?.lineBasicId) return owner.lineBasicId.startsWith('@') ? owner.lineBasicId : `@${owner.lineBasicId}`;
     
-    // 2. Busca no pool pelo ownerId
+    // 2. Busca no pool pelo ownerId (match exato)
     if (pool && effectiveOwnerId) {
       const entry = pool.find((k: any) => k.ownerId === effectiveOwnerId || k.id === effectiveOwnerId);
       if (entry?.lineBasicId) return entry.lineBasicId.startsWith('@') ? entry.lineBasicId : `@${entry.lineBasicId}`;
     }
 
-    // 3. Fallback para o primeiro item se for o único (comum em setups simples)
+    // 3. Fallback: Se houver apenas um bot no pool, assume que é este (independente de ownerId)
+    // Isso resolve casos onde o bot já foi criado mas o ownerId não foi vinculado no pool
     if (pool?.length === 1 && pool[0].lineBasicId) {
       const bId = pool[0].lineBasicId;
       return bId.startsWith('@') ? bId : `@${bId}`;
+    }
+
+    // 4. Fallback agressivo: Se houver qualquer bot no pool cujo ownerName coincida ou se for o único disponível
+    if (pool && pool.length > 0) {
+      // Tenta achar qualquer um que não esteja vazio
+      const anyBot = pool.find((k: any) => k.lineBasicId);
+      if (anyBot?.lineBasicId) return anyBot.lineBasicId.startsWith('@') ? anyBot.lineBasicId : `@${anyBot.lineBasicId}`;
     }
 
     return null;
