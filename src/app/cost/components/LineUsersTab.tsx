@@ -428,13 +428,13 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
 
                     {generatedHash && (
                       <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-[2rem] border border-slate-100 gap-4 animate-in zoom-in-95 duration-500">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('users.qrTitle') || '招待コード発行完了'}</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.users?.qrTitle || '招待コード発行完了'}</p>
                         
                         <div className="bg-white p-5 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col items-center w-full">
                             {!botId ? (
                               <div className="w-full py-6 flex flex-col items-center justify-center text-center gap-2 text-red-600 bg-red-50 rounded-2xl border border-red-100 mb-4">
                                 <span className="text-2xl">⚠️</span>
-                                <p className="text-[10px] font-black leading-tight">{t('users.errorNoBotId') || 'LINE Bot IDが設定されていません'}</p>
+                                <p className="text-[10px] font-black leading-tight">{t.users?.errorNoBotId || 'LINE Bot IDが設定されていません'}</p>
                                 <p className="text-[8px] mt-1 text-red-500 opacity-70">Owner settings {'>'} Bot ID</p>
                               </div>
                             ) : (
@@ -462,16 +462,16 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                               onClick={() => {
                                 const textToCopy = qrData || `招待コード: ${generatedHash}`;
                                 navigator.clipboard.writeText(textToCopy);
-                                toast({ title: t('users.linkCopied') || "コピーしました" });
+                                toast({ title: t.users?.linkCopied || "コピーしました" });
                               }}
                             >
-                              <LinkIcon className="w-4 h-4" /> {qrData ? (t('users.btnCopy') || 'リンクをコピー') : 'HASHをコピー'}
+                              <LinkIcon className="w-4 h-4" /> {qrData ? (t.users?.btnCopy || 'リンクをコピー') : 'HASHをコピー'}
                             </Button>
                         </div>
                         <div className="text-center space-y-1 px-4 mt-2">
-                            <p className="text-xs font-black text-slate-900">{t('users.stepScan') || 'QRコードをスキャンして完了'}</p>
+                            <p className="text-xs font-black text-slate-900">{t.users?.stepScan || 'QRコードをスキャンして完了'}</p>
                             <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
-                                {t('users.qrDesc') || '招待された人は、LINEでこのQRを読み取り、送信ボタンを押すだけで登録が完了します。'}
+                                {t.users?.qrDesc || '招待された人は、LINEでこのQRを読み取り、送信ボタンを押すだけで登録が完了します。'}
                             </p>
                         </div>
                       </div>
