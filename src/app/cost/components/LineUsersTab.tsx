@@ -278,7 +278,8 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                    <DialogHeader><DialogTitle className="font-black text-xl text-slate-800 tracking-tight">新規招待の発行</DialogTitle></DialogHeader>
                  </div>
                  
-                 <ScrollArea className="flex-1 px-8">
+                 <div className="flex-1 overflow-y-auto px-8 max-h-[60vh]">
+
                    <div className="space-y-6 py-4">
                     {/* Seletor de nível */}
                     <div className="space-y-2">
@@ -324,6 +325,22 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                       <Label className="text-[10px] font-black uppercase text-slate-400">招待者氏名</Label>
                       <Input placeholder="例: 山田 太郎" value={newInviteName} onChange={e => setNewInviteName(e.target.value)} className="h-12 rounded-xl font-bold" />
                       <InfoHint message="管理画面の名簿で使用される名前です。" />
+                    </div>
+
+                    {/* IDIOMA MOVIDO PARA CIMA */}
+                    <div className="space-y-1">
+                       <Label className="text-[10px] font-black uppercase text-slate-400">優先言語</Label>
+                       <Select value={selectedInviteLanguage} onValueChange={setSelectedInviteLanguage}>
+                         <SelectTrigger className="h-12 w-full rounded-xl font-bold border-slate-200 bg-white shadow-sm">
+                           <SelectValue placeholder="言語を選択" />
+                         </SelectTrigger>
+                         <SelectContent className="rounded-xl" position="popper" sideOffset={5}>
+                           <SelectItem value="ja" className="font-bold">日本語 🇯🇵</SelectItem>
+                           <SelectItem value="pt" className="font-bold">Português 🇧🇷</SelectItem>
+                           <SelectItem value="en" className="font-bold">English 🇺🇸</SelectItem>
+                         </SelectContent>
+                       </Select>
+                       <InfoHint message="LINEボット que este usuário vai receber." />
                     </div>
 
                     {inviteRole === 'user' && (
@@ -383,20 +400,6 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                     </div>
                     )}
 
-                    <div className="space-y-1 pb-10">
-                      <Label className="text-[10px] font-black uppercase text-slate-400">優先言語</Label>
-                      <Select value={selectedInviteLanguage} onValueChange={setSelectedInviteLanguage}>
-                        <SelectTrigger className="h-12 w-full rounded-xl font-bold border-slate-200 bg-white">
-                          <SelectValue placeholder="言語を選択" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl" position="popper" sideOffset={5}>
-                          <SelectItem value="ja" className="font-bold">日本語 🇯🇵</SelectItem>
-                          <SelectItem value="pt" className="font-bold">Português 🇧🇷</SelectItem>
-                          <SelectItem value="en" className="font-bold">English 🇺🇸</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <InfoHint message="LINEボットがこのユーザーに返信する際の言語です。" />
-                    </div>
 
                     {generatedHash && (
                       <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-[2rem] border border-slate-100 gap-4 animate-in zoom-in-95 duration-500">
@@ -444,7 +447,8 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                       </div>
                     )}
                    </div>
-                 </ScrollArea>
+                 </div>
+
 
                  <div className="px-8 pb-8 pt-4 border-t border-slate-50 shrink-0">
                    <DialogFooter>
