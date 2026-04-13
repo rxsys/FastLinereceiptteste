@@ -273,9 +273,13 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
            )}
            <Dialog onOpenChange={(open) => !open && resetInviteForm()}>
               <DialogTrigger asChild><Button variant="outline" className="rounded-2xl gap-2 font-black"><Plus /> QR招待コード発行</Button></DialogTrigger>
-              <DialogContent className="rounded-[2.5rem] max-w-lg">
-                 <DialogHeader><DialogTitle className="font-black text-xl text-slate-800 tracking-tight">新規招待の発行</DialogTitle></DialogHeader>
-                 <div className="space-y-6 py-4">
+              <DialogContent className="rounded-[2.5rem] max-w-lg max-h-[95vh] flex flex-col p-0 overflow-hidden">
+                 <div className="px-8 pt-8 pb-3 shrink-0">
+                   <DialogHeader><DialogTitle className="font-black text-xl text-slate-800 tracking-tight">新規招待の発行</DialogTitle></DialogHeader>
+                 </div>
+                 
+                 <ScrollArea className="flex-1 px-8">
+                   <div className="space-y-6 py-4">
                     {/* Seletor de nível */}
                     <div className="space-y-2">
                        <Label className="text-[10px] font-black uppercase text-slate-400">招待の種類を選んでください</Label>
@@ -439,19 +443,23 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                         </div>
                       </div>
                     )}
+                   </div>
+                 </ScrollArea>
+
+                 <div className="px-8 pb-8 pt-4 border-t border-slate-50 shrink-0">
+                   <DialogFooter>
+                      {!generatedHash ? (
+                        <Button onClick={handleGenerateQR} disabled={isGenerating || !newInviteName.trim()} className="w-full h-14 rounded-2xl font-black text-lg bg-slate-900 text-white shadow-xl hover:bg-slate-800 transition-all">
+                          {isGenerating ? <Loader2 className="animate-spin mr-2" /> : <Plus className="mr-2" />}
+                          招待コードを生成する
+                        </Button>
+                      ) : (
+                        <Button onClick={resetInviteForm} className="w-full h-12 rounded-xl font-black variant-outline">
+                          新しい招待を作成
+                        </Button>
+                      )}
+                   </DialogFooter>
                  </div>
-                 <DialogFooter>
-                    {!generatedHash ? (
-                      <Button onClick={handleGenerateQR} disabled={isGenerating || !newInviteName.trim()} className="w-full h-14 rounded-2xl font-black text-lg bg-slate-900 text-white shadow-xl hover:bg-slate-800 transition-all">
-                        {isGenerating ? <Loader2 className="animate-spin mr-2" /> : <Plus className="mr-2" />}
-                        招待コードを生成する
-                      </Button>
-                    ) : (
-                      <Button onClick={resetInviteForm} className="w-full h-12 rounded-xl font-black variant-outline">
-                        新しい招待を作成
-                      </Button>
-                    )}
-                 </DialogFooter>
               </DialogContent>
            </Dialog>
            <div className="relative">
