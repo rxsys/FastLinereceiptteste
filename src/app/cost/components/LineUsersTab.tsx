@@ -458,8 +458,8 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                           招待コードを生成する
                         </Button>
                       ) : (
-                        <Button onClick={resetInviteForm} className="w-full h-12 rounded-xl font-black variant-outline">
-                          新しい招待を作成
+                        <Button onClick={resetInviteForm} variant="outline" className="w-full h-12 rounded-xl font-black border-slate-200">
+                          閉じて戻る
                         </Button>
                       )}
                    </DialogFooter>
@@ -474,8 +474,8 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Convites Pendentes */}
-        {invites.map((invite: any) => (
+        {/* Convites Pendentes - Oculta o que está sendo visualizado no modal atualmente */}
+        {invites.filter((i: any) => i.hash !== generatedHash).map((invite: any) => (
           <Card key={invite.id} className="rounded-[2.5rem] border-dashed border-indigo-200 bg-indigo-50/20 hover:bg-indigo-50/40 transition-all group relative">
             <CardHeader className="flex flex-row items-center justify-between p-6 pb-2">
               <div className="flex items-center gap-4">
