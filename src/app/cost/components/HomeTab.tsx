@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { cn } from "@/lib/utils";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Building2, Users, Receipt, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
@@ -34,15 +34,15 @@ export function HomeTab({
 }: HomeTabProps) {
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-16 animate-in fade-in duration-1000">
+    <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-24 animate-in fade-in duration-1000 pb-20">
 
       {/* Centered Welcome Message */}
-      <div className="flex flex-col items-center space-y-6 text-center">
+      <div className="flex flex-col items-center space-y-6 text-center pt-10">
         <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] font-black tracking-[0.2em] uppercase py-1.5 px-6 rounded-full shadow-sm">
           <Sparkles className="w-3.5 h-3.5 mr-2 inline" /> Executive Dashboard
         </Badge>
         <div className="space-y-2">
-          <h2 className="text-4xl font-[1000] text-slate-900 tracking-tight leading-none uppercase">
+          <h2 className="text-4xl md:text-5xl font-[1000] text-slate-900 tracking-tight leading-none uppercase">
             {(t.dash && t.dash.welcome) || "Welcome "}<span className="text-primary">{ownerName}</span>
           </h2>
           <p className="text-slate-400 font-bold text-base">{(t.dash && t.dash.selectModule) || "Select a module to continue"}</p>
@@ -104,6 +104,57 @@ export function HomeTab({
           })}
         </div>
       </TooltipProvider>
+
+      {/* Onboarding Section - Quick Guide */}
+      <div className="w-full max-w-6xl px-10 space-y-12">
+        <div className="flex flex-col items-center md:items-start gap-4">
+          <div className="flex items-center gap-4 w-full">
+            <h3 className="text-xs font-[1000] text-slate-400 uppercase tracking-[0.3em] whitespace-nowrap">はじめに — 3つのステップ</h3>
+            <div className="h-px w-full bg-slate-100/50" />
+          </div>
+          <p className="text-sm font-bold text-slate-400 italic">システムを最大限に活用するための基本ガイド</p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8">
+          {[
+            {
+              title: "1. 組織構造の設定",
+              desc: "「プロジェクト」タブで現場を登録し、その下に「原価センター（部門・現場）」を作成します。これがコスト集計の最小単位となります。",
+              icon: <Building2 className="w-8 h-8 text-blue-500" />,
+              action: () => onTabChange('management')
+            },
+            {
+              title: "2. メンバーの招待",
+              desc: "「ユーザー」タブから招待QRコードを発行。現場スタッフがLINEでスキャンして登録することで、報告体制が整います。",
+              icon: <Users className="w-8 h-8 text-emerald-500" />,
+              action: () => onTabChange('lineUsers')
+            },
+            {
+              title: "3. 運用の開始",
+              desc: "スタッフがLINEでレシートを送信すれば、AIが自動解析。すべての収支データは「収支・明細」タブでリアルタイムに確認できます。",
+              icon: <Receipt className="w-8 h-8 text-orange-500" />,
+              action: () => onTabChange('expenses')
+            }
+          ].map((step, idx) => (
+            <div 
+              key={idx} 
+              onClick={step.action}
+              className="group p-10 bg-white/40 hover:bg-white backdrop-blur-md border border-white rounded-[3rem] shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer"
+            >
+               <div className="mb-8 w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ring-1 ring-slate-100">
+                  {step.icon}
+               </div>
+               <div className="space-y-4">
+                 <h4 className="text-lg font-[1000] text-slate-900 group-hover:text-primary transition-colors">{step.title}</h4>
+                 <p className="text-xs font-bold text-slate-400 leading-relaxed group-hover:text-slate-500 transition-colors">{step.desc}</p>
+                 <div className="pt-4 flex items-center text-primary/0 group-hover:text-primary transition-all duration-500 font-black text-[10px] uppercase tracking-widest gap-2">
+                    GO TO MODULE <ArrowRight className="w-3 h-3" />
+                 </div>
+               </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Bottom Subtext */}
       <div className="pt-10 opacity-30 select-none pointer-events-none">
