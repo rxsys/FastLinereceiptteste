@@ -63,6 +63,7 @@ export default function SuperAdminPage() {
         name: newOwner.name,
         subscriptionStatus: newOwner.subscriptionStatus,
         validUntil: newOwner.validUntil,
+        lineBasicId: availableBot.lineBasicId, // Réplica profissional para evitar joins complexos/permissoes
         createdAt: new Date().toISOString(),
       };
 
@@ -138,6 +139,27 @@ export default function SuperAdminPage() {
     
     setEditingOwner({ ...editingOwner, subscriptions: newSubs });
   };
+
+  // Professional Sync: Garante que todos os owners tenham o lineBasicId do seu bot do pool
+  useEffect(() => {
+    if (!database || !pool || !owners || role !== 'developer') return;
+    
+    const syncAll = async () => {
+      let syncCount = 0;
+      for (const owner of owners) {
+        const bot = pool.find((b: any) => b.ownerId === owner.id || b.id === owner.id);
+        if (bot?.lineBasicId && owner.lineBasicId !== bot.lineBasicId) {
+          await update(ref(database, `owner/${owner.id}`), { lineBasicId: bot.lineBasicId });
+          syncCount++;
+        }
+      }
+      if (syncCount > 0) {
+        toast({ title: `${syncCount}件のオーナー情報を同期しました` });
+      }
+    };
+
+    syncAll();
+  }, [database, pool, owners, role]);
 
   if (isUserLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
 

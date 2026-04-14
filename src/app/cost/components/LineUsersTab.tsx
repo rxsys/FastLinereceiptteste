@@ -128,62 +128,29 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
   
   const costCenters = allCostCenters; // Alias for the dialog prop
 
-  const poolRef = useMemoFirebase(() => database ? ref(database, 'line_api_pool') : null, [database]);
-  const { data: poolRaw, error: poolError } = useRTDBCollection(poolRef);
-  
-  // No ambiente de teste, os bots podem estar no root (fastline3, fastline4, etc)
-  const rootRef = useMemoFirebase(() => database ? ref(database, '/') : null, [database]);
-  const { data: rootData } = useRTDBCollection(rootRef);
-
-  const pool = useMemo(() => {
-    const p = [...(poolRaw || [])];
-    if (rootData) {
-      rootData.forEach(item => {
-        if (item.lineBasicId && !p.find(x => x.id === item.id)) {
-          p.push(item);
-        }
-      });
-    }
-    return p;
-  }, [poolRaw, rootData]);
+  // lineBasicId resolvido via owner node (pool não é mais lido no client para evitar permissão)
 
   const { data: lineUsers, isLoading: isUsersLoading } = useRTDBCollection(usersRef);
   const { data: invitesRaw } = useRTDBCollection(invitesRef);
 
   const invites = useMemo(() => invitesRaw?.filter(i => !i.used) || [], [invitesRaw]);
 
-  // Resolve Bot ID mais robustamente
+  // Resolve Bot ID do owner node (fonte canônica)
   const botId = useMemo(() => {
-    // 1. Tenta do objeto owner (Firestore/RTDB merge)
     if (owner?.lineBasicId) return owner.lineBasicId.startsWith('@') ? owner.lineBasicId : `@${owner.lineBasicId}`;
-    
-    // 2. Busca no pool pelo ownerId (match exato ou id do pool)
-    if (pool && effectiveOwnerId) {
-      const target = effectiveOwnerId.trim().toLowerCase();
-      const entry = pool.find((k: any) => {
-        const pOwnerId = String(k.ownerId || '').trim().toLowerCase();
-        const pId = String(k.id || '').trim().toLowerCase();
-        return pOwnerId === target || pId === target;
-      });
-      if (entry?.lineBasicId) return entry.lineBasicId.startsWith('@') ? entry.lineBasicId : `@${entry.lineBasicId}`;
-    }
-
-    // 3. Fallback: Se houver apenas um bot no pool, assume que é este (independente de ownerId)
-    // Isso resolve casos onde o bot já foi criado mas o ownerId não foi vinculado no pool
-    if (pool?.length === 1 && pool[0].lineBasicId) {
-      const bId = pool[0].lineBasicId;
-      return bId.startsWith('@') ? bId : `@${bId}`;
-    }
-
-    // 4. Fallback agressivo: Se houver qualquer bot no pool cujo ownerName coincida ou se for o único disponível
-    if (pool && pool.length > 0) {
-      // Tenta achar qualquer um que não esteja vazio
-      const anyBot = pool.find((k: any) => k.lineBasicId);
-      if (anyBot?.lineBasicId) return anyBot.lineBasicId.startsWith('@') ? anyBot.lineBasicId : `@${anyBot.lineBasicId}`;
-    }
-
     return null;
-  }, [owner, pool, effectiveOwnerId]);
+  }, [owner]);
+
+  // Auto-sync: se o owner não tem lineBasicId, busca via API server-side e grava
+  useEffect(() => {
+    if (botId || !effectiveOwnerId || !owner) return;
+    // owner existe mas sem lineBasicId → sync automático
+    fetch('/api/owner/sync-bot-id', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ownerId: effectiveOwnerId }),
+    }).catch(() => {});
+  }, [botId, effectiveOwnerId, owner]);
 
   const qrData = useMemo(() => {
     if (!botId || !generatedHash) return '';
@@ -461,13 +428,10 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                         
                         <div className="bg-white p-5 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col items-center w-full">
                             {!botId ? (
-                              <div className="w-full py-6 flex flex-col items-center justify-center text-center gap-2 text-red-600 bg-red-50 rounded-2xl border border-red-100 mb-4">
-                                <span className="text-2xl">⚠️</span>
-                                <p className="text-[10px] font-black leading-tight">{t.users?.errorNoBotId || 'LINE Bot IDが設定されていません'}</p>
-                                <p className="text-[8px] mt-1 text-red-500 opacity-70">
-                                  Owner settings {'>'} Bot ID | ID: {effectiveOwnerId} | 
-                                  Pool: {poolError ? `ERR: ${poolError.message}` : (pool && pool.length > 0 ? `${pool.length} bots (${pool.map(p => p.id).join(',')})` : 'EMPTY')}
-                                </p>
+                              <div className="w-full py-6 flex flex-col items-center justify-center text-center gap-2 text-amber-600 bg-amber-50 rounded-2xl border border-amber-100 mb-4">
+                                <span className="text-2xl">⏳</span>
+                                 <p className="text-[10px] font-black leading-tight">LINE Bot IDを同期中です</p>
+                                 <p className="text-[9px] text-amber-500 opacity-70 font-medium leading-tight">ページを再読み込みしてください。解決しない場合はSuperadminでBot設定を確認してください。</p>
                               </div>
                             ) : (
                               <div className="relative group">

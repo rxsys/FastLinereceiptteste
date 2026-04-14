@@ -191,7 +191,6 @@ export function SettingsTab({ version, hideUserManagement = false, t, ownerIdOve
             </div>
           </CardContent>
         </Card>
-      )}
       {ownerId && <AuditLogPanel ownerId={ownerId} />}
 
       <div className="flex items-center justify-between p-6 bg-slate-900 rounded-[2rem] text-slate-400">

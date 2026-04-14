@@ -36,7 +36,7 @@ import { createInvitation } from '@/lib/invitation-service';
 interface InviteQrDialogProps {
   projects: any[];
   owners: any[];
-  pool: any[];
+  pool?: any[]; // Mantido para compatibilidade, mas não usado
   effectiveOwnerId: string | null;
   t: any;
 }
@@ -91,8 +91,9 @@ export function InviteQrDialog({ projects, owners, pool, effectiveOwnerId, t }: 
   const getBotId = () => {
     const targetId = effectiveOwnerId || (owners as any)?.[0]?.id;
     const ownerObj = owners?.find((o: any) => o.id === targetId);
-    const poolKey = pool?.find((k: any) => (k.ownerId === targetId || k.id === targetId) && k.lineBasicId) || pool?.find((k: any) => k.ownerId === targetId || k.id === targetId) || (pool?.length === 1 ? pool[0] : null);
-    return ownerObj?.lineBasicId || poolKey?.lineBasicId;
+    const basicId = ownerObj?.lineBasicId;
+    if (!basicId) return null;
+    return basicId.startsWith('@') ? basicId : `@${basicId}`;
   };
 
   const botId = getBotId();
