@@ -213,31 +213,51 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
       }
 
       if (type === 'message') {
-        const text = message.text?.trim() || "";
+        const text = (message.text || "").trim();
         const INVITE_HASH_RE = /^#?[A-Z0-9]{8}$/i;
         const cleanHash = text.toUpperCase().replace(/^#/, '');
 
+        // Comando especial de debug para o desenvolvedor identificar o ownerId
+        if (text.toUpperCase() === 'DEBUG_ID') {
+          const debugMsg = `Webhook ID: ${webhookId}\nCompany ID: ${companyId}\nUser ID: ${userId}\nUser Status: ${userData.status}`;
+          await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: debugMsg }] }).catch(() => 
+            lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: debugMsg }] }).catch(() => {})
+          );
+          continue;
+        }
+
         await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/msg`).set({
-          userId, msgType: message.type, userStatus: userData.status ?? null, companyId,
+          userId, 
+          msgType: message.type, 
+          userStatus: userData.status ?? null, 
+          companyId,
+          text_preview: text.slice(0, 50)
         }).catch(() => {});
 
-          if (userData.status === 2 && message.type === 'text' && !INVITE_HASH_RE.test(text.toUpperCase())) {
-            lineClient.showLoadingAnimation({ chatId: userId, loadingSeconds: 20 }).catch(() => {});
-            await logInteraction(companyId, userId, { role: 'user', text });
-            await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/log_user_text`).set(Date.now()).catch(() => {});
-          }
+        if (userData.status === 2 && message.type === 'text' && !INVITE_HASH_RE.test(text.toUpperCase())) {
+          // ... (existing animation and log interaction)
+          lineClient.showLoadingAnimation({ chatId: userId, loadingSeconds: 20 }).catch(() => {});
+          await logInteraction(companyId, userId, { role: 'user', text });
+          await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/log_user_text`).set(Date.now()).catch(() => {});
+        }
 
-          // Tenta processar como hash de convite apenas para usuários não ativos (status 0 ou 1)
-          // Usuários ativos (status 2) não devem ter mensagens normais tratadas como hash
-          if (INVITE_HASH_RE.test(text.toUpperCase()) && userData.status !== 2) {
-          try {
-            await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/hash_match`).set({ cleanHash, originalText: text, userStatus: userData.status }).catch(() => {});
-            await processInviteHash(lineClient, companyId, userId, senderName, photoUrl, replyToken, cleanHash, lang);
-          } catch (e: any) {
-            console.error('[webhook] processInviteHash error:', e?.message || e);
-            await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: i18n('genericError', lang) }] }).catch(() =>
-              lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: i18n('genericError', lang) }] }).catch(() => {})
+        if (INVITE_HASH_RE.test(text.toUpperCase())) {
+          if (userData.status === 2) {
+            const alreadyRegMsg = i18n('alreadyRegistered', lang) || "既に登録されています。ハッシュコードの送信は不要です。";
+            await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: alreadyRegMsg }] }).catch(() => 
+              lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: alreadyRegMsg }] }).catch(() => {})
             );
+          } else {
+            try {
+              await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/hash_match`).set({ cleanHash, originalText: text, userStatus: userData.status }).catch(() => {});
+              await processInviteHash(lineClient, companyId, userId, senderName, photoUrl, replyToken, cleanHash, lang);
+            } catch (e: any) {
+              console.error('[webhook] processInviteHash error:', e?.message || e);
+              const errTxt = i18n('genericError', lang);
+              await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: errTxt }] }).catch(() => 
+                lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: errTxt }] }).catch(() => {})
+              );
+            }
           }
         } else if (userData.status === 2) {
           if (message.type === 'image') {
