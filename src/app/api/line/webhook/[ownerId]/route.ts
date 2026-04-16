@@ -201,6 +201,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
         continue;
       }
 
+      // ── Evento follow: usuário adicionou o bot ──────────────────────────────
+      if (type === 'follow') {
+        // Se o usuário ainda não tem status 2 (ativo), orienta a enviar o código
+        if (userData.status !== 2) {
+          const followMsg = i18n('sendInviteCode', lang);
+          await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: followMsg }] })
+            .catch(() => lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: followMsg }] }).catch(() => {}));
+        }
+        continue;
+      }
+
       if (type === 'message') {
         const text = message.text?.trim() || "";
         const INVITE_HASH_RE = /^#?[A-Z0-9]{8}$/i;
@@ -319,25 +330,35 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
 }
 
 async function processInviteHash(lineClient: any, companyId: string, userId: string, senderName: string, photoUrl: string, replyToken: string, hash: string, lang: import('@/ai/i18n').Lang) {
+  // Log diagnóstico: início da função
+  const diagRef = rtdb.ref(`debug_invite/${companyId}/${userId}`);
+  await diagRef.set({ ts: Date.now(), hash, companyId, userId, stage: 'started' }).catch(() => {});
+
   const invitesRef = rtdb.ref(`owner_data/${companyId}/invites`);
   const invitesSnap = await invitesRef.orderByChild('hash').equalTo(hash).get();
 
+  await diagRef.update({ stage: 'queried', inviteExists: invitesSnap.exists(), hashQueried: hash }).catch(() => {});
+
   if (!invitesSnap.exists()) {
-    await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: i18n('invalidCode', lang) }] });
+    await diagRef.update({ stage: 'not_found' }).catch(() => {});
+    await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: i18n('invalidCode', lang) }] })
+      .catch(() => lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: i18n('invalidCode', lang) }] }).catch(() => {}));
     return;
   }
 
   let inviteKey: string | null = null;
   let inviteData: any = null;
-  invitesSnap.forEach(child => { if (!child.val().used) { inviteKey = child.key; inviteData = child.val(); } });
+  invitesSnap.forEach((child: any) => { if (!child.val().used) { inviteKey = child.key; inviteData = child.val(); } });
+
+  await diagRef.update({ stage: 'found_invite', inviteKey, inviteUsed: !inviteKey }).catch(() => {});
 
   if (!inviteKey) {
-    await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: i18n('codeUsed', lang) }] });
+    await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: i18n('codeUsed', lang) }] })
+      .catch(() => lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: i18n('codeUsed', lang) }] }).catch(() => {}));
     return;
   }
 
   const isManager = inviteData.role === 'manager';
-
   const inviteLang = (inviteData?.language as import('@/ai/i18n').Lang) || lang;
 
   // Registrar usuário LINE
@@ -347,7 +368,7 @@ async function processInviteHash(lineClient: any, companyId: string, userId: str
     fullName: senderName,
     lineUserId: userId,
     photo: photoUrl,
-    status: 2,  // Auto-aprovado após uso do hash
+    status: 2,
     updatedAt: new Date().toISOString()
   });
 
@@ -382,7 +403,17 @@ async function processInviteHash(lineClient: any, companyId: string, userId: str
 
   const msg = isManager ? i18n('managerRegistered', inviteLang, inviteData.inviteName) : i18n('userRegistered', inviteLang, inviteData.inviteName);
   await logInteraction(companyId, userId, { role: 'ai', text: msg });
-  await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: msg }] });
+
+  await diagRef.update({ stage: 'sending_reply', msg: msg.slice(0, 100) }).catch(() => {});
+
+  // Tenta replyMessage primeiro (mais rápido), com pushMessage como fallback garantido
+  await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: msg }] })
+    .catch(async () => {
+      await diagRef.update({ stage: 'reply_failed_using_push' }).catch(() => {});
+      await lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: msg }] }).catch(() => {});
+    });
+
+  await diagRef.update({ stage: 'done', completedAt: Date.now() }).catch(() => {});
 }
 
 /**
