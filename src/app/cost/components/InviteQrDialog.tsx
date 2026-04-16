@@ -31,7 +31,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { createInvitation } from '@/lib/invitation-service';
 
 interface InviteQrDialogProps {
   projects: any[];
@@ -64,13 +63,32 @@ export function InviteQrDialog({ projects, owners, pool, effectiveOwnerId, t }: 
 
     setIsGenerating(true);
     try {
-      const hash = await createInvitation({
-        name: inviteName,
+      // Gera hash hex-safe localmente (mesmo padrão do LineUsersTab)
+      const cryptoObj = typeof window !== 'undefined' ? window.crypto || (window as any).msCrypto : null;
+      let hash = "";
+      if (cryptoObj?.getRandomValues) {
+        const bytes = new Uint8Array(4);
+        cryptoObj.getRandomValues(bytes);
+        hash = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+      } else {
+        hash = Array.from({ length: 8 }, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
+      }
+
+      // Salva no RTDB (mesma fonte de dados que o webhook lê)
+      const { getDatabase, ref, push, set } = await import('firebase/database');
+      const database = getDatabase();
+      const newInviteRef = push(ref(database, `owner_data/${effectiveOwnerId}/invites`));
+      await set(newInviteRef, {
+        hash,
+        inviteName: inviteName,
+        role: 'user',
         projectIds: selectedProjectIds,
-        lang: selectedLanguage,
-        ownerId: effectiveOwnerId || '',
-        partnerId: 'unassigned'
+        costCenterIds: [],
+        language: selectedLanguage,
+        used: false,
+        createdAt: new Date().toISOString()
       });
+
       setGeneratedHash(hash);
       toast({ title: t('tabs.users.qrTitle'), description: "QRコードが生成されました。" });
     } catch (error) {

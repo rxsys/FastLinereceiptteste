@@ -203,7 +203,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
 
       if (type === 'message') {
         const text = message.text?.trim() || "";
-        const INVITE_HASH_RE = /^#?[A-F0-9]{8}$/;
+        const INVITE_HASH_RE = /^#?[A-Z0-9]{8}$/i;
         const cleanHash = text.toUpperCase().replace(/^#/, '');
 
         await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/msg`).set({
@@ -216,11 +216,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
             await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/log_user_text`).set(Date.now()).catch(() => {});
           }
 
-          if (INVITE_HASH_RE.test(text.toUpperCase())) {
+          // Tenta processar como hash de convite apenas para usuários não ativos (status 0 ou 1)
+          // Usuários ativos (status 2) não devem ter mensagens normais tratadas como hash
+          if (INVITE_HASH_RE.test(text.toUpperCase()) && userData.status !== 2) {
           try {
+            await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/hash_match`).set({ cleanHash, originalText: text, userStatus: userData.status }).catch(() => {});
             await processInviteHash(lineClient, companyId, userId, senderName, photoUrl, replyToken, cleanHash, lang);
           } catch (e: any) {
-            await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: i18n('genericError', lang) }] }).catch(() => {});
+            console.error('[webhook] processInviteHash error:', e?.message || e);
+            await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: i18n('genericError', lang) }] }).catch(() =>
+              lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: i18n('genericError', lang) }] }).catch(() => {})
+            );
           }
         } else if (userData.status === 2) {
           if (message.type === 'image') {
@@ -287,10 +293,27 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
     await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/done`).set(Date.now()).catch(() => {});
     return NextResponse.json({ status: 'ok' });
   } catch (error: any) {
+    console.error('[webhook] global error:', error?.message || error);
     await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/error`).set({
       message: error?.message || String(error),
       stack: (error?.stack || '').slice(0, 1000),
     }).catch(() => {});
+    // Tenta notificar o(s) usuário(s) afetado(s) para evitar silêncio total
+    try {
+      const ownerFallback = await getOwnerCredentials(webhookId);
+      const fallbackToken = ownerFallback?.lineChannelAccessToken;
+      if (fallbackToken) {
+        const payload = JSON.parse(body);
+        const events = payload.events || [];
+        const lc = getLineClient(fallbackToken);
+        for (const ev of events) {
+          const uid = ev.source?.userId;
+          if (uid) {
+            await lc.pushMessage({ to: uid, messages: [{ type: 'text', text: '⚠️ 処理中にエラーが発生いたしました。しばらくしてから再度お試しください。' }] }).catch(() => {});
+          }
+        }
+      }
+    } catch {}
     return new NextResponse('OK', { status: 200 });
   }
 }

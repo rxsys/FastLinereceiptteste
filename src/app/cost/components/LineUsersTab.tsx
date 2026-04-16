@@ -248,8 +248,8 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
         cryptoObj.getRandomValues(bytes);
         hash = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
       } else {
-        // Fallback inseguro se crypto não disponível
-        hash = Math.random().toString(36).substring(2, 10).toUpperCase();
+        // Fallback hex-safe: gera apenas 0-9A-F para compatibilidade com o webhook regex
+        hash = Array.from({ length: 8 }, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
       }
       
       const newInviteRef = push(ref(database!, `owner_data/${effectiveOwnerId}/invites`));
