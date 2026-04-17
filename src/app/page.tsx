@@ -396,19 +396,22 @@ export default function LandingPage() {
           <h1 className="text-2xl md:text-5xl font-black text-center uppercase tracking-tighter leading-tight text-slate-900">{t.heroTitle[0]}<span className="text-[#ff6b35]">{t.heroTitle[1]}</span>{t.heroTitle[2]}</h1>
           <p className="text-slate-500 mt-4 max-w-2xl text-center font-medium text-lg">{t.heroDesc}</p>
 
-          <div className="flex flex-nowrap justify-center gap-2 mt-8 mb-10 w-full overflow-x-auto">
-            {t.categories.map((cat: string) => <span key={cat} className="px-4 py-2.5 rounded-full bg-white border border-slate-200 text-[13px] font-black tracking-widest text-slate-500 shadow-sm whitespace-nowrap shrink-0">{cat}</span>)}
-          </div>
+          {user && (
+            <div className="flex flex-nowrap justify-center gap-2 mt-8 mb-10 w-full overflow-x-auto">
+              {t.categories.map((cat: string) => <span key={cat} className="px-4 py-2.5 rounded-full bg-white border border-slate-200 text-[13px] font-black tracking-widest text-slate-500 shadow-sm whitespace-nowrap shrink-0">{cat}</span>)}
+            </div>
+          )}
 
-          <div className="mt-4 w-full max-w-[1000px] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-x-8 gap-y-12 pb-24">
-            <div className="flex flex-col items-center gap-2 relative z-10">
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); router.push('/module-cost'); }}
-                className="px-4 py-1.5 rounded-full bg-[#22c55e]/10 border border-[#22c55e]/30 text-[12px] font-black text-[#22c55e] hover:bg-[#22c55e]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
-              >
-                詳細はこちら →
-              </button>
+          {user ? (
+            <div className="mt-4 w-full max-w-[1000px] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-x-8 gap-y-12 pb-24">
+              <div className="flex flex-col items-center gap-2 relative z-10">
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); router.push('/module-cost'); }}
+                  className="px-4 py-1.5 rounded-full bg-[#22c55e]/10 border border-[#22c55e]/30 text-[12px] font-black text-[#22c55e] hover:bg-[#22c55e]/20 transition-all tracking-widest whitespace-nowrap relative z-20"
+                >
+                  詳細はこちら →
+                </button>
               <ModuleIcon
                 emoji="💴" id="receipt" title={t.modules.receipt.title} color="#22c55e" active
                 priceId={stripeKeys?.receiptPriceId || (stripeKeys?.mode === 'live' ? stripeKeys?.livePriceId : stripeKeys?.testPriceId)}
@@ -465,7 +468,17 @@ export default function LandingPage() {
             <ModuleIcon emoji="🏢" id="kaigyo" title={t.modules.kaigyo.title} color="#f43f5e" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('kaigyo')} badge={t.modules.kaigyo.badge} badgeColor="bg-slate-200 text-slate-700" tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.kaigyo.desc}</p>} priceLoading={stripeKeysLoading} />
             <ModuleIcon emoji="📑" id="docs" title={t.modules.docs.title} color="#71717a" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('docs')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.docs.desc}</p>} priceLoading={stripeKeysLoading} />
 
-          </div>
+            </div>
+          ) : (
+            <div className="mt-8 mb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
+               <Button 
+                 onClick={() => setIsLoginOpen(true)}
+                 className="h-16 px-12 bg-[#ff6b35] hover:bg-[#ff8555] text-white font-black rounded-2xl shadow-xl shadow-[#ff6b35]/20 text-lg transition-all hover:scale-105 active:scale-95"
+               >
+                 今すぐ始める <ArrowRight className="ml-2 w-5 h-5" />
+               </Button>
+            </div>
+          )}
 
           {/* Footer Area with Legal links */}
           <div className="mt-20 w-full max-w-5xl pt-12 border-t border-slate-200 flex flex-col md:flex-row justify-between items-start gap-8 px-6">
