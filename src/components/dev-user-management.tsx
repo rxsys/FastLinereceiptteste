@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2, Edit2, Shield, Search, Key, Mail, Building, Database } from "lucide-react";
+import { Trash2, Edit2, Shield, Search, Key, Mail, Building, Database, Copy } from "lucide-react";
 import React, { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -241,7 +241,7 @@ export function DevUserManagement() {
                                                 window.alert('Copiado!');
                                               }}
                                             >
-                                              <Save className="w-3 h-3 text-slate-500" />
+                                              <Copy className="w-3 h-3 text-slate-500" />
                                             </Button>
                                           )}
                                         </div>
