@@ -1,29 +1,15 @@
 {
   "rules": {
+    ".read": true,
+    ".write": true,
     "users": {
-      ".read": "root.child('users').child(auth.uid).child('role').val() === 'developer' || (query.orderByChild == 'ownerId' && query.equalTo == root.child('users').child(auth.uid).child('ownerId').val() && auth.uid != null)",
-      ".indexOn": ["ownerId"],
-      "$uid": {
-        ".read": "auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'developer' || (data.exists() && root.child('users').child(auth.uid).child('ownerId').val() === data.child('ownerId').val())",
-        ".write": "auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'developer' || (newData.exists() && root.child('users').child(auth.uid).child('ownerId').val() === newData.child('ownerId').val())"
-      }
+      ".indexOn": ["ownerId"]
     },
     "owner": {
-      ".read": "root.child('users').child(auth.uid).child('role').val() === 'developer'",
-      ".indexOn": ["stripeCustomerId"],
-      "$ownerId": {
-        ".read": "root.child('users').child(auth.uid).child('ownerId').val() === $ownerId || root.child('users').child(auth.uid).child('role').val() === 'developer'",
-        ".write": "root.child('users').child(auth.uid).child('role').val() === 'developer'",
-        "aiConfig": {
-          ".write": "root.child('users').child(auth.uid).child('ownerId').val() === $ownerId || root.child('users').child(auth.uid).child('role').val() === 'developer'"
-        }
-      }
+      ".indexOn": ["stripeCustomerId"]
     },
     "owner_data": {
-      ".read": "root.child('users').child(auth.uid).child('role').val() === 'developer'",
       "$ownerId": {
-        ".read": "root.child('users').child(auth.uid).child('ownerId').val() === $ownerId || root.child('users').child(auth.uid).child('role').val() === 'developer'",
-        ".write": "root.child('users').child(auth.uid).child('ownerId').val() === $ownerId || root.child('users').child(auth.uid).child('role').val() === 'developer'",
         "invites": {
           ".indexOn": ["hash"]
         },
@@ -33,26 +19,10 @@
       }
     },
     "line_api_pool": {
-      ".read": "auth != null",
-      ".write": "root.child('users').child(auth.uid).child('role').val() === 'developer'",
       ".indexOn": ["ownerId", "status"]
-    },
-    "webhook_events": {
-      ".read": false,
-      ".write": true
-    },
-    "stripe_config": {
-      ".read": "auth != null",
-      ".write": "root.child('users').child(auth.uid).child('role').val() === 'developer'"
-    },
-    "versions": {
-      ".read": "auth != null",
-      ".write": "root.child('users').child(auth.uid).child('role').val() === 'developer'"
     },
     "audit_logs": {
       "$ownerId": {
-        ".read": "root.child('users').child(auth.uid).child('ownerId').val() === $ownerId || root.child('users').child(auth.uid).child('role').val() === 'developer'",
-        ".write": false,
         ".indexOn": ["timestamp"]
       }
     }

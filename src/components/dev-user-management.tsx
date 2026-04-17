@@ -73,9 +73,22 @@ export function DevUserManagement() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between bg-white p-6 rounded-[2rem] border shadow-sm">
-        <h3 className="text-xl font-black flex items-center gap-2"><Shield className="text-amber-500"/> Global User Directory</h3>
-        <Input placeholder="Buscar por email ou nome..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-80 rounded-xl h-11" />
+      <div className="flex items-center justify-between bg-white px-8 py-6 rounded-[2.5rem] border shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center border border-amber-100">
+            <Shield className="w-5 h-5 text-amber-500"/>
+          </div>
+          <h3 className="text-xl font-black text-slate-800 tracking-tight">Global User Directory</h3>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
+          <Input 
+            placeholder="Buscar por email ou nome..." 
+            value={searchTerm} 
+            onChange={e => setSearchTerm(e.target.value)} 
+            className="w-96 pl-11 rounded-2xl h-12 bg-slate-50 border-none shadow-inner font-medium text-sm focus-visible:ring-amber-500/20" 
+          />
+        </div>
       </div>
 
       {Object.entries(usersGrouped).map(([ownerId, group]) => {
@@ -90,64 +103,108 @@ export function DevUserManagement() {
 
         return (
           <Card key={ownerId} className="rounded-[2.5rem] border shadow-md overflow-hidden bg-white">
-            <CardHeader className="bg-slate-900 text-white p-6 flex flex-row items-center justify-between">
-               <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center"><Building className="w-5 h-5"/></div>
+            <CardHeader className="bg-slate-900 text-white px-8 py-6 flex flex-row items-center justify-between">
+               <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/5 shadow-inner">
+                    <Building className="w-6 h-6 text-slate-300"/>
+                  </div>
                   <div>
-                    <CardTitle className="text-base font-black">{owner?.name || "Empresa Não Vinculada"}</CardTitle>
-                    <p className="text-[10px] font-mono opacity-50">{ownerId}</p>
+                    <CardTitle className="text-lg font-black tracking-tight">{owner?.name || "Empresa Não Vinculada"}</CardTitle>
+                    <p className="text-[10px] font-mono text-slate-400 tracking-tighter">{ownerId}</p>
                   </div>
                </div>
-               <Badge className="bg-white/10 border-none">{filteredGroup.length} Usuários</Badge>
+               <Badge className="bg-white/10 text-white border-white/10 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest">{filteredGroup.length} Usuários</Badge>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
-                <TableHeader><TableRow><TableHead className="pl-8">Usuário</TableHead><TableHead>Role</TableHead><TableHead>Status</TableHead><TableHead className="text-right pr-8">Ações</TableHead></TableRow></TableHeader>
+                <TableHeader>
+                  <TableRow className="border-b bg-slate-50/50">
+                    <TableHead className="pl-8 h-12 text-[10px] font-black uppercase tracking-widest text-slate-400">Usuário</TableHead>
+                    <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-slate-400">Role</TableHead>
+                    <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</TableHead>
+                    <TableHead className="text-right pr-8 h-12 text-[10px] font-black uppercase tracking-widest text-slate-400">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {filteredGroup.map(u => (
                     <React.Fragment key={u.id}>
-                      <TableRow className="cursor-pointer hover:bg-slate-50/50" onClick={() => setExpanded(prev => ({...prev, [u.id]: !prev[u.id]}))}>
-                        <TableCell className="pl-8">
-                          <p className="font-black text-sm">{u.name || "---"}</p>
-                          <p className="text-xs text-slate-400 flex items-center gap-1"><Mail className="w-3 h-3"/> {u.email}</p>
+                      <TableRow className="cursor-pointer hover:bg-slate-50/50 group transition-colors" onClick={() => setExpanded(prev => ({...prev, [u.id]: !prev[u.id]}))}>
+                        <TableCell className="pl-8 py-5">
+                          <p className="font-black text-slate-800 text-sm">{u.name || "---"}</p>
+                          <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5"><Mail className="w-3.5 h-3.5 text-slate-300"/> {u.email}</p>
                         </TableCell>
-                        <TableCell><Badge variant="outline" className="text-[9px] font-black">{u.role?.toUpperCase()}</Badge></TableCell>
-                        <TableCell><Badge className={cn("text-[9px]", u.status === 'active' ? "bg-green-100 text-green-700" : "bg-slate-100")}>{u.status?.toUpperCase() || "NEW"}</Badge></TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-[9px] font-black uppercase border-slate-200 px-2 py-0.5 rounded-md text-slate-600 bg-white">
+                            {u.role || "user"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={cn(
+                            "text-[9px] font-black uppercase px-2 py-0.5 rounded-md shadow-none", 
+                            u.status === 'active' ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" : "bg-slate-100 text-slate-600 hover:bg-slate-100"
+                          )}>
+                            {u.status || "NEW"}
+                          </Badge>
+                        </TableCell>
                         <TableCell className="text-right pr-8">
                           <div className="flex justify-end gap-1" onClick={e => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" onClick={() => setEditingUser(u)}><Edit2 className="w-4 h-4"/></Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDelete(u.id)}><Trash2 className="w-4 h-4 text-red-400"/></Button>
+                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-slate-100" onClick={() => setEditingUser(u)}>
+                              <Edit2 className="w-4 h-4 text-slate-600"/>
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-red-50" onClick={() => handleDelete(u.id)}>
+                              <Trash2 className="w-4 h-4 text-red-400"/>
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
                       {expanded[u.id] && (
-                        <TableRow>
-                          <TableCell colSpan={4} className="p-0 border-b-0">
-                            <div className="bg-slate-900 border-x-4 border-l-amber-500 border-r-transparent p-6 text-white overflow-hidden shadow-inner flex flex-col gap-6">
-                              <section className="space-y-4">
-                                <p className="text-[10px] font-black tracking-widest uppercase text-slate-400 flex items-center gap-2">
-                                  <Key className="w-3.5 h-3.5"/> Full Internal Record (User Raw Data)
-                                </p>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                  {Object.entries(u).map(([k, v]) => {
-                                    if (typeof v === 'object' && v !== null) {
+                        <TableRow className="hover:bg-transparent !border-b-0">
+                          <TableCell colSpan={4} className="p-0">
+                            <div className="bg-slate-950 border-l-[6px] border-l-amber-500 p-8 text-white shadow-inner animate-in slide-in-from-top-1 duration-200">
+                              <section className="space-y-6">
+                                <div className="flex items-center gap-2">
+                                  <Key className="w-4 h-4 text-amber-500"/>
+                                  <p className="text-[11px] font-black tracking-[0.2em] uppercase text-slate-400">Full Internal Record (User Raw Data)</p>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-6">
+                                  {[
+                                    { k: 'ID', v: u.id },
+                                    { k: 'EMAIL', v: u.email },
+                                    { k: 'NAME', v: u.name },
+                                    { k: 'OWNERID', v: u.ownerId },
+                                    { k: 'ROLE', v: u.role },
+                                    { k: 'STATUS', v: u.status },
+                                    { k: 'UPDATEDAT', v: u.updatedAt },
+                                  ].filter(item => item.v !== undefined).map(item => (
+                                    <div key={item.k} className="space-y-1.5">
+                                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{item.k}</p>
+                                      <p className="font-mono text-xs break-all font-medium text-slate-100 bg-white/5 py-1 px-2 rounded-md -ml-2 w-fit">
+                                        {String(item.v)}
+                                      </p>
+                                    </div>
+                                  ))}
+                                  
+                                  {/* Render complex objects separately */}
+                                  {Object.entries(u).filter(([k]) => !['id', 'email', 'name', 'ownerId', 'role', 'status', 'updatedAt'].includes(k)).map(([k, v]) => {
+                                      if (typeof v === 'object' && v !== null) {
+                                        return (
+                                          <div key={k} className="col-span-full space-y-2 bg-white/5 p-4 rounded-xl border border-white/5">
+                                            <p className="text-[10px] font-black text-amber-500/80 uppercase tracking-widest">{k}</p>
+                                            <pre className="text-[10px] whitespace-pre-wrap break-all font-mono text-slate-300">
+                                              {JSON.stringify(v, null, 2)}
+                                            </pre>
+                                          </div>
+                                        );
+                                      }
                                       return (
-                                        <div key={k} className="col-span-full space-y-1 bg-white/5 p-3 rounded-xl border border-white/10">
-                                          <p className="text-[10px] font-black text-amber-500 uppercase">{k}</p>
-                                          <pre className="text-[10px] whitespace-pre-wrap break-all font-mono text-slate-300">
-                                            {JSON.stringify(v, null, 2)}
-                                          </pre>
+                                        <div key={k} className="space-y-1.5">
+                                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{k}</p>
+                                          <p className="font-mono text-xs break-all font-medium text-slate-100">
+                                            {String(v)}
+                                          </p>
                                         </div>
                                       );
-                                    }
-                                    return (
-                                      <div key={k} className="space-y-1">
-                                        <p className="text-[9px] font-black text-slate-500 uppercase">{k}</p>
-                                        <p className="font-mono text-xs break-all font-medium text-slate-200">
-                                          {String(v)}
-                                        </p>
-                                      </div>
-                                    );
                                   })}
                                 </div>
                               </section>

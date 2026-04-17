@@ -214,8 +214,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
 
       if (type === 'message') {
         const text = (message.text || "").trim();
-        const INVITE_HASH_RE = /^#?[A-Z0-9]{8}$/i;
-        const cleanHash = text.toUpperCase().replace(/^#/, '');
+        // Tenta localizar um hash de 8 caracteres na mensagem (hexadecimal ou alfanumérico)
+        const hashMatch = text.match(/([A-Z0-9]{8})/i);
+        const hasPotentialHash = hashMatch !== null;
+        const potentialHash = hashMatch ? hashMatch[1].toUpperCase() : null;
+
+        await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/msg`).set({
+          userId, 
+          msgType: message.type, 
+          userStatus: userData.status ?? null, 
+          companyId,
+          text_preview: text.slice(0, 50),
+          hasPotentialHash,
+          potentialHash
+        }).catch(() => {});
 
         // Comando especial de debug para o desenvolvedor identificar o ownerId
         if (text.toUpperCase() === 'DEBUG_ID') {
@@ -226,40 +238,44 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
           continue;
         }
 
-        await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/msg`).set({
-          userId, 
-          msgType: message.type, 
-          userStatus: userData.status ?? null, 
-          companyId,
-          text_preview: text.slice(0, 50)
-        }).catch(() => {});
-
-        if (userData.status === 2 && message.type === 'text' && !INVITE_HASH_RE.test(text.toUpperCase())) {
-          // ... (existing animation and log interaction)
+        if (userData.status === 2 && message.type === 'text' && !hasPotentialHash) {
+          // Exibe animação de "digitando" se for um usuário ativo enviando texto comum
           lineClient.showLoadingAnimation({ chatId: userId, loadingSeconds: 20 }).catch(() => {});
           await logInteraction(companyId, userId, { role: 'user', text });
           await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/log_user_text`).set(Date.now()).catch(() => {});
         }
 
-        if (INVITE_HASH_RE.test(text.toUpperCase())) {
+        if (hasPotentialHash && potentialHash) {
           if (userData.status === 2) {
-            const alreadyRegMsg = i18n('alreadyRegistered', lang) || "既に登録されています。ハッシュコードの送信は不要です。";
-            await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: alreadyRegMsg }] }).catch(() => 
-              lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: alreadyRegMsg }] }).catch(() => {})
-            );
+            // Se já for status 2, só processa como hash se não houver texto ao redor (evita falso positivo com IDs de despesa)
+            const isPureHash = text.toUpperCase().replace(/^#/, '') === potentialHash;
+            if (isPureHash) {
+              const alreadyRegMsg = i18n('alreadyRegistered', lang) || "既に登録されています。ハッシュコードの送信は不要です。";
+              await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: alreadyRegMsg }] }).catch(() => 
+                lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: alreadyRegMsg }] }).catch(() => {})
+              );
+            } else {
+              // É um usuário ativo enviando um texto que contém um código (pode ser comando de IA)
+              // Segue o fluxo normal de texto abaixo
+            }
           } else {
+            // USUÁRIO NOVO OU PENDENTE ENVIANDO ALGO QUE PARECE UM HASH
             try {
-              await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/hash_match`).set({ cleanHash, originalText: text, userStatus: userData.status }).catch(() => {});
-              await processInviteHash(lineClient, companyId, userId, senderName, photoUrl, replyToken, cleanHash, lang);
+              await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/hash_match`).set({ potentialHash, originalText: text, userStatus: userData.status }).catch(() => {});
+              await processInviteHash(lineClient, companyId, userId, senderName, photoUrl, replyToken, potentialHash, lang);
+              continue; // Interrompe para não cair no else de "envie o código"
             } catch (e: any) {
               console.error('[webhook] processInviteHash error:', e?.message || e);
               const errTxt = i18n('genericError', lang);
               await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: errTxt }] }).catch(() => 
                 lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: errTxt }] }).catch(() => {})
               );
+              continue;
             }
           }
-        } else if (userData.status === 2) {
+        }
+
+        if (userData.status === 2) {
           if (message.type === 'image') {
             const base64Image = await getLineContentAsBase64(message.id, channelAccessToken);
             const photoDataUri = `data:image/jpeg;base64,${base64Image}`;
