@@ -1,63 +1,67 @@
 import { rtdb } from './firebase';
 
+/**
+ * Resolve credenciais LINE a partir do webhookId da URL.
+ *
+ * Regra única: o pool entry DEVE ter `ownerId` definido. Sem isso, o bot
+ * ainda não está atribuído a nenhuma empresa e qualquer escrita seria órfã.
+ *
+ * Estratégias (na ordem):
+ *   1. webhookId == pool.ownerId  (caso padrão: URL usa o ownerId)
+ *   2. webhookId == poolPushId e pool.ownerId setado (URL legada)
+ *   3. webhookId == ownerId direto (owner existe mas sem pool — flow antigo)
+ *
+ * Retorna null em qualquer situação ambígua para evitar gravar dados sob
+ * um identificador errado.
+ */
 export async function getOwnerCredentials(webhookId: string) {
   const poolRef = rtdb.ref('line_api_pool');
 
-  console.log(`[line-server] Resolving credentials for webhookId: ${webhookId}`);
-
-  // 1. Tenta busca direta no pool (ID como chave)
-  const candidates = Array.from(new Set([webhookId, webhookId.toLowerCase(), webhookId.toUpperCase()]));
+  // 1) Lookup por campo ownerId (indexado).
   let poolData: any = null;
-  let poolKey: string | null = null;
-  
-  for (const key of candidates) {
-    const snap = await poolRef.child(key).get();
-    if (snap.exists()) {
-      poolData = snap.val();
-      poolKey = key;
-      console.log(`[line-server] Found in pool by key: ${key}`);
-      break;
-    }
+  const querySnap = await poolRef.orderByChild('ownerId').equalTo(webhookId).limitToFirst(1).get();
+  if (querySnap.exists()) {
+    querySnap.forEach((child) => {
+      poolData = child.val();
+      return true;
+    });
   }
 
-  // 2. Se não achou, tenta localizar no pool via campo 'ownerId'
+  // 2) Fallback: webhookId é o poolPushId — só honra se já foi atribuído a um owner.
   if (!poolData) {
-    const querySnap = await poolRef.orderByChild('ownerId').equalTo(webhookId).limitToFirst(1).get();
-    if (querySnap.exists()) {
-      querySnap.forEach((child) => {
-        poolData = child.val();
-        poolKey = child.key;
-        console.log(`[line-server] Found in pool by ownerId field: ${child.key}`);
-      });
+    const candidates = Array.from(new Set([webhookId, webhookId.toLowerCase()]));
+    for (const key of candidates) {
+      const snap = await poolRef.child(key).get();
+      if (snap.exists() && snap.val()?.ownerId) {
+        poolData = snap.val();
+        break;
+      }
     }
   }
 
-  if (poolData) {
-    const ownerId = poolData.ownerId || poolKey;
+  if (poolData && poolData.ownerId) {
+    const ownerId = poolData.ownerId;
     const ownerSnap = await rtdb.ref(`owner/${ownerId}`).get();
     const ownerData = ownerSnap.val() || {};
-    
-    if (!ownerSnap.exists()) {
-       console.warn(`[line-server] Bot found in pool (${poolKey}) but Owner record (${ownerId}) is missing!`);
-    }
-
     return {
       id: ownerId,
       ...ownerData,
+      ownerId,
       lineChannelAccessToken: poolData.lineChannelAccessToken,
       lineChannelSecret: poolData.lineChannelSecret,
       lineBasicId: poolData.lineBasicId,
-      googleGenAiApiKey: poolData.googleGenAiApiKey || ownerData.googleGenAiApiKey
+      googleGenAiApiKey: poolData.googleGenAiApiKey || ownerData.googleGenAiApiKey,
     };
   }
 
-  // 3. Fallback: Se não existe no pool, tenta buscar direto no owner
-  console.log(`[line-server] Not found in pool, trying direct owner lookup: ${webhookId}`);
+  // 3) Fallback final: owner antigo com credenciais no próprio doc (sem pool).
   const ownerSnap = await rtdb.ref(`owner/${webhookId}`).get();
   if (ownerSnap.exists()) {
-    return { id: webhookId, ...ownerSnap.val() };
+    const ownerData = ownerSnap.val();
+    if (ownerData.lineChannelAccessToken) {
+      return { id: webhookId, ownerId: webhookId, ...ownerData };
+    }
   }
 
-  console.error(`[line-server] FATAL: Could not resolve any owner/bot for ID: ${webhookId}`);
   return null;
 }
