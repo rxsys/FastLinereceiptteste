@@ -376,13 +376,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
     console.error('[webhook] FATAL ERROR:', errorMsg);
     
     // Log detalhado no Realtime Database para diagnósticos
-    await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/FATAL_ERROR`).set({
-      timestamp: Date.now(),
-      message: errorMsg,
-      stack: errorStack.slice(0, 1500),
-      webhookId,
-      ownerResolved: !!ownerData
-    }).catch(() => {});
+    try {
+      await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/FATAL_ERROR`).set({
+        timestamp: Date.now(),
+        message: errorMsg,
+        stack: errorStack.slice(0, 1500),
+        webhookId,
+        ownerResolved: !!ownerData
+      });
+    } catch {}
+
     // Tenta notificar o(s) usuário(s) afetado(s) para evitar silêncio total
     try {
       const ownerFallback = await getOwnerCredentials(webhookId);
@@ -398,7 +401,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
           }
         }
       }
-    } catch {}
+    } catch (innerErr) {
+      console.error('[webhook] Error sending fallback notification:', innerErr);
+    }
     return new NextResponse('OK', { status: 200 });
   }
 }

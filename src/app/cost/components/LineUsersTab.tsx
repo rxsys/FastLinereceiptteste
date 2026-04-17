@@ -285,7 +285,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center bg-white p-6 rounded-[2.5rem] border shadow-sm">
-        <h2 className="text-xl font-black flex items-center gap-3"><Users className="text-primary" /> ユーザー名簿管理</h2>
+        <h2 className="text-xl font-black flex items-center gap-3"><Users className="text-primary" /> {t.dash?.users || 'LINE ユーザー'}</h2>
         <div className="flex gap-2 relative">
            {isEmpty && (
              <GuideBalloon 

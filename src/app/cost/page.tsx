@@ -151,11 +151,26 @@ export default function DashboardPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-12">
-          <TabsList className={cn("p-1 h-12 rounded-3xl bg-white border shadow-sm mx-auto w-fit flex justify-center", activeTab === 'home' && "hidden")}>
-            <TabsTrigger value="home" className="rounded-2xl h-10">Home</TabsTrigger>
-            <TabsTrigger value="expenses" className="rounded-2xl h-10 px-6 font-black">{t.dash?.expenses || 'Despesas'}</TabsTrigger>
-            <TabsTrigger value="management" className="rounded-2xl h-10 px-6 font-black">{t.dash?.projects || 'Projetos'}</TabsTrigger>
-            <TabsTrigger value="lineUsers" className="rounded-2xl h-10 px-6 font-black">{t.dash?.users || 'LINE Usuários'}</TabsTrigger>
+          <TabsList className={cn(
+            "p-1.5 h-auto rounded-[2rem] bg-white border shadow-sm mx-auto w-fit flex justify-center gap-1",
+            activeTab === 'home' && "hidden"
+          )}>
+            <TabsTrigger value="home" className="rounded-2xl h-11 px-6 font-black gap-2 transition-all">
+              <LayoutDashboard className="w-4 h-4" />
+              <span>Home</span>
+            </TabsTrigger>
+            <TabsTrigger value="expenses" className="rounded-2xl h-11 px-6 font-black gap-2 transition-all">
+              <Receipt className="w-4 h-4" />
+              <span>{t.dash?.expenses || 'Despesas'}</span>
+            </TabsTrigger>
+            <TabsTrigger value="management" className="rounded-2xl h-11 px-6 font-black gap-2 transition-all">
+              <Building2 className="w-4 h-4" />
+              <span>{t.dash?.projects || 'Projetos'}</span>
+            </TabsTrigger>
+            <TabsTrigger value="lineUsers" className="rounded-2xl h-11 px-6 font-black gap-2 transition-all">
+              <Users className="w-4 h-4" />
+              <span>{t.dash?.users || 'LINE Usuários'}</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="home" className="mt-0">
