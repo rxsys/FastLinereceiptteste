@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/shing/OneDrive/Desktop/Project/FastLinereceiptteste -name \"*.ts\" -type f -exec grep -l \"status.*0\\\\|status.*1\\\\|status.*2\" {} \\\\;)"
+    ]
+  }
+}

@@ -27,14 +27,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
   try {
     const ownerData = await getOwnerCredentials(webhookId);
     if (!ownerData) {
+      console.warn(`[webhook] Webhook ID not found in pool or owners: ${webhookId}`);
       await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/stage_no_owner`).set(Date.now()).catch(() => {});
       return new NextResponse('OK', { status: 200 });
     }
 
     const companyId = ownerData.ownerId || ownerData.id;
     const channelAccessToken = ownerData.lineChannelAccessToken;
-    const channelSecret = ownerData.lineChannelSecret;
-    console.log('[webhook] companyId:', companyId, '| hasApiKey:', !!ownerData.googleGenAiApiKey, '| webhookId:', webhookId);
+    const lineClient = getLineClient(channelAccessToken);
+
+    console.log(`[webhook] Request for company: ${companyId} (Owner: ${ownerData.name || ownerData.id})`);
 
     await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/resolved`).set({
       companyId,
@@ -52,8 +54,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
       msgTypes: events.map((e: any) => e.message?.type || null),
     }).catch(() => {});
     if (events.length === 0) return NextResponse.json({ status: 'ok' });
-
-    const lineClient = getLineClient(channelAccessToken);
 
     // Verifica se AI está ativa para este owner
     const aiConfigSnap = await rtdb.ref(`owner/${companyId}/aiConfig`).get();
@@ -246,31 +246,30 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
         }
 
         if (hasPotentialHash && potentialHash) {
+          console.log(`[webhook] Detectado potencial hash: ${potentialHash} de status: ${userData.status}`);
           if (userData.status === 2) {
             // Se já for status 2, só processa como hash se não houver texto ao redor (evita falso positivo com IDs de despesa)
             const isPureHash = text.toUpperCase().replace(/^#/, '') === potentialHash;
             if (isPureHash) {
-              const alreadyRegMsg = i18n('alreadyRegistered', lang);
-              await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: alreadyRegMsg }] }).catch(() =>
-                lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: alreadyRegMsg }] }).catch(() => {})
-              );
+              console.log(`[webhook] Usuário já ativo enviando hash puro. Ignorando.`);
+              const alreadyRegMsg = i18n('alreadyRegistered', lang) || "既に登録されています。ハッシュコードの送信は不要です。";
+              await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: alreadyRegMsg }] }).catch(err => {
+                console.error('[webhook] Erro ao enviar alreadyRegistered:', err.message);
+              });
               continue;
-            } else {
-              // É um usuário ativo enviando um texto que contém um código (pode ser comando de IA)
-              // Segue o fluxo normal de texto abaixo
             }
           } else {
             // USUÁRIO NOVO OU PENDENTE ENVIANDO ALGO QUE PARECE UM HASH
             try {
+              console.log(`[webhook] Iniciando processInviteHash para ${potentialHash}...`);
               await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/hash_match`).set({ potentialHash, originalText: text, userStatus: userData.status }).catch(() => {});
               await processInviteHash(lineClient, companyId, userId, senderName, photoUrl, replyToken, potentialHash, lang);
-              continue; // Interrompe para não cair no else de "envie o código"
+              console.log(`[webhook] processInviteHash concluído.`);
+              continue; 
             } catch (e: any) {
-              console.error('[webhook] processInviteHash error:', e?.message || e);
+              console.error('[webhook] ERRO CRÍTICO em processInviteHash:', e?.message || e);
               const errTxt = i18n('genericError', lang);
-              await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: errTxt }] }).catch(() => 
-                lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: errTxt }] }).catch(() => {})
-              );
+              await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: errTxt }] }).catch(() => {});
               continue;
             }
           }
@@ -440,17 +439,16 @@ async function processInviteHash(lineClient: any, companyId: string, userId: str
   await logAudit({ ownerId: companyId, actor: { type: 'lineUser', id: userId, name: senderName }, action: 'create', entity: { type: 'lineUser', id: userId, path: `owner_data/${companyId}/lineUsers/${userId}`, label: inviteData.inviteName || senderName }, after: { name: inviteData.inviteName, fullName: senderName, lineUserId: userId, status: 2 }, source: 'line_bot', metadata: { inviteHash: hash } });
 
   const msg = isManager ? i18n('managerRegistered', inviteLang, inviteData.inviteName) : i18n('userRegistered', inviteLang, inviteData.inviteName);
-  await logInteraction(companyId, userId, { role: 'ai', text: msg });
-
-  await diagRef.update({ stage: 'sending_reply', msg: msg.slice(0, 100) }).catch(() => {});
-
-  // Tenta replyMessage primeiro (mais rápido), com pushMessage como fallback garantido
+  
+  // Tenta responder imediatamente para não expirar o token
   await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: msg }] })
-    .catch(async () => {
+    .catch(async (err: any) => {
+      console.warn('[webhook] replyMessage falhou, tentando pushMessage:', err.message);
       await diagRef.update({ stage: 'reply_failed_using_push' }).catch(() => {});
       await lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: msg }] }).catch(() => {});
     });
 
+  await logInteraction(companyId, userId, { role: 'ai', text: msg });
   await diagRef.update({ stage: 'done', completedAt: Date.now() }).catch(() => {});
 }
 
