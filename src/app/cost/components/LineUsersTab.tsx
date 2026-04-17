@@ -138,8 +138,13 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
 
   // Resolve Bot ID do owner node (fonte canônica)
   const botId = useMemo(() => {
+    // FORÇADO PARA TESTE: Apontando para o bot do fastline1 (@810jonll)
+    return "@810jonll"; 
+    
+    /* Original:
     if (owner?.lineBasicId) return owner.lineBasicId.startsWith('@') ? owner.lineBasicId : `@${owner.lineBasicId}`;
     return null;
+    */
   }, [owner]);
 
   // Auto-sync: se o owner não tem lineBasicId, busca via API server-side e grava
