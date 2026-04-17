@@ -6,9 +6,9 @@ import { getOwnerCredentials } from '@/lib/line-server';
 import { extractExpenseDetailsDirect, extractMultipleReceipts } from '@/ai/direct-extract';
 import { adminStorage } from '@/lib/firebase';
 import { processExpenseNtaCheck } from '@/lib/nta-service';
-import { handleLineTextMessage, saveUserPreference, learnFromExpense, suggestCcFromPatterns, detectAmountAnomaly } from '@/ai/line-ai-manager';
 import { i18n } from '@/ai/i18n';
 import { logAudit } from '@/lib/audit';
+import { handleLineTextMessage, saveUserPreference, learnFromExpense, suggestCcFromPatterns, detectAmountAnomaly, logInteraction } from '@/ai/line-ai-manager';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ ownerId: string }> }) {
   const { ownerId: webhookId } = await params;
