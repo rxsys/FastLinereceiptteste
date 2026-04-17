@@ -106,6 +106,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
   const [inviteRole, setInviteRole] = useState<'user' | 'manager'>('user');
   const [generatedHash, setGeneratedHash] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 
   const usersRef = useMemoFirebase(() => effectiveOwnerId && database ? ref(database, `owner_data/${effectiveOwnerId}/lineUsers`) : null, [database, effectiveOwnerId]);
   const invitesRef = useMemoFirebase(() => effectiveOwnerId && database ? ref(database, `owner_data/${effectiveOwnerId}/invites`) : null, [database, effectiveOwnerId]);
@@ -276,6 +277,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
     setSelectedInviteLanguage('ja');
     setInviteRole('user');
     setGeneratedHash(null);
+    setIsInviteDialogOpen(false);
   };
 
   const isEmpty = !isUsersLoading && (!lineUsers || lineUsers.length === 0);
@@ -292,8 +294,11 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                className="hidden md:block"
              />
            )}
-           <Dialog onOpenChange={(open) => !open && resetInviteForm()}>
-              <DialogTrigger asChild><Button variant="outline" className="rounded-2xl gap-2 font-black"><Plus /> QR招待コード発行</Button></DialogTrigger>
+           <Dialog open={isInviteDialogOpen} onOpenChange={(open) => {
+              setIsInviteDialogOpen(open);
+              if (!open) resetInviteForm();
+            }}>
+              <DialogTrigger asChild><Button onClick={() => setIsInviteDialogOpen(true)} variant="outline" className="rounded-2xl gap-2 font-black"><Plus /> QR招待コード発行</Button></DialogTrigger>
               <DialogContent className="rounded-[2.5rem] max-w-lg max-h-[95vh] flex flex-col p-0 overflow-hidden">
                  <div className="px-8 pt-8 pb-3 shrink-0">
                    <DialogHeader><DialogTitle className="font-black text-xl text-slate-800 tracking-tight">{generatedHash ? '招待コードの発行完了' : '新規招待の発行'}</DialogTitle></DialogHeader>
