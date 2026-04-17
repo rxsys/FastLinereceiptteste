@@ -216,17 +216,32 @@ export function DevUserManagement() {
                                   </p>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 bg-emerald-950/30 p-4 rounded-2xl border border-emerald-900/30">
                                     {[
-                                      { label: 'Webhook URL', val: projectKeys.webhook, color: 'text-blue-400' },
+                                      { label: 'Webhook URL (USE ESTA URL NO LINE CONSOLE)', val: projectKeys.webhook, color: 'text-blue-400', important: true },
                                       { label: 'LINE Basic ID', val: projectKeys.lineBasicId },
                                       { label: 'Channel Secret', val: projectKeys.lineChannelSecret },
                                       { label: 'Channel Access Token', val: projectKeys.lineChannelAccessToken },
                                       { label: 'Google Gen AI Key', val: projectKeys.googleGenAiApiKey, color: 'text-amber-400' },
                                     ].map(item => (
-                                      <div key={item.label} className="space-y-1">
+                                      <div key={item.label} className={cn("space-y-1", item.important && "col-span-full bg-blue-500/10 p-4 rounded-xl border border-blue-500/20 mb-2")}>
                                         <p className="text-[8px] font-black text-slate-500 uppercase tracking-wider">{item.label}</p>
-                                        <p className={cn("font-mono text-[10px] break-all", item.color || "text-emerald-200")}>
-                                          {item.val || '—'}
-                                        </p>
+                                        <div className="flex items-center gap-2">
+                                          <p className={cn("font-mono text-[10px] break-all flex-1", item.color || "text-emerald-200", item.important && "text-blue-300 text-xs font-bold")}>
+                                            {item.val || '—'}
+                                          </p>
+                                          {item.val && (
+                                            <Button 
+                                              variant="ghost" 
+                                              size="icon" 
+                                              className="h-6 w-6 shrink-0 hover:bg-white/10" 
+                                              onClick={() => {
+                                                navigator.clipboard.writeText(item.val);
+                                                window.alert('Copiado!');
+                                              }}
+                                            >
+                                              <Save className="w-3 h-3 text-slate-500" />
+                                            </Button>
+                                          )}
+                                        </div>
                                       </div>
                                     ))}
                                   </div>
