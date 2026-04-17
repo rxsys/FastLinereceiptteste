@@ -371,10 +371,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
     await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/done`).set(Date.now()).catch(() => {});
     return NextResponse.json({ status: 'ok' });
   } catch (error: any) {
-    console.error('[webhook] global error:', error?.message || error);
-    await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/error`).set({
-      message: error?.message || String(error),
-      stack: (error?.stack || '').slice(0, 1000),
+    const errorMsg = error?.message || String(error);
+    const errorStack = error?.stack || '';
+    
+    console.error('[webhook] FATAL ERROR:', errorMsg);
+    
+    // Log detalhado no Realtime Database para diagnósticos
+    await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/FATAL_ERROR`).set({
+      timestamp: Date.now(),
+      message: errorMsg,
+      stack: errorStack.slice(0, 1500),
+      webhookId,
+      ownerResolved: !!ownerData
     }).catch(() => {});
     // Tenta notificar o(s) usuário(s) afetado(s) para evitar silêncio total
     try {
