@@ -92,8 +92,11 @@ export function DevUserManagement() {
       </div>
 
       {Object.entries(usersGrouped).map(([ownerId, group]) => {
-        const owner = owners?.find(o => o.id === ownerId);
-        const projectKeys = pool?.find(p => p.id === ownerId);
+        const ownerData = owners?.find(o => o.id === ownerId) || {};
+        const poolData = pool?.find(p => p.id === ownerId || p.ownerId === ownerId) || {};
+        
+        // Combina dados do perfil da empresa com as chaves técnicas do bot
+        const projectKeys = { ...ownerData, ...poolData };
         const filteredGroup = group.filter(u => 
           u.email?.toLowerCase().includes(searchTerm.toLowerCase()) || 
           u.name?.toLowerCase().includes(searchTerm.toLowerCase())
