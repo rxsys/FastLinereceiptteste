@@ -111,6 +111,17 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
     toast({ title: "原価センターを更新しました" });
   };
 
+  const handleUpdateProject = async () => {
+    if (!database || !effectiveOwnerId || !editingProject) return;
+    const { id, ...data } = editingProject;
+    const updatedAt = new Date().toISOString();
+    const payload = { ...data, updatedAt };
+    await update(ref(database, `owner_data/${effectiveOwnerId}/projects/${id}`), payload);
+    auditAction({ ownerId: effectiveOwnerId, actor: actor(), action: 'update', entity: { type: 'project', id, path: `owner_data/${effectiveOwnerId}/projects/${id}`, label: editingProject.name }, before: editingProject, after: payload, source: 'dashboard' }).catch(() => {});
+    setEditingProject(null);
+    toast({ title: "プロジェクトを更新しました" });
+  };
+
   const handleDelete = async (path: string) => {
     if (!database || !effectiveOwnerId || !confirm("削除してもよろしいですか？")) return;
     // Detectar tipo pelo path (projects/X vs projects/X/costcenters/Y)
@@ -226,6 +237,23 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
               </div>
             </div>
             <DialogFooter><Button onClick={handleAddProject} className="w-full h-12 rounded-xl font-black bg-slate-900 text-white">登録を保存する</Button></DialogFooter>
+          </DialogContent>
+       </Dialog>
+
+       <Dialog open={!!editingProject} onOpenChange={() => setEditingProject(null)}>
+          <DialogContent className="rounded-[2.5rem]">
+            <DialogHeader><DialogTitle className="font-black">プロジェクトの編集</DialogTitle></DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-1">
+                <Label className="text-xs font-black uppercase text-slate-400">プロジェクト名称</Label>
+                <Input value={editingProject?.name || ""} onChange={e => setEditingProject({...editingProject, name: e.target.value})} className="h-12 rounded-xl font-bold" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs font-black uppercase text-slate-400">プロジェクトの説明</Label>
+                <Textarea value={editingProject?.description || ""} onChange={e => setEditingProject({...editingProject, description: e.target.value})} className="rounded-xl font-bold min-h-[100px]" />
+              </div>
+            </div>
+            <DialogFooter><Button onClick={handleUpdateProject} className="w-full h-12 rounded-xl font-black bg-slate-900 text-white">変更を保存する</Button></DialogFooter>
           </DialogContent>
        </Dialog>
 
