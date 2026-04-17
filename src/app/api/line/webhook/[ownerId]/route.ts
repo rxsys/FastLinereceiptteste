@@ -282,20 +282,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
               console.log(`[webhook] processInviteHash concluído.`);
               continue; 
             } catch (e: any) {
-              const errorDetails = {
-                message: e?.message || String(e),
-                stack: e?.stack || 'no stack',
-                potentialHash,
-                userId,
-                companyId,
-                ts: new Date().toISOString()
-              };
-              console.error('[webhook] ERRO CRÍTICO em processInviteHash:', errorDetails);
+              console.error('[webhook] Critical error:', e);
+              const errTxt = `⚠️ 処理中にエラーが発生いたしました。\n\n[Debug Error]: ${e.message || String(e)}\n[Context]: ${webhookId} -> ${companyId}`;
               
-              // Log detalhado do erro de registro no DB
-              await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/INVITE_ERROR`).set(errorDetails).catch(() => {});
-              
-              const errTxt = `⚠️ 処理中にエラーが発生いたしました。\n\n[Debug Error]: ${e.message || String(e)}`;
               // Tenta via reply, se falhar tenta via push
               await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: errTxt }] })
                 .catch(() => lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: errTxt }] }).catch(() => {}));
@@ -442,7 +431,13 @@ async function processInviteHash(lineClient: any, companyId: string, userId: str
     if (!val.used) { inviteKey = child.key; inviteData = val; } 
   });
 
-  await diagRef.update({ stage: 'found_invite', inviteKey, inviteUsed: !inviteKey }).catch(() => {});
+  await diagRef.update({ 
+    stage: 'found_invite', 
+    found: invitesSnap.exists(), 
+    inviteKey, 
+    inviteUsed: !inviteKey,
+    debug_companyId: companyId
+  }).catch(() => {});
 
   if (!inviteKey) {
     const msg = i18n('codeUsed', lang);
@@ -480,7 +475,13 @@ async function processInviteHash(lineClient: any, companyId: string, userId: str
 
   // 3. Vincular aos Cost Centers
   try {
-    const costCenterIds: string[] = inviteData.costCenterIds || [];
+    const costCenterIdsRaw = inviteData.costCenterIds;
+    const costCenterIds: string[] = Array.isArray(costCenterIdsRaw) 
+      ? costCenterIdsRaw 
+      : (costCenterIdsRaw && typeof costCenterIdsRaw === 'object')
+        ? Object.values(costCenterIdsRaw)
+        : [];
+
     if (costCenterIds.length > 0) {
       const projectsSnap = await rtdb.ref(`owner_data/${companyId}/projects`).once('value');
       const projects = projectsSnap.val() || {};
@@ -489,7 +490,14 @@ async function processInviteHash(lineClient: any, companyId: string, userId: str
         for (const [ccId, ccVal] of Object.entries(pData.costcenters) as [string, any][]) {
           if (!costCenterIds.includes(ccId)) continue;
           const ccRef = rtdb.ref(`owner_data/${companyId}/projects/${pId}/costcenters/${ccId}`);
-          const existing: string[] = ccVal?.assignedLineUserIds || [];
+          
+          let existingRaw = ccVal?.assignedLineUserIds || [];
+          const existing: string[] = Array.isArray(existingRaw)
+            ? existingRaw
+            : (existingRaw && typeof existingRaw === 'object')
+              ? Object.values(existingRaw)
+              : [];
+
           if (!existing.includes(userId)) {
             await ccRef.update({ assignedLineUserIds: [...existing, userId] });
           }
