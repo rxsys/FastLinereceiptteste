@@ -136,22 +136,25 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
 
   const invites = useMemo(() => invitesRaw?.filter(i => !i.used) || [], [invitesRaw]);
 
-  // Resolve Bot ID do owner node (fonte canônica)
-  const botId = useMemo(() => {
-    if (owner?.lineBasicId) return owner.lineBasicId.startsWith('@') ? owner.lineBasicId : `@${owner.lineBasicId}`;
-    return null;
-  }, [owner]);
-
-  // Auto-sync: se o owner não tem lineBasicId, busca via API server-side e grava
+  // Bot ID sempre resolvido via API server-side (line_api_pool é fonte canônica).
+  // Evita usar owner.lineBasicId cacheado com valor desatualizado.
+  const [resolvedBotId, setResolvedBotId] = useState<string | null>(null);
   useEffect(() => {
-    if (botId || !effectiveOwnerId || !owner) return;
-    // owner existe mas sem lineBasicId → sync automático
+    if (!effectiveOwnerId) return;
     fetch('/api/owner/sync-bot-id', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ownerId: effectiveOwnerId }),
-    }).catch(() => {});
-  }, [botId, effectiveOwnerId, owner]);
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.lineBasicId) {
+          setResolvedBotId(data.lineBasicId.startsWith('@') ? data.lineBasicId : `@${data.lineBasicId}`);
+        }
+      })
+      .catch(() => {});
+  }, [effectiveOwnerId]);
+  const botId = resolvedBotId;
 
   const qrData = useMemo(() => {
     if (!botId || !generatedHash) return '';
