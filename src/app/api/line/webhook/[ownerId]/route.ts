@@ -37,7 +37,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
       return new NextResponse('OK', { status: 200 });
     }
 
-    const companyId = ownerData.ownerId || ownerData.id;
+    const companyId = String(ownerData.ownerId || ownerData.id || '').replace(/[.#$[\]]/g, '_');
+    if (!companyId) {
+       console.error(`[webhook] FATAL: Could not resolve companyId for ${webhookId}`);
+       return new NextResponse('OK', { status: 200 });
+    }
+
     const channelAccessToken = ownerData.lineChannelAccessToken;
     
     if (!channelAccessToken) {
@@ -66,7 +71,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
     if (events.length === 0) return NextResponse.json({ status: 'ok' });
 
     // Verifica se AI está ativa para este owner
-    const aiConfigSnap = await rtdb.ref(`owner/${companyId}/aiConfig`).get();
+    const aiConfigSnap = await rtdb.ref(`owner/${companyId}/aiConfig`).once('value');
     const aiConfig = aiConfigSnap.val() || {};
     const lineAiEnabled = !!aiConfig.lineAiEnabled;
 
@@ -78,7 +83,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
       if (!userId) continue;
 
       const userRef = rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}`);
-      const userSnap = await userRef.get();
+      const userSnap = await userRef.once('value');
       let userData = userSnap.val();
 
       // Buscar perfil do LINE para obter foto e nome
@@ -99,7 +104,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
       }
 
       // Obter comportamento do usuário para idioma
-      const behaviorSnap = await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/behavior`).get();
+      const behaviorSnap = await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/behavior`).once('value');
       const behavior = behaviorSnap.val() || {};
       const lang: import('@/ai/i18n').Lang = (behavior.preferredLang as import('@/ai/i18n').Lang) || 'ja';
 
@@ -120,7 +125,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
           await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: msg }] });
           continue;
         } else if (action === 'cancel') {
-          const expSnap = await rtdb.ref(`owner_data/${companyId}/expenses/${expenseId}`).get();
+          const expSnap = await rtdb.ref(`owner_data/${companyId}/expenses/${expenseId}`).once('value');
           if (!expSnap.exists()) {
              await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: i18n('alreadyProcessed', lang) }] }).catch(()=>{});
              continue;
@@ -136,7 +141,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
           const pId = data.get('pId');
           const ccName = data.get('ccName') || '選択された原価センター';
           // Buscar categoria da despesa para aprender padrão
-          const expSnap = await rtdb.ref(`owner_data/${companyId}/expenses/${expenseId}`).get();
+          const expSnap = await rtdb.ref(`owner_data/${companyId}/expenses/${expenseId}`).once('value');
           const expData = expSnap.val();
           if (!expData || expData.status === 'processed') {
             await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: i18n('alreadyProcessed', lang) }] }).catch(()=>{});
@@ -155,7 +160,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
             ccId: ccId || '', ccName: ccName || '', pId: pId || ''
           }).catch(() => {});
           
-          const pNameSnap = await rtdb.ref(`owner_data/${companyId}/projects/${pId}/name`).get();
+          const pNameSnap = await rtdb.ref(`owner_data/${companyId}/projects/${pId}/name`).once('value');
           const pName = pNameSnap.val() || 'Project';
           
           const msg = i18n('ccRegistered', lang, ccName, Number(expData.amount||0).toLocaleString(), expData.description||'---', expData.date||'', pName);
@@ -181,7 +186,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
             await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: i18n('autoAssigned', lang, cc.ccName) }] }).catch(() => {});
           } else {
             await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/preferences/pendingExpenseId`).set(expenseId);
-            const dupExpSnap = await rtdb.ref(`owner_data/${companyId}/expenses/${expenseId}`).get();
+            const dupExpSnap = await rtdb.ref(`owner_data/${companyId}/expenses/${expenseId}`).once('value');
             const dupExpData = dupExpSnap.val();
             const flexMsg = buildCcFlexMessage(availableCcs, expenseId, lang, dupExpData?.type || 'expense');
             await lineClient.replyMessage({ replyToken, messages: [
@@ -190,7 +195,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
             ] }).catch(() => {});
           }
         } else if (action === 'toggle_type') {
-          const expSnap = await rtdb.ref(`owner_data/${companyId}/expenses/${expenseId}`).get();
+          const expSnap = await rtdb.ref(`owner_data/${companyId}/expenses/${expenseId}`).once('value');
           const expData = expSnap.val();
           if (!expData || expData.status === 'processed') {
             await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: i18n('alreadyProcessed', lang) }] }).catch(()=>{});
@@ -292,7 +297,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
               await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/INVITE_ERROR`).set(errorDetails).catch(() => {});
               
               const errTxt = i18n('genericError', lang);
-              await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: errTxt }] }).catch(() => {});
+              // Tenta via reply, se falhar tenta via push
+              await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: errTxt }] })
+                .catch(() => lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: errTxt }] }).catch(() => {}));
               continue;
             }
           }
@@ -406,9 +413,11 @@ async function processInviteHash(lineClient: any, companyId: string, userId: str
   const invitesRef = rtdb.ref(`owner_data/${companyId}/invites`);
   let invitesSnap;
   try {
-    invitesSnap = await invitesRef.orderByChild('hash').equalTo(hash).get();
+    await diagRef.update({ stage: 'query_start', path: `owner_data/${companyId}/invites`, hash }).catch(() => {});
+    invitesSnap = await invitesRef.orderByChild('hash').equalTo(hash).once('value');
   } catch (err: any) {
-    await diagRef.update({ stage: 'query_error', error: err.message }).catch(() => {});
+    console.error('[processInviteHash] Query error:', err.message);
+    await diagRef.update({ stage: 'query_error', error: err.message, stack: err.stack }).catch(() => {});
     throw new Error(`Database query failed: ${err.message}`);
   }
 
@@ -469,7 +478,7 @@ async function processInviteHash(lineClient: any, companyId: string, userId: str
   try {
     const costCenterIds: string[] = inviteData.costCenterIds || [];
     if (costCenterIds.length > 0) {
-      const projectsSnap = await rtdb.ref(`owner_data/${companyId}/projects`).get();
+      const projectsSnap = await rtdb.ref(`owner_data/${companyId}/projects`).once('value');
       const projects = projectsSnap.val() || {};
       for (const [pId, pData] of Object.entries(projects) as [string, any][]) {
         if (!pData || typeof pData !== 'object' || !pData.costcenters) continue;
@@ -538,7 +547,7 @@ async function logInteraction(companyId: string, userId: string, data: { role: '
     });
     
     // Manter as últimas 100 interações para cada usuário
-    const snap = await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/interactions`).get();
+    const snap = await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/interactions`).once('value');
     if (snap.numChildren() > 100) {
       const keys: string[] = [];
       snap.forEach(c => { keys.push(c.key!); });
@@ -556,7 +565,7 @@ async function saveTokenUsage(companyId: string, usage: { input: number, output:
   try {
     const currentMonth = new Date().toISOString().slice(0, 7);
     const usageRef = rtdb.ref(`owner_data/${companyId}/ai_usage/${currentMonth}`);
-    const snap = await usageRef.get();
+    const snap = await usageRef.once('value');
     const currentData = snap.val() || { input: 0, output: 0, total: 0, requests: 0 };
     
     await usageRef.update({
@@ -568,7 +577,7 @@ async function saveTokenUsage(companyId: string, usage: { input: number, output:
     });
 
     const globalRef = rtdb.ref(`ai_usage_global/${currentMonth}`);
-    const gSnap = await globalRef.get();
+    const gSnap = await globalRef.once('value');
     const gData = gSnap.val() || { input: 0, output: 0, total: 0, requests: 0 };
     await globalRef.update({
       input: gData.input + usage.input,
@@ -775,7 +784,7 @@ async function processExpense(lineClient: any, companyId: string, userId: string
     // Carregar behavior para verificar autoAssignCC
     let autoAssignEnabled = true;
     try {
-      const behaviorSnap = await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/behavior/autoAssignCC`).get();
+      const behaviorSnap = await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/behavior/autoAssignCC`).once('value');
       const val = behaviorSnap.val();
       if (val === false) autoAssignEnabled = false; // só desativa se explicitamente false
     } catch {}
@@ -783,7 +792,7 @@ async function processExpense(lineClient: any, companyId: string, userId: string
     // Carregar padrões aprendidos do usuário
     let userPatterns;
     try {
-      const pSnap = await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/patterns`).get();
+      const pSnap = await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/patterns`).once('value');
       userPatterns = pSnap.val() || { categoryCcMap: {}, usageStreak: { ccId: '', ccName: '', count: 0 }, avgAmountByCategory: {}, totalExpenses: 0 };
     } catch {
       userPatterns = { categoryCcMap: {}, usageStreak: { ccId: '', ccName: '', count: 0 }, avgAmountByCategory: {}, totalExpenses: 0 };
@@ -807,7 +816,7 @@ async function processExpense(lineClient: any, companyId: string, userId: string
     // Helper: alerta de orçamento após atribuição de CC
     const checkBudgetAlert = async (ccId: string, pId: string, newAmount: number): Promise<string> => {
       try {
-        const ccSnap = await rtdb.ref(`owner_data/${companyId}/projects/${pId}/costcenters/${ccId}`).get();
+        const ccSnap = await rtdb.ref(`owner_data/${companyId}/projects/${pId}/costcenters/${ccId}`).once('value');
         const ccData = ccSnap.val();
         if (!ccData?.budgetLimit || ccData.budgetLimit <= 0) return '';
         const used = (Number(ccData.totalValue) || 0) + newAmount;
@@ -858,7 +867,7 @@ async function getLineContentAsBase64(messageId: string, token: string): Promise
 }
 
 async function getAvailableCcs(companyId: string, userId: string, lineUserId?: string) {
-  const projectsSnap = await rtdb.ref(`owner_data/${companyId}/projects`).get();
+  const projectsSnap = await rtdb.ref(`owner_data/${companyId}/projects`).once('value');
   const projects = projectsSnap.val() || {};
   const assigned: { pId: string; ccId: string; ccName: string; pName: string }[] = [];
   const all: { pId: string; ccId: string; ccName: string; pName: string }[] = [];
