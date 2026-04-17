@@ -283,7 +283,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
               continue; 
             } catch (e: any) {
               console.error('[webhook] Critical error:', e);
-              const errTxt = `⚠️ 処理中にエラーが発生いたしました。\n\n[Debug Error]: ${e.message || String(e)}\n[Context]: ${webhookId} -> ${companyId}`;
+              const errTxt = `⚠️ [TESTE_DEPLOY_2026] ESTA MENSAGEM FOI ALTERADA AGORA. Se você está vendo isso, o deploy funcionou.\n\nError: ${e.message || String(e)}`;
               
               // Tenta via reply, se falhar tenta via push
               await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: errTxt }] })
