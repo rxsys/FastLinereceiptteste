@@ -151,7 +151,7 @@ export default function DashboardPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-12">
-          <TabsList className={cn("p-1 h-12 rounded-3xl bg-white border shadow-sm", activeTab === 'home' && "hidden")}>
+          <TabsList className={cn("p-1 h-12 rounded-3xl bg-white border shadow-sm mx-auto w-fit flex justify-center", activeTab === 'home' && "hidden")}>
             <TabsTrigger value="home" className="rounded-2xl h-10">Home</TabsTrigger>
             <TabsTrigger value="expenses" className="rounded-2xl h-10 px-6 font-black">{t.dash?.expenses || 'Despesas'}</TabsTrigger>
             <TabsTrigger value="management" className="rounded-2xl h-10 px-6 font-black">{t.dash?.projects || 'Projetos'}</TabsTrigger>
