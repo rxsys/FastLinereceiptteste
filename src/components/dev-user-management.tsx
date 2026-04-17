@@ -112,7 +112,7 @@ export function DevUserManagement() {
                     <Building className="w-6 h-6 text-slate-300"/>
                   </div>
                   <div>
-                    <CardTitle className="text-lg font-black tracking-tight">{owner?.name || "Empresa Não Vinculada"}</CardTitle>
+                    <CardTitle className="text-lg font-black tracking-tight">{ownerData?.name || "Empresa Não Vinculada"}</CardTitle>
                     <p className="text-[10px] font-mono text-slate-400 tracking-tighter">{ownerId}</p>
                   </div>
                </div>
