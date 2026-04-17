@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { rtdb } from '@/lib/firebase';
 
 /**
- * Resolve o lineBasicId sempre via line_api_pool (fonte canônica).
- * Atualiza o cache em owner/{ownerId}.lineBasicId se divergir.
- * Usa Admin SDK (sem restrição de regras de segurança).
+ * Retorna o lineBasicId do bot do ambiente de TESTE.
+ * No teste, o webhook é forçado para line_api_pool/fastline1, então
+ * o QR também deve apontar para esse mesmo bot (alinha client ↔ webhook).
  */
+const TEST_POOL_KEY = 'fastline1';
+
 export async function POST(req: NextRequest) {
   try {
     const { ownerId } = await req.json();
@@ -13,34 +15,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'ownerId obrigatório' }, { status: 400 });
     }
 
-    // Buscar SEMPRE no pool (evita cache desatualizado em owner.lineBasicId)
-    const poolSnap = await rtdb.ref('line_api_pool').get();
+    // Busca direto no pool do teste (mesma chave que o webhook usa)
+    const poolSnap = await rtdb.ref(`line_api_pool/${TEST_POOL_KEY}`).get();
     if (!poolSnap.exists()) {
-      return NextResponse.json({ error: 'line_api_pool vazio' }, { status: 404 });
+      return NextResponse.json({ error: `line_api_pool/${TEST_POOL_KEY} não existe` }, { status: 404 });
     }
 
     const poolData = poolSnap.val();
-    let lineBasicId: string | null = null;
-
-    for (const [poolId, entry] of Object.entries(poolData) as [string, any][]) {
-      if ((entry.ownerId === ownerId || poolId === ownerId) && entry.lineBasicId) {
-        lineBasicId = entry.lineBasicId;
-        break;
-      }
-    }
+    const lineBasicId: string | null = poolData?.lineBasicId || null;
 
     if (!lineBasicId) {
-      return NextResponse.json({ error: 'Bot não encontrado no pool para este owner' }, { status: 404 });
+      return NextResponse.json({ error: 'lineBasicId ausente no pool do teste' }, { status: 404 });
     }
 
-    // Atualiza o cache em owner apenas se divergir
+    // Atualiza cache em owner se divergir
     const ownerSnap = await rtdb.ref(`owner/${ownerId}`).get();
     const currentCached = ownerSnap.exists() ? ownerSnap.val().lineBasicId : null;
     if (currentCached !== lineBasicId) {
       await rtdb.ref(`owner/${ownerId}`).update({ lineBasicId });
     }
 
-    return NextResponse.json({ lineBasicId, source: 'pool' });
+    return NextResponse.json({ lineBasicId, source: `pool/${TEST_POOL_KEY}` });
   } catch (error: any) {
     console.error('[sync-bot-id] Erro:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
