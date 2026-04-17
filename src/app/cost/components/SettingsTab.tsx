@@ -74,20 +74,31 @@ export function SettingsTab({ version, hideUserManagement = false, t, ownerIdOve
   }, [allUsers, ownerId, user?.uid]);
 
   const handleAddUser = async () => {
-    if (!database || !ownerId || !newUser.email) return;
+    if (!database || !ownerId || !newUser.email) {
+      console.error("[Settings] Missing required data for add user:", { hasDb: !!database, ownerId, email: newUser.email });
+      return;
+    }
     setIsAddingUser(true);
     try {
+      console.log("[Settings] Attempting to create user record in RTDB for owner:", ownerId);
       const newRef = push(ref(database, 'users'));
-      await set(newRef, {
+      const payload = {
         ...newUser,
         ownerId,
         status: 'active',
         createdAt: new Date().toISOString()
-      });
+      };
+      
+      await set(newRef, payload);
+      
+      console.log("[Settings] User created successfully:", newRef.key);
       setIsAddingUser(false);
       setNewUser({ name: '', email: '', password: '', role: 'user' });
       toast({ title: "ユーザーの追加が完了いたしました" });
-    } catch (e) { toast({ variant: "destructive", title: "エラーが発生いたしました" }); }
+    } catch (e: any) { 
+      console.error("[Settings] Error adding user to RTDB:", e);
+      toast({ variant: "destructive", title: "エラーが発生いたしました", description: e.message }); 
+    }
     finally { setIsAddingUser(false); }
   };
 
