@@ -229,8 +229,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
 
       if (type === 'message') {
         const text = (message.text || "").trim();
-        // Tenta localizar um hash de 8 caracteres na mensagem (hexadecimal ou alfanumérico)
-        const hashMatch = text.match(/([A-Z0-9]{8})/i);
+        // Tenta localizar um hash hexadecimal de 8 caracteres na mensagem (A-F, 0-9)
+        const hashMatch = text.match(/([A-F0-9]{8})/i);
         const hasPotentialHash = hashMatch !== null;
         const potentialHash = hashMatch ? hashMatch[1].toUpperCase() : null;
 

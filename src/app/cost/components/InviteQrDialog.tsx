@@ -115,7 +115,7 @@ export function InviteQrDialog({ projects, owners, pool, effectiveOwnerId, t }: 
   };
 
   const botId = getBotId();
-  const regMessage = generatedHash ? `REGISTRO / #${generatedHash}` : '';
+  const regMessage = generatedHash ? `#${generatedHash}` : '';
   const qrData = botId ? `https://line.me/R/oaMessage/${botId}/?${encodeURIComponent(regMessage)}` : '';
   const qrUrl = qrData ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrData)}` : '';
 

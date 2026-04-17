@@ -23,9 +23,14 @@
     /* 3. Dados Operacionais (Gastos, Projetos, etc): Isolamento por OwnerId */
     "owner_data": {
       "$ownerId": {
-        ".indexOn": ["invites/hash", "expenses/date"],
         ".read": "auth != null && (root.child('users').child(auth.uid).child('ownerId').val() == $ownerId || root.child('users').child(auth.uid).child('role').val() == 'developer')",
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('ownerId').val() == $ownerId || root.child('users').child(auth.uid).child('role').val() == 'developer')"
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('ownerId').val() == $ownerId || root.child('users').child(auth.uid).child('role').val() == 'developer')",
+        "invites": {
+          ".indexOn": ["hash"]
+        },
+        "expenses": {
+          ".indexOn": ["amount", "date", "userId"]
+        }
       }
     },
 
