@@ -1,30 +1,57 @@
 {
   "rules": {
-    ".read": true,
-    ".write": true,
+    /* 1. Usuários: Cada um lê o seu, Managers leem os da sua empresa, Developers leem tudo */
     "users": {
-      ".indexOn": ["ownerId", "email"]
+      ".indexOn": ["ownerId", "email"],
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'developer' || root.child('users').child(auth.uid).child('role').val() == 'manager')",
+      "$uid": {
+        ".read": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('ownerId').val() == data.child('ownerId').val() || root.child('users').child(auth.uid).child('role').val() == 'developer')",
+        ".write": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'developer' || (root.child('users').child(auth.uid).child('role').val() == 'manager' && (data.exists() ? data.child('ownerId').val() == root.child('users').child(auth.uid).child('ownerId').val() : newData.child('ownerId').val() == root.child('users').child(auth.uid).child('ownerId').val())))"
+      }
     },
+
+    /* 2. Owners (Config de Licença): Acesso pelo dono ou Developer */
     "owner": {
-      ".indexOn": ["stripeCustomerId"]
+      ".indexOn": ["stripeCustomerId"],
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'developer' || root.child('users').child(auth.uid).child('role').val() == 'manager')",
+      "$ownerId": {
+        ".read": "auth != null && (root.child('users').child(auth.uid).child('ownerId').val() == $ownerId || auth.uid == $ownerId || root.child('users').child(auth.uid).child('role').val() == 'developer')",
+        ".write": "auth != null && (auth.uid == $ownerId || root.child('users').child(auth.uid).child('role').val() == 'developer' || (root.child('users').child(auth.uid).child('role').val() == 'manager' && $ownerId == root.child('users').child(auth.uid).child('ownerId').val()))"
+      }
     },
+
+    /* 3. Dados Operacionais (Gastos, Projetos, etc): Isolamento por OwnerId */
     "owner_data": {
       "$ownerId": {
-        "invites": {
-          ".indexOn": ["hash"]
-        },
-        "expenses": {
-          ".indexOn": ["date", "amount", "userId", "status"]
-        }
+        ".indexOn": ["invites/hash", "expenses/date"],
+        ".read": "auth != null && (root.child('users').child(auth.uid).child('ownerId').val() == $ownerId || root.child('users').child(auth.uid).child('role').val() == 'developer')",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('ownerId').val() == $ownerId || root.child('users').child(auth.uid).child('role').val() == 'developer')"
       }
     },
+
+    /* 4. Pool de APIs LINE: Apenas para Developers */
     "line_api_pool": {
-      ".indexOn": ["ownerId", "status"]
+      ".indexOn": ["ownerId", "status"],
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'developer' || root.child('users').child(auth.uid).child('role').val() == 'manager')",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() == 'developer'",
+      "$botId": {
+         ".read": "auth != null && (root.child('line_api_pool').child($botId).child('ownerId').val() == root.child('users').child(auth.uid).child('ownerId').val())"
+      }
     },
+
+    /* 5. Logs e Auditoria */
     "audit_logs": {
       "$ownerId": {
-        ".indexOn": ["timestamp"]
+        ".indexOn": ["timestamp"],
+        ".read": "auth != null && (root.child('users').child(auth.uid).child('ownerId').val() == $ownerId || root.child('users').child(auth.uid).child('role').val() == 'developer')",
+        ".write": "auth != null"
       }
-    }
+    },
+    
+    "debug_webhook": { ".read": "auth != null", ".write": "true" },
+    "interaction_logs": { ".read": "auth != null", ".write": "true" },
+    
+    "stripe_config": { ".read": "auth != null", ".write": "root.child('users').child(auth.uid).child('role').val() == 'developer'" },
+    "ai_usage_global": { ".read": "auth != null", ".write": "false" }
   }
 }
