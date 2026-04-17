@@ -30,25 +30,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
   try {
     let ownerData = await getOwnerCredentials(webhookId);
 
-    // AUTO-SETUP: Se for fastline3 e não existir, tenta clonar de fastline2 (solicitação do usuário)
-    if (!ownerData && webhookId === 'fastline3') {
-       console.log('[webhook] auto-setup: cloning credentials from fastline2 to fastline3...');
-       const sourceData = await getOwnerCredentials('fastline2');
-       if (sourceData) {
-         const poolRef = rtdb.ref(`line_api_pool/${webhookId}`);
-         await poolRef.set({
-           ownerId: sourceData.id,
-           lineChannelAccessToken: sourceData.lineChannelAccessToken,
-           lineChannelSecret: sourceData.lineChannelSecret,
-           lineBasicId: sourceData.lineBasicId,
-           googleGenAiApiKey: sourceData.googleGenAiApiKey || '',
-           status: 'active',
-           isAutoCloned: true
-         }).catch(() => {});
-         ownerData = sourceData;
-         console.log('[webhook] auto-setup success!');
-       }
-    }
 
     if (!ownerData) {
       console.warn(`[webhook] Webhook ID NOT FOUND: ${webhookId}`);
@@ -297,7 +278,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
               console.log(`[webhook] processInviteHash concluído.`);
               continue; 
             } catch (e: any) {
-              console.error('[webhook] ERRO CRÍTICO em processInviteHash:', e?.message || e);
+              const errorDetails = {
+                message: e?.message || String(e),
+                stack: e?.stack || 'no stack',
+                potentialHash,
+                userId,
+                companyId,
+                ts: new Date().toISOString()
+              };
+              console.error('[webhook] ERRO CRÍTICO em processInviteHash:', errorDetails);
+              
+              // Log detalhado do erro de registro no DB
+              await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/INVITE_ERROR`).set(errorDetails).catch(() => {});
+              
               const errTxt = i18n('genericError', lang);
               await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: errTxt }] }).catch(() => {});
               continue;
@@ -409,72 +402,114 @@ async function processInviteHash(lineClient: any, companyId: string, userId: str
   const diagRef = rtdb.ref(`debug_invite/${companyId}/${userId}`);
   await diagRef.set({ ts: Date.now(), hash, companyId, userId, stage: 'started' }).catch(() => {});
 
+  // 1. Validar convite
   const invitesRef = rtdb.ref(`owner_data/${companyId}/invites`);
-  const invitesSnap = await invitesRef.orderByChild('hash').equalTo(hash).get();
+  let invitesSnap;
+  try {
+    invitesSnap = await invitesRef.orderByChild('hash').equalTo(hash).get();
+  } catch (err: any) {
+    await diagRef.update({ stage: 'query_error', error: err.message }).catch(() => {});
+    throw new Error(`Database query failed: ${err.message}`);
+  }
 
   await diagRef.update({ stage: 'queried', inviteExists: invitesSnap.exists(), hashQueried: hash }).catch(() => {});
 
   if (!invitesSnap.exists()) {
     await diagRef.update({ stage: 'not_found' }).catch(() => {});
-    await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: i18n('invalidCode', lang) }] })
-      .catch(() => lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: i18n('invalidCode', lang) }] }).catch(() => {}));
+    const msg = i18n('invalidCode', lang);
+    await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: msg }] })
+      .catch(() => lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: msg }] }).catch(() => {}));
     return;
   }
 
   let inviteKey: string | null = null;
   let inviteData: any = null;
-  invitesSnap.forEach((child: any) => { if (!child.val().used) { inviteKey = child.key; inviteData = child.val(); } });
+  invitesSnap.forEach((child: any) => { 
+    const val = child.val();
+    if (!val.used) { inviteKey = child.key; inviteData = val; } 
+  });
 
   await diagRef.update({ stage: 'found_invite', inviteKey, inviteUsed: !inviteKey }).catch(() => {});
 
   if (!inviteKey) {
-    await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: i18n('codeUsed', lang) }] })
-      .catch(() => lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: i18n('codeUsed', lang) }] }).catch(() => {}));
+    const msg = i18n('codeUsed', lang);
+    await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: msg }] })
+      .catch(() => lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: msg }] }).catch(() => {}));
     return;
   }
 
   const isManager = inviteData.role === 'manager';
   const inviteLang = (inviteData?.language as import('@/ai/i18n').Lang) || lang;
 
-  // Registrar usuário LINE
-  await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}`).update({
-    ownerId: companyId,
-    name: inviteData.inviteName,
-    fullName: senderName,
-    lineUserId: userId,
-    photo: photoUrl,
-    status: 2,
-    updatedAt: new Date().toISOString()
-  });
+  // 2. Registrar usuário LINE
+  try {
+    const userDataUpdate = {
+      ownerId: companyId,
+      name: inviteData.inviteName || senderName,
+      fullName: senderName,
+      lineUserId: userId,
+      photo: photoUrl || '',
+      status: 2,
+      updatedAt: new Date().toISOString()
+    };
+    await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}`).update(userDataUpdate);
 
-  // Salva idioma e nivel de acesso
-  await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/behavior`).update({
-    autonomyLevel: isManager ? 'elevated' : 'standard',
-    preferredLang: inviteLang,
-    updatedAt: new Date().toISOString()
-  });
+    // Salva idioma e nivel de acesso
+    await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/aiContext/behavior`).update({
+      autonomyLevel: isManager ? 'elevated' : 'standard',
+      preferredLang: inviteLang,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (err: any) {
+    await diagRef.update({ stage: 'user_registration_error', error: err.message }).catch(() => {});
+    throw new Error(`User registration failed: ${err.message}`);
+  }
 
-  // Vincular automaticamente aos CCs do convite
-  const costCenterIds: string[] = inviteData.costCenterIds || [];
-  if (costCenterIds.length > 0) {
-    const projectsSnap = await rtdb.ref(`owner_data/${companyId}/projects`).get();
-    const projects = projectsSnap.val() || {};
-    for (const [pId, pData] of Object.entries(projects) as [string, any][]) {
-      if (!pData.costcenters) continue;
-      for (const [ccId] of Object.entries(pData.costcenters)) {
-        if (!costCenterIds.includes(ccId)) continue;
-        const ccRef = rtdb.ref(`owner_data/${companyId}/projects/${pId}/costcenters/${ccId}`);
-        const ccSnap = await ccRef.get();
-        const existing: string[] = ccSnap.val()?.assignedLineUserIds || [];
-        if (!existing.includes(userId)) {
-          await ccRef.update({ assignedLineUserIds: [...existing, userId] });
+  // 3. Vincular aos Cost Centers
+  try {
+    const costCenterIds: string[] = inviteData.costCenterIds || [];
+    if (costCenterIds.length > 0) {
+      const projectsSnap = await rtdb.ref(`owner_data/${companyId}/projects`).get();
+      const projects = projectsSnap.val() || {};
+      for (const [pId, pData] of Object.entries(projects) as [string, any][]) {
+        if (!pData || typeof pData !== 'object' || !pData.costcenters) continue;
+        for (const [ccId, ccVal] of Object.entries(pData.costcenters) as [string, any][]) {
+          if (!costCenterIds.includes(ccId)) continue;
+          const ccRef = rtdb.ref(`owner_data/${companyId}/projects/${pId}/costcenters/${ccId}`);
+          const existing: string[] = ccVal?.assignedLineUserIds || [];
+          if (!existing.includes(userId)) {
+            await ccRef.update({ assignedLineUserIds: [...existing, userId] });
+          }
         }
       }
     }
+  } catch (err: any) {
+    console.warn('[webhook] Background CC assignment error:', err.message);
+    await diagRef.update({ stage: 'cc_assignment_warning', error: err.message }).catch(() => {});
+    // Não trava o processo se falhar o vínculo de CC, o registro principal já foi feito
   }
 
-  await rtdb.ref(`owner_data/${companyId}/invites/${inviteKey}`).update({ used: true, usedBy: userId, usedAt: new Date().toISOString() });
-  await logAudit({ ownerId: companyId, actor: { type: 'lineUser', id: userId, name: senderName }, action: 'create', entity: { type: 'lineUser', id: userId, path: `owner_data/${companyId}/lineUsers/${userId}`, label: inviteData.inviteName || senderName }, after: { name: inviteData.inviteName, fullName: senderName, lineUserId: userId, status: 2 }, source: 'line_bot', metadata: { inviteHash: hash } });
+  // 4. Finalizar Convite e Log
+  try {
+    await rtdb.ref(`owner_data/${companyId}/invites/${inviteKey}`).update({ used: true, usedBy: userId, usedAt: new Date().toISOString() });
+    
+    await logAudit({ 
+      ownerId: companyId, 
+      actor: { type: 'lineUser', id: userId, name: senderName }, 
+      action: 'create', 
+      entity: { 
+        type: 'lineUser', 
+        id: userId, 
+        path: `owner_data/${companyId}/lineUsers/${userId}`, 
+        label: inviteData.inviteName || senderName 
+      }, 
+      after: { name: inviteData.inviteName, fullName: senderName, lineUserId: userId, status: 2 }, 
+      source: 'line_bot', 
+      metadata: { inviteHash: hash } 
+    }).catch(() => {});
+  } catch (err: any) {
+    console.warn('[webhook] Audit/Invite update warning:', err.message);
+  }
 
   const msg = isManager ? i18n('managerRegistered', inviteLang, inviteData.inviteName) : i18n('userRegistered', inviteLang, inviteData.inviteName);
   

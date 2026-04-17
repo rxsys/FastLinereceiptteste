@@ -161,14 +161,27 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
          {projects?.map(project => (
            <div key={project.id} className="bg-white rounded-[2.5rem] border shadow-sm overflow-hidden">
              <div className="bg-slate-50 px-8 py-5 border-b flex justify-between items-center">
-                <div>
-                  <h3 className="text-xl font-black text-slate-800">{project.name}</h3>
-                  {project.description && <p className="text-sm text-slate-400 font-bold mt-0.5">{project.description}</p>}
-                </div>
-                <div className="flex gap-2">
-                   <Button variant="ghost" size="icon" onClick={() => setEditingProject(project)}><Edit2 className="w-4 h-4 text-indigo-400"/></Button><Button variant="ghost" size="icon" onClick={() => handleDelete(`projects/${project.id}`)}><Trash2 className="w-4 h-4 text-red-400"/></Button>
-                </div>
-             </div>
+                 <div className="flex-1">
+                   <h3 className="text-2xl font-black text-slate-800 tracking-tight">{project.name}</h3>
+                   {project.description && <p className="text-base text-slate-500 font-bold mt-1">{project.description}</p>}
+                 </div>
+                 <div className="flex gap-3">
+                    <Button 
+                      variant="secondary" 
+                      className="rounded-xl h-10 px-4 gap-2 font-black bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-100" 
+                      onClick={() => setEditingProject(project)}
+                    >
+                      <Edit2 className="w-4 h-4"/> 編集
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      className="rounded-xl h-10 px-4 gap-2 font-black bg-red-50 text-red-500 hover:bg-red-100 border border-red-100" 
+                      onClick={() => handleDelete(`projects/${project.id}`)}
+                    >
+                      <Trash2 className="w-4 h-4"/> 削除
+                    </Button>
+                 </div>
+              </div>
              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 {project.costcenters && Object.entries(project.costcenters).map(([id, cc]: [string, any]) => {
                   const ccStats = expensesByCc[id] || { total: 0, categories: {} };
@@ -176,7 +189,7 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
                   <div key={id} className="p-5 border rounded-[2rem] flex justify-between items-start hover:bg-slate-50 transition-all group relative">
                      {/* Esquerda: info */}
                      <div className="space-y-2 min-w-0 flex-1 pr-16">
-                        <h4 className="font-black text-base text-slate-700">{cc.name}</h4>
+                        <h4 className="font-black text-lg text-slate-700">{cc.name}</h4>
                         <Badge className={cn("text-xs border-none font-black", (PROJECT_STATUS as any)[cc.status]?.color)}>{(PROJECT_STATUS as any)[cc.status]?.label}</Badge>
                         <p className="text-sm font-bold text-slate-400 uppercase tracking-tighter">予算上限: ¥{(cc.totalValue || 0).toLocaleString()}</p>
                         <p className="text-sm font-bold text-amber-400 uppercase tracking-tighter">警告閾値: ¥{(cc.budgetLimit || 0).toLocaleString()}</p>
