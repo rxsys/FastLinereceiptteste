@@ -250,10 +250,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
             // Se já for status 2, só processa como hash se não houver texto ao redor (evita falso positivo com IDs de despesa)
             const isPureHash = text.toUpperCase().replace(/^#/, '') === potentialHash;
             if (isPureHash) {
-              const alreadyRegMsg = i18n('alreadyRegistered', lang) || "既に登録されています。ハッシュコードの送信は不要です。";
-              await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: alreadyRegMsg }] }).catch(() => 
+              const alreadyRegMsg = i18n('alreadyRegistered', lang);
+              await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: alreadyRegMsg }] }).catch(() =>
                 lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: alreadyRegMsg }] }).catch(() => {})
               );
+              continue;
             } else {
               // É um usuário ativo enviando um texto que contém um código (pode ser comando de IA)
               // Segue o fluxo normal de texto abaixo
@@ -332,7 +333,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
           }
         } else {
           const msg = userData.status === 1 ? i18n('pendingApproval', lang) : i18n('sendInviteCode', lang);
-          await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: msg }] });
+          await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: msg }] })
+            .catch(() => lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: msg }] }).catch(() => {}));
         }
       }
     }

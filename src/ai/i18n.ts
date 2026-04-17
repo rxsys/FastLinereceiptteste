@@ -214,6 +214,7 @@ const TRANSLATIONS = {
   sendInviteCode:  { ja: '⚠️ ご利用いただくには、招待コードをご送信くださいませ。', pt: '⚠️ Envie o código de convite.', en: '⚠️ Please send your invite code.', es: '⚠️ Envíe su código de invitación.', zh: '⚠️ 请发送邀请码。', ko: '⚠️ 초대 코드를 보내주세요.', vi: '⚠️ Vui lòng gửi mã mời.' },
   invalidCode:     { ja: '⚠️ 無効なコードでございます。\n正しい招待コードをご確認くださいませ。', pt: '⚠️ Código inválido.', en: '⚠️ Invalid code.', es: '⚠️ Código inválido.', zh: '⚠️ 无效代码。', ko: '⚠️ 유효하지 않은 코드입니다.', vi: '⚠️ Mã không hợp lệ.' },
   codeUsed:        { ja: '⚠️ このコードはすでに使用済みでございます。', pt: '⚠️ Código já utilizado.', en: '⚠️ Code already used.', es: '⚠️ Código ya utilizado.', zh: '⚠️ 代码已使用。', ko: '⚠️ 이미 사용된 코드입니다.', vi: '⚠️ Mã đã được sử dụng.' },
+  alreadyRegistered: { ja: '✅ 既に登録済みでございます。ハッシュコードの送信は不要です。', pt: '✅ Você já está registrado.', en: '✅ You are already registered.', es: '✅ Ya estás registrado.', zh: '✅ 您已注册。', ko: '✅ 이미 등록되었습니다.', vi: '✅ Bạn đã được đăng ký.' },
   alreadyProcessed: { ja: '⚠️ こちらの経費はすでに処理済みでございます。', pt: '⚠️ Esta despesa já foi processada.', en: '⚠️ This expense has already been processed.', es: '⚠️ Este gasto ya fue procesado.', zh: '⚠️ 此费用已处理。', ko: '⚠️ 이 비용은 이미 처리되었습니다.', vi: '⚠️ Chi phí này đã được xử lý.' },
   genericError:    { ja: '⚠️ 処理中にエラーが発生いたしました。\nしばらく経ってから再度お試しくださいませ。', pt: '⚠️ Ocorreu um erro. Tente novamente mais tarde.', en: '⚠️ An error occurred. Please try again later.', es: '⚠️ Ocurrió un error. Intente de nuevo más tarde.', zh: '⚠️ 发生错误。请稍后重试。', ko: '⚠️ 오류가 발생했습니다. 나중에 다시 시도하세요.', vi: '⚠️ Đã xảy ra lỗi. Vui lòng thử lại sau.' },
   ccRegistered: {
