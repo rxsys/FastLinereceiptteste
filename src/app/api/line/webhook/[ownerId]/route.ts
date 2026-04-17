@@ -28,7 +28,28 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
   }).catch(() => {});
 
   try {
-    const ownerData = await getOwnerCredentials(webhookId);
+    let ownerData = await getOwnerCredentials(webhookId);
+
+    // AUTO-SETUP: Se for fastline3 e não existir, tenta clonar de fastline2 (solicitação do usuário)
+    if (!ownerData && webhookId === 'fastline3') {
+       console.log('[webhook] auto-setup: cloning credentials from fastline2 to fastline3...');
+       const sourceData = await getOwnerCredentials('fastline2');
+       if (sourceData) {
+         const poolRef = rtdb.ref(`line_api_pool/${webhookId}`);
+         await poolRef.set({
+           ownerId: sourceData.id,
+           lineChannelAccessToken: sourceData.lineChannelAccessToken,
+           lineChannelSecret: sourceData.lineChannelSecret,
+           lineBasicId: sourceData.lineBasicId,
+           googleGenAiApiKey: sourceData.googleGenAiApiKey || '',
+           status: 'active',
+           isAutoCloned: true
+         }).catch(() => {});
+         ownerData = sourceData;
+         console.log('[webhook] auto-setup success!');
+       }
+    }
+
     if (!ownerData) {
       console.warn(`[webhook] Webhook ID NOT FOUND: ${webhookId}`);
       await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/stage_no_owner`).set(Date.now()).catch(() => {});
