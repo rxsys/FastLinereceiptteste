@@ -3,7 +3,7 @@
     ".read": true,
     ".write": true,
     "users": {
-      ".indexOn": ["ownerId"]
+      ".indexOn": ["ownerId", "email"]
     },
     "owner": {
       ".indexOn": ["stripeCustomerId"]
