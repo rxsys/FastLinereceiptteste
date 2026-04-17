@@ -80,14 +80,6 @@ export default function DashboardPage() {
       role: 'all',
       ready: true
     },
-    { 
-      id: 'settings', 
-      title: t.dash?.settings || 'Ajustes', 
-      icon: <Settings />, 
-      color: 'bg-slate-700', 
-      role: 'manager',
-      ready: true
-    },
   ], [t]);
 
   const allowedModules = useMemo(() => modules.filter(m => {
@@ -134,7 +126,27 @@ export default function DashboardPage() {
                 <div className="w-1 h-1 rounded-full bg-slate-200" />
                 <Badge variant="outline" className="text-[10px] font-black bg-primary/5 text-primary">{role || 'USER'}</Badge>
              </div>
-             <Button variant="ghost" size="sm" onClick={() => signOut(auth!)} className="text-slate-400 hover:text-red-500 font-black text-xs"><LogOut className="w-4 h-4 mr-2" />{t.dash?.logout || 'Logout'}</Button>
+             
+             <div className="flex items-center gap-1">
+                {(role === 'manager' || isDeveloper) && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setActiveTab('settings')}
+                    className={cn(
+                      "h-8 w-8 rounded-full transition-all text-slate-400 hover:text-slate-600",
+                      activeTab === 'settings' && "bg-slate-100 text-primary"
+                    )}
+                    title={t.dash?.settings || 'Settings'}
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                )}
+                <Button variant="ghost" size="sm" onClick={() => signOut(auth!)} className="text-slate-400 hover:text-red-500 font-black text-xs">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  {t.dash?.logout || 'Logout'}
+                </Button>
+             </div>
           </div>
         </div>
 
@@ -144,7 +156,6 @@ export default function DashboardPage() {
             <TabsTrigger value="expenses" className="rounded-2xl h-10 px-6 font-black">{t.dash?.expenses || 'Despesas'}</TabsTrigger>
             <TabsTrigger value="management" className="rounded-2xl h-10 px-6 font-black">{t.dash?.projects || 'Projetos'}</TabsTrigger>
             <TabsTrigger value="lineUsers" className="rounded-2xl h-10 px-6 font-black">{t.dash?.users || 'Usuários'}</TabsTrigger>
-            {(role === 'manager' || isDeveloper) && <TabsTrigger value="settings" className="rounded-2xl h-10 px-6 font-black">{t.dash?.settings || 'Ajustes'}</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="home" className="mt-0">
