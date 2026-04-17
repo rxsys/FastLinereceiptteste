@@ -295,7 +295,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
               // Log detalhado do erro de registro no DB
               await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/INVITE_ERROR`).set(errorDetails).catch(() => {});
               
-              const errTxt = i18n('genericError', lang);
+              const errTxt = `⚠️ 処理中にエラーが発生いたしました。\n\n[Debug Error]: ${e.message || String(e)}`;
               // Tenta via reply, se falhar tenta via push
               await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: errTxt }] })
                 .catch(() => lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: errTxt }] }).catch(() => {}));
@@ -397,7 +397,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
         for (const ev of events) {
           const uid = ev.source?.userId;
           if (uid) {
-            await lc.pushMessage({ to: uid, messages: [{ type: 'text', text: '⚠️ 処理中にエラーが発生いたしました。しばらくしてから再度お試しください。' }] }).catch(() => {});
+            await lc.pushMessage({ to: uid, messages: [{ type: 'text', text: `⚠️ 処理中にエラーが発生いたしました。\n\n[Fatal Error]: ${errorMsg}` }] }).catch(() => {});
           }
         }
       }
