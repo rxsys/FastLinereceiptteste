@@ -1,13 +1,4 @@
-import { db } from '@/lib/firebase';
-import { 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  getDocs, 
-  limit, 
-  serverTimestamp 
-} from 'firebase/firestore';
+import { getDatabase, ref, push, set } from 'firebase/database';
 
 export interface InvitationData {
   name: string;
@@ -17,54 +8,25 @@ export interface InvitationData {
   partnerId: string;
 }
 
-/**
- * Gera uma string aleatória curta de 8 caracteres.
- */
 export const generateShortHash = (): string => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < 8; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
+  const bytes = new Uint8Array(4);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
 };
 
-/**
- * Cria um convite no Firestore vinculado a uma hash curta.
- */
 export const createInvitation = async (data: InvitationData): Promise<string> => {
   const hash = generateShortHash();
-  
-  await addDoc(collection(db, 'invitations'), {
+  const database = getDatabase();
+  const newInviteRef = push(ref(database, `owner_data/${data.ownerId}/invites`));
+  await set(newInviteRef, {
     hash,
-    name: data.name,
+    inviteName: data.name,
+    role: 'user',
     projectIds: data.projectIds,
-    lang: data.lang,
-    ownerId: data.ownerId,
-    partnerId: data.partnerId,
-    status: 'pending',
-    createdAt: serverTimestamp(),
+    costCenterIds: [],
+    language: data.lang,
+    used: false,
+    createdAt: new Date().toISOString(),
   });
-
   return hash;
-};
-
-/**
- * Busca os dados do convite no Firestore através da hash.
- */
-export const getInvitationByHash = async (hash: string) => {
-  const q = query(
-    collection(db, 'invitations'), 
-    where('hash', '==', hash), 
-    limit(1)
-  );
-  
-  const querySnapshot = await getDocs(q);
-  
-  if (querySnapshot.empty) {
-    return null;
-  }
-
-  const doc = querySnapshot.docs[0];
-  return { id: doc.id, ...doc.data() };
 };
