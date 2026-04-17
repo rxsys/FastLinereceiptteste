@@ -4,6 +4,7 @@ import { useRTDBCollection } from '@/firebase/rtdb';
 import { useMemoFirebase, useUser, useDatabase } from '@/firebase';
 import { ref, query, push, set, update, remove, get } from 'firebase/database';
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Trash2, Edit2, Plus, Loader2, Users } from "lucide-react";
 import { useState, useMemo, useEffect } from 'react';
@@ -44,7 +45,7 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
   
   const [isAddProjectDialogOpen, setIsAddProjectDialogOpen] = useState(false);
   const [isAddCCDialogOpen, setIsAddCCDialogOpen] = useState(false);
-  const [newProject, setNewProject] = useState({ name: '' });
+  const [newProject, setNewProject] = useState({ name: '', description: '' });
   const [newCC, setNewCC] = useState({ name: '', status: 2, totalValue: '', budgetLimit: '', assignedLineUserIds: [] as string[], projectId: '' });
   const [editingProject, setEditingProject] = useState<any>(null);
   const [editingCC, setEditingCC] = useState<any>(null);
@@ -83,7 +84,7 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
     const payload = { ...newProject, createdAt: new Date().toISOString() };
     await set(newRef, payload);
     auditAction({ ownerId: effectiveOwnerId, actor: actor(), action: 'create', entity: { type: 'project', id: newRef.key || '', path: `owner_data/${effectiveOwnerId}/projects/${newRef.key}`, label: newProject.name }, after: payload, source: 'dashboard' }).catch(() => {});
-    setNewProject({ name: '' });
+    setNewProject({ name: '', description: '' });
     setIsAddProjectDialogOpen(false);
     toast({ title: "プロジェクトを登録しました" });
   };
@@ -149,7 +150,10 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
          {projects?.map(project => (
            <div key={project.id} className="bg-white rounded-[2.5rem] border shadow-sm overflow-hidden">
              <div className="bg-slate-50 px-8 py-5 border-b flex justify-between items-center">
-                <h3 className="text-base font-black text-slate-800">{project.name}</h3>
+                <div>
+                  <h3 className="text-base font-black text-slate-800">{project.name}</h3>
+                  {project.description && <p className="text-xs text-slate-400 font-bold mt-0.5">{project.description}</p>}
+                </div>
                 <div className="flex gap-2">
                    <Button variant="ghost" size="icon" onClick={() => handleDelete(`projects/${project.id}`)}><Trash2 className="w-4 h-4 text-red-400"/></Button>
                 </div>
@@ -212,8 +216,14 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
        <Dialog open={isAddProjectDialogOpen} onOpenChange={setIsAddProjectDialogOpen}>
           <DialogContent className="rounded-[2.5rem]"><DialogHeader><DialogTitle className="font-black">プロジェクトの新規登録</DialogTitle></DialogHeader>
             <div className="space-y-4 py-4">
-              <Label className="text-xs font-black uppercase text-slate-400">プロジェクト名称</Label>
-              <Input value={newProject.name} onChange={e => setNewProject({name: e.target.value})} className="h-12 rounded-xl font-bold" placeholder="例: 2024年度 新築プロジェクト" />
+              <div className="space-y-1">
+                <Label className="text-xs font-black uppercase text-slate-400">プロジェクト名称</Label>
+                <Input value={newProject.name} onChange={e => setNewProject({...newProject, name: e.target.value})} className="h-12 rounded-xl font-bold" placeholder="例: 2024年度 新築プロジェクト" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs font-black uppercase text-slate-400">プロジェクトの説明 (任意)</Label>
+                <Textarea value={newProject.description} onChange={e => setNewProject({...newProject, description: e.target.value})} className="rounded-xl font-bold min-h-[100px]" placeholder="プロジェクトの詳細について記入してください" />
+              </div>
             </div>
             <DialogFooter><Button onClick={handleAddProject} className="w-full h-12 rounded-xl font-black bg-slate-900 text-white">登録を保存する</Button></DialogFooter>
           </DialogContent>
