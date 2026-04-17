@@ -162,8 +162,8 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
            <div key={project.id} className="bg-white rounded-[2.5rem] border shadow-sm overflow-hidden">
              <div className="bg-slate-50 px-8 py-5 border-b flex justify-between items-center">
                 <div>
-                  <h3 className="text-base font-black text-slate-800">{project.name}</h3>
-                  {project.description && <p className="text-xs text-slate-400 font-bold mt-0.5">{project.description}</p>}
+                  <h3 className="text-xl font-black text-slate-800">{project.name}</h3>
+                  {project.description && <p className="text-sm text-slate-400 font-bold mt-0.5">{project.description}</p>}
                 </div>
                 <div className="flex gap-2">
                    <Button variant="ghost" size="icon" onClick={() => handleDelete(`projects/${project.id}`)}><Trash2 className="w-4 h-4 text-red-400"/></Button>
@@ -176,10 +176,10 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
                   <div key={id} className="p-5 border rounded-[2rem] flex justify-between items-start hover:bg-slate-50 transition-all group relative">
                      {/* Esquerda: info */}
                      <div className="space-y-2 min-w-0 flex-1 pr-16">
-                        <h4 className="font-black text-sm text-slate-700">{cc.name}</h4>
-                        <Badge className={cn("text-[10px] border-none font-black", (PROJECT_STATUS as any)[cc.status]?.color)}>{(PROJECT_STATUS as any)[cc.status]?.label}</Badge>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">予算上限: ¥{(cc.totalValue || 0).toLocaleString()}</p>
-                        <p className="text-xs font-bold text-amber-400 uppercase tracking-tighter">警告閾値: ¥{(cc.budgetLimit || 0).toLocaleString()}</p>
+                        <h4 className="font-black text-base text-slate-700">{cc.name}</h4>
+                        <Badge className={cn("text-xs border-none font-black", (PROJECT_STATUS as any)[cc.status]?.color)}>{(PROJECT_STATUS as any)[cc.status]?.label}</Badge>
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-tighter">予算上限: ¥{(cc.totalValue || 0).toLocaleString()}</p>
+                        <p className="text-sm font-bold text-amber-400 uppercase tracking-tighter">警告閾値: ¥{(cc.budgetLimit || 0).toLocaleString()}</p>
                         <div className="flex -space-x-2 mt-3 h-6">
                            {cc.assignedLineUserIds?.map((uid: string) => {
                              const u = lineUsers?.find(user => user.id === uid || user.lineUserId === uid);
