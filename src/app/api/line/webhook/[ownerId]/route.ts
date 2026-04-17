@@ -60,6 +60,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
       ownerDataId: ownerData.id,
       ownerDataOwnerId: ownerData.ownerId || null,
       hasToken: !!channelAccessToken,
+      forcedTest: true,
+      originalWebhookId: webhookIdFromParams
     }).catch(() => {});
 
     const payload = JSON.parse(body);
@@ -401,7 +403,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
 async function processInviteHash(lineClient: any, companyId: string, userId: string, senderName: string, photoUrl: string, replyToken: string, hash: string, lang: import('@/ai/i18n').Lang) {
   // Log diagnóstico: início da função
   const diagRef = rtdb.ref(`debug_invite/${companyId}/${userId}`);
-  await diagRef.set({ ts: Date.now(), hash, companyId, userId, stage: 'started' }).catch(() => {});
+  await diagRef.set({ ts: Date.now(), hash, companyId, userId, stage: 'started', path: `owner_data/${companyId}/invites` }).catch(() => {});
 
   // 1. Validar convite
   const invitesRef = rtdb.ref(`owner_data/${companyId}/invites`);
