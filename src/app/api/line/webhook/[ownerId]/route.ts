@@ -410,7 +410,7 @@ async function processInviteHash(lineClient: any, companyId: string, userId: str
   let invitesSnap;
   try {
     await diagRef.update({ stage: 'query_start', path: `owner_data/${companyId}/invites`, hash }).catch(() => {});
-    invitesSnap = await invitesRef.orderByChild('hash').equalTo(hash).once('value');
+    invitesSnap = await invitesRef.orderByChild('hash').equalTo(hash).get();
   } catch (err: any) {
     console.error('[processInviteHash] Query error:', err.message);
     await diagRef.update({ stage: 'query_error', error: err.message, stack: err.stack }).catch(() => {});
