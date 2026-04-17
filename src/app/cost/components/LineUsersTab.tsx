@@ -296,190 +296,149 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
               <DialogTrigger asChild><Button variant="outline" className="rounded-2xl gap-2 font-black"><Plus /> QR招待コード発行</Button></DialogTrigger>
               <DialogContent className="rounded-[2.5rem] max-w-lg max-h-[95vh] flex flex-col p-0 overflow-hidden">
                  <div className="px-8 pt-8 pb-3 shrink-0">
-                   <DialogHeader><DialogTitle className="font-black text-xl text-slate-800 tracking-tight">新規招待の発行</DialogTitle></DialogHeader>
+                   <DialogHeader><DialogTitle className="font-black text-xl text-slate-800 tracking-tight">{generatedHash ? '招待コードの発行完了' : '新規招待の発行'}</DialogTitle></DialogHeader>
                  </div>
                  
-                 <div className="flex-1 overflow-y-auto px-8 max-h-[60vh]">
-
-                   <div className="space-y-6 py-4">
-                    {/* Seletor de nível */}
-                    <div className="space-y-2">
-                       <Label className="text-[10px] font-black uppercase text-slate-400">招待の種類を選んでください</Label>
-                       <div className="grid grid-cols-2 gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setInviteRole('user')}
-                            className={cn(
-                              'flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden',
-                              inviteRole === 'user'
-                                ? 'border-indigo-500 bg-indigo-50'
-                                : 'border-slate-200 bg-white hover:border-slate-300'
-                            )}
-                          >
-                            <Users className={cn('w-5 h-5', inviteRole === 'user' ? 'text-indigo-600' : 'text-slate-400')} />
-                            <div className="text-center">
-                              <p className={cn('text-xs font-black', inviteRole === 'user' ? 'text-indigo-700' : 'text-slate-600')}>ユーザー</p>
-                              <p className="text-[9px] text-slate-400 font-medium mt-0.5">レシート送信・CC連携</p>
-                            </div>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setInviteRole('manager')}
-                            className={cn(
-                              'flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden',
-                              inviteRole === 'manager'
-                                ? 'border-violet-500 bg-violet-50'
-                                : 'border-slate-200 bg-white hover:border-slate-300'
-                            )}
-                          >
-                            <Crown className={cn('w-5 h-5', inviteRole === 'manager' ? 'text-violet-600' : 'text-slate-400')} />
-                            <div className="text-center">
-                              <p className={cn('text-xs font-black', inviteRole === 'manager' ? 'text-violet-700' : 'text-slate-600')}>マネージャー</p>
-                              <p className="text-[9px] text-slate-400 font-medium mt-0.5">管理者権限・CC不要</p>
-                            </div>
-                          </button>
-                       </div>
-                       <InfoHint message="一般スタッフ用か、管理者用かを選択します。" />
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label className="text-[10px] font-black uppercase text-slate-400">招待者氏名</Label>
-                      <Input placeholder="例: 山田 太郎" value={newInviteName} onChange={e => setNewInviteName(e.target.value)} className="h-12 rounded-xl font-bold" />
-                      <InfoHint message="管理画面の名簿で使用される名前です。" />
-                    </div>
-
-                    {/* IDIOMA MOVIDO PARA CIMA */}
-                    <div className="space-y-1">
-                       <Label className="text-[10px] font-black uppercase text-slate-400">優先言語</Label>
-                       <Select value={selectedInviteLanguage} onValueChange={setSelectedInviteLanguage}>
-                         <SelectTrigger className="h-12 w-full rounded-xl font-bold border-slate-200 bg-white shadow-sm">
-                           <SelectValue placeholder="言語を選択" />
-                         </SelectTrigger>
-                         <SelectContent className="rounded-xl" position="popper" sideOffset={5}>
-                           <SelectItem value="ja" className="font-bold">日本語 🇯🇵</SelectItem>
-                           <SelectItem value="pt" className="font-bold">Português 🇧🇷</SelectItem>
-                           <SelectItem value="en" className="font-bold">English 🇺🇸</SelectItem>
-                         </SelectContent>
-                       </Select>
-                       <InfoHint message="LINEボット que este usuário vai receber." />
-                    </div>
-
-                    {inviteRole === 'user' && (
-                    <div className="space-y-1">
-                      <Label className="text-[10px] font-black uppercase text-slate-400">担当プロジェクト及び原価センター</Label>
-                      <div className="border rounded-2xl p-6 bg-slate-50/30">
-                        {projects?.map(project => (
-                          <div key={project.id} className="mb-6 last:mb-0">
-                            <div className="flex items-center gap-2 mb-3">
-                              <Checkbox
-                                id={`invite-proj-${project.id}`}
-                                checked={selectedInviteProjectIds.includes(project.id)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setSelectedInviteProjectIds(prev => [...prev, project.id]);
-                                  } else {
-                                    setSelectedInviteProjectIds(prev => prev.filter(id => id !== project.id));
-                                    const projectCCIds = Object.keys(project.costcenters || {});
-                                    setSelectedInviteCostCenterIds(prev => prev.filter(id => !projectCCIds.includes(id)));
-                                  }
-                                }}
-                              />
-                              <Label htmlFor={`invite-proj-${project.id}`} className="font-black text-sm text-slate-700 flex items-center gap-2"><Building2 className="w-3.5 h-3.5"/> {project.name}</Label>
-                            </div>
-                            <div className="pl-6 space-y-3">
-                              {project.costcenters && Object.entries(project.costcenters).map(([id, cc]: [string, any]) => (
-                                <div key={id} className="flex items-center gap-2">
-                                  <Checkbox
-                                    id={`invite-cc-${id}`}
-                                    disabled={!selectedInviteProjectIds.includes(project.id)}
-                                    checked={selectedInviteCostCenterIds.includes(id)}
-                                    onCheckedChange={(checked) => {
-                                      if (checked) setSelectedInviteCostCenterIds(prev => [...prev, id]);
-                                      else setSelectedInviteCostCenterIds(prev => prev.filter(ccid => ccid !== id));
-                                    }}
-                                  />
-                                  <Label htmlFor={`invite-cc-${id}`} className="text-xs font-bold text-slate-500">{cc.name}</Label>
-                                </div>
-                              ))}
-                            </div>
+                 <div className="flex-1 overflow-y-auto px-8 max-h-[75vh]">
+                   {!generatedHash ? (
+                     <div className="space-y-6 py-4">
+                       {/* Seletor de nível */}
+                       <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-slate-400">招待の種類を選んでください</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                             <button
+                               type="button"
+                               onClick={() => setInviteRole('user')}
+                               className={cn(
+                                 'flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden',
+                                 inviteRole === 'user' ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 bg-white hover:border-slate-300'
+                               )}
+                             >
+                               <Users className={cn('w-5 h-5', inviteRole === 'user' ? 'text-indigo-600' : 'text-slate-400')} />
+                               <div className="text-center">
+                                 <p className={cn('text-xs font-black', inviteRole === 'user' ? 'text-indigo-700' : 'text-slate-600')}>ユーザー</p>
+                               </div>
+                             </button>
+                             <button
+                               type="button"
+                               onClick={() => setInviteRole('manager')}
+                               className={cn(
+                                 'flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden',
+                                 inviteRole === 'manager' ? 'border-violet-500 bg-violet-50' : 'border-slate-200 bg-white hover:border-slate-300'
+                               )}
+                             >
+                               <Crown className={cn('w-5 h-5', inviteRole === 'manager' ? 'text-violet-600' : 'text-slate-400')} />
+                               <div className="text-center">
+                                 <p className={cn('text-xs font-black', inviteRole === 'manager' ? 'text-violet-700' : 'text-slate-600')}>マネージャー</p>
+                               </div>
+                             </button>
                           </div>
-                        ))}
-                      </div>
-                      <InfoHint message="ユーザーがLINEで選択できる現場をチェックします。" />
-                    </div>
-                    )}
+                       </div>
 
-                    {inviteRole === 'manager' && (
-                    <div className="p-4 rounded-2xl bg-violet-50 border border-violet-100 flex items-start gap-3">
-                      <Crown className="w-4 h-4 text-violet-500 mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-xs font-black text-violet-700">マネージャー権限で登録</p>
-                        <p className="text-[10px] text-violet-500 mt-0.5 font-medium leading-relaxed">
-                          QRコードをスキャンするとLINE ID가自動的に取得され、管理者権限（招待・承認・全社レポート）が付与されます。プロジェクトやCCへの割り当ては不要です。
-                        </p>
-                      </div>
-                    </div>
-                    )}
+                       <div className="space-y-1">
+                         <Label className="text-[10px] font-black uppercase text-slate-400">招待者氏名</Label>
+                         <Input placeholder="例: 山田 太郎" value={newInviteName} onChange={e => setNewInviteName(e.target.value)} className="h-12 rounded-xl font-bold" />
+                       </div>
 
+                       <div className="space-y-1">
+                          <Label className="text-[10px] font-black uppercase text-slate-400">優先言語</Label>
+                          <Select value={selectedInviteLanguage} onValueChange={setSelectedInviteLanguage}>
+                            <SelectTrigger className="h-12 w-full rounded-xl font-bold border-slate-200 bg-white shadow-sm"><SelectValue placeholder="言語を選択" /></SelectTrigger>
+                            <SelectContent className="rounded-xl">
+                              <SelectItem value="ja" className="font-bold">日本語 🇯🇵</SelectItem>
+                              <SelectItem value="pt" className="font-bold">Português 🇧🇷</SelectItem>
+                              <SelectItem value="en" className="font-bold">English 🇺🇸</SelectItem>
+                            </SelectContent>
+                          </Select>
+                       </div>
 
-                    {generatedHash && (
-                      <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-[2rem] border border-slate-100 gap-4 animate-in zoom-in-95 duration-500">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.users?.qrTitle || '招待コード発行完了'}</p>
-                        
-                        <div className="bg-white p-5 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col items-center w-full">
-                            {!botId ? (
-                              <div className="w-full py-6 flex flex-col items-center justify-center text-center gap-2 text-amber-600 bg-amber-50 rounded-2xl border border-amber-100 mb-4">
-                                <span className="text-2xl">⏳</span>
-                                 <p className="text-[10px] font-black leading-tight">LINE Bot IDを同期中です</p>
-                                 <p className="text-[9px] text-amber-500 opacity-70 font-medium leading-tight">ページを再読み込みしてください。解決しない場合はSuperadminでBot設定を確認してください。</p>
-                              </div>
-                            ) : (
-                              <div className="relative group">
-                                <img src={qrUrl} className="w-44 h-44 mb-4 transition-transform group-hover:scale-105" alt="Invite QR" />
-                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-white/20 pointer-events-none rounded-xl">
-                                  <LinkIcon className="w-8 h-8 text-indigo-500 drop-shadow-md" />
-                                </div>
-                              </div>
-                            )}
-                            <div className="bg-slate-50 px-4 py-3 rounded-xl text-center mb-4 border border-slate-100 w-full">
-                              <p className="text-[10px] text-slate-400 font-bold mb-1">HASH</p>
-                              <p className="text-xl font-black text-slate-700 tracking-[0.2em]">{generatedHash}</p>
+                       {inviteRole === 'user' && (
+                       <div className="space-y-1">
+                         <Label className="text-[10px] font-black uppercase text-slate-400">担当プロジェクト及び原価センター</Label>
+                         <div className="border rounded-2xl p-6 bg-slate-50/30">
+                           {projects?.map(project => (
+                             <div key={project.id} className="mb-6 last:mb-0">
+                               <div className="flex items-center gap-2 mb-3">
+                                 <Checkbox
+                                   id={`invite-proj-${project.id}`}
+                                   checked={selectedInviteProjectIds.includes(project.id)}
+                                   onCheckedChange={(checked) => {
+                                     if (checked) setSelectedInviteProjectIds(prev => [...prev, project.id]);
+                                     else {
+                                       setSelectedInviteProjectIds(prev => prev.filter(id => id !== project.id));
+                                       const projectCCIds = Object.keys(project.costcenters || {});
+                                       setSelectedInviteCostCenterIds(prev => prev.filter(id => !projectCCIds.includes(id)));
+                                     }
+                                   }}
+                                 />
+                                 <Label htmlFor={`invite-proj-${project.id}`} className="font-black text-sm text-slate-700 flex items-center gap-2"><Building2 className="w-3.5 h-3.5"/> {project.name}</Label>
+                               </div>
+                               <div className="pl-6 space-y-3">
+                                 {project.costcenters && Object.entries(project.costcenters).map(([id, cc]: [string, any]) => (
+                                   <div key={id} className="flex items-center gap-2">
+                                     <Checkbox
+                                       id={`invite-cc-${id}`}
+                                       disabled={!selectedInviteProjectIds.includes(project.id)}
+                                       checked={selectedInviteCostCenterIds.includes(id)}
+                                       onCheckedChange={(checked) => {
+                                         if (checked) setSelectedInviteCostCenterIds(prev => [...prev, id]);
+                                         else setSelectedInviteCostCenterIds(prev => prev.filter(ccid => ccid !== id));
+                                       }}
+                                     />
+                                     <Label htmlFor={`invite-cc-${id}`} className="text-xs font-bold text-slate-500">{cc.name}</Label>
+                                   </div>
+                                 ))}
+                               </div>
+                             </div>
+                           ))}
+                         </div>
+                       </div>
+                       )}
+
+                       {inviteRole === 'manager' && (
+                       <div className="p-4 rounded-2xl bg-violet-50 border border-violet-100 flex items-start gap-3">
+                         <Crown className="w-4 h-4 text-violet-500 mt-0.5 shrink-0" />
+                         <p className="text-[10px] text-violet-500 font-medium leading-relaxed">
+                            管理者権限（招待・承認・全社レポート）を持つユーザーを招待します。プロジェクトへの割り当ては不要です。
+                         </p>
+                       </div>
+                       )}
+                     </div>
+                   ) : (
+                     <div className="py-8 animate-in zoom-in-95 duration-500">
+                        <div className="flex flex-col items-center justify-center p-6 bg-emerald-50/50 rounded-[2.5rem] border border-emerald-100 gap-6">
+                            <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col items-center w-full">
+                                <img src={qrUrl} className="w-52 h-52 mb-6 shadow-sm rounded-2xl" alt="Invite QR" />
+                                {qrData && (
+                                  <div className="bg-slate-50 px-5 py-4 rounded-2xl mb-4 border border-slate-200 w-full break-all text-center">
+                                    <p className="text-[10px] text-slate-400 font-bold mb-1 uppercase tracking-widest text-center">招待リンク</p>
+                                    <p className="text-[11px] font-mono text-slate-600">{qrData}</p>
+                                  </div>
+                                )}
+                                <Button
+                                  variant="secondary"
+                                  className="w-full h-14 rounded-2xl font-black gap-2 shadow-sm bg-slate-900 text-white hover:bg-slate-800"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(qrData || generatedHash!);
+                                    toast({ title: "コピーしました" });
+                                  }}
+                                >
+                                  <LinkIcon className="w-4 h-4" /> 招待リンクをコピー
+                                </Button>
                             </div>
-                            {qrData && (
-                              <div className="bg-slate-50 px-4 py-3 rounded-xl mb-4 border border-slate-100 w-full break-all">
-                                <p className="text-[10px] text-slate-400 font-bold mb-1">LINK</p>
-                                <p className="text-[10px] font-mono text-slate-500 overflow-hidden text-ellipsis whitespace-nowrap">{qrData}</p>
-                              </div>
-                            )}
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              className="h-10 rounded-full text-[12px] font-black gap-2 px-6 shadow-sm bg-slate-900 text-white hover:bg-slate-800"
-                              onClick={() => {
-                                const textToCopy = qrData || `招待コード: ${generatedHash}`;
-                                navigator.clipboard.writeText(textToCopy);
-                                toast({ title: t.users?.linkCopied || "コピーしました" });
-                              }}
-                            >
-                              <LinkIcon className="w-4 h-4" /> {qrData ? (t.users?.btnCopy || 'リンクをコピー') : 'HASHをコピー'}
-                            </Button>
+                            <div className="text-center space-y-2 px-6">
+                                <p className="text-sm font-black text-slate-900">QRコードまたはリンクを送信</p>
+                                <p className="text-[10px] text-slate-500 font-medium leading-relaxed">LINEでリンクを開くかQRを読み取ると登録が完了します。</p>
+                            </div>
                         </div>
-                        <div className="text-center space-y-1 px-4 mt-2">
-                            <p className="text-xs font-black text-slate-900">{t.users?.stepScan || 'QRコードをスキャンして完了'}</p>
-                            <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
-                                {t.users?.qrDesc || '招待された人は、LINEでこのQRを読み取り、送信ボタンを押すだけで登録が完了します。'}
-                            </p>
-                        </div>
-                      </div>
-                    )}
-                   </div>
+                     </div>
+                   )}
                  </div>
-
 
                  <div className="px-8 pb-8 pt-4 border-t border-slate-50 shrink-0">
                    <DialogFooter>
                       {!generatedHash ? (
-                        <Button onClick={handleGenerateQR} disabled={isGenerating || !newInviteName.trim()} className="w-full h-14 rounded-2xl font-black text-lg bg-slate-900 text-white shadow-xl hover:bg-slate-800 transition-all">
+                        <Button onClick={handleGenerateQR} disabled={isGenerating || !newInviteName.trim()} className="w-full h-14 rounded-2xl font-black text-lg bg-slate-900 text-white hover:bg-slate-800 transition-all">
                           {isGenerating ? <Loader2 className="animate-spin mr-2" /> : <Plus className="mr-2" />}
                           招待コードを生成する
                         </Button>
