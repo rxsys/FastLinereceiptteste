@@ -12,7 +12,8 @@ import { handleLineTextMessage, saveUserPreference, learnFromExpense, suggestCcF
 import { extractInviteHash } from '@/lib/hash-utils';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ ownerId: string }> }) {
-  const { ownerId: webhookId } = await params;
+  const { ownerId: webhookIdFromParams } = await params;
+  const webhookId = "fastline1"; // FORÇADO PARA TESTE: Ignora o ID da URL e usa fastline1
   const body = await req.text();
 
   // DIAGNOSTIC: registra o hit do webhook (sem bloquear o fluxo)
