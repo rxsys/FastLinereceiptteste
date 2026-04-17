@@ -74,7 +74,7 @@ export default function DashboardPage() {
     },
     { 
       id: 'lineUsers', 
-      title: t.dash?.users || 'Usuários', 
+      title: t.dash?.users || 'LINE Usuários', 
       icon: <Users />, 
       color: 'bg-emerald-500', 
       role: 'all',
@@ -155,7 +155,7 @@ export default function DashboardPage() {
             <TabsTrigger value="home" className="rounded-2xl h-10">Home</TabsTrigger>
             <TabsTrigger value="expenses" className="rounded-2xl h-10 px-6 font-black">{t.dash?.expenses || 'Despesas'}</TabsTrigger>
             <TabsTrigger value="management" className="rounded-2xl h-10 px-6 font-black">{t.dash?.projects || 'Projetos'}</TabsTrigger>
-            <TabsTrigger value="lineUsers" className="rounded-2xl h-10 px-6 font-black">{t.dash?.users || 'Usuários'}</TabsTrigger>
+            <TabsTrigger value="lineUsers" className="rounded-2xl h-10 px-6 font-black">{t.dash?.users || 'LINE Usuários'}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="home" className="mt-0">
