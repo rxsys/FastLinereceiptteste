@@ -162,16 +162,16 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
                      {/* Esquerda: info */}
                      <div className="space-y-2 min-w-0 flex-1 pr-16">
                         <h4 className="font-black text-sm text-slate-700">{cc.name}</h4>
-                        <Badge className={cn("text-[8px] border-none font-black", (PROJECT_STATUS as any)[cc.status]?.color)}>{(PROJECT_STATUS as any)[cc.status]?.label}</Badge>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">予算上限: ¥{(cc.totalValue || 0).toLocaleString()}</p>
-                        <p className="text-[10px] font-bold text-amber-400 uppercase tracking-tighter">警告閾値: ¥{(cc.budgetLimit || 0).toLocaleString()}</p>
+                        <Badge className={cn("text-[10px] border-none font-black", (PROJECT_STATUS as any)[cc.status]?.color)}>{(PROJECT_STATUS as any)[cc.status]?.label}</Badge>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">予算上限: ¥{(cc.totalValue || 0).toLocaleString()}</p>
+                        <p className="text-xs font-bold text-amber-400 uppercase tracking-tighter">警告閾値: ¥{(cc.budgetLimit || 0).toLocaleString()}</p>
                         <div className="flex -space-x-2 mt-3 h-6">
                            {cc.assignedLineUserIds?.map((uid: string) => {
                              const u = lineUsers?.find(user => user.id === uid || user.lineUserId === uid);
                              return u ? (
                                <Avatar key={uid} className="w-6 h-6 border-2 border-white shadow-sm grayscale-[0.2]">
                                   <AvatarImage src={u.photo} />
-                                  <AvatarFallback className="text-[8px]">{u.name?.charAt(0)}</AvatarFallback>
+                                  <AvatarFallback className="text-[10px]">{u.name?.charAt(0)}</AvatarFallback>
                                </Avatar>
                              ) : null;
                            })}
@@ -212,7 +212,7 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
        <Dialog open={isAddProjectDialogOpen} onOpenChange={setIsAddProjectDialogOpen}>
           <DialogContent className="rounded-[2.5rem]"><DialogHeader><DialogTitle className="font-black">プロジェクトの新規登録</DialogTitle></DialogHeader>
             <div className="space-y-4 py-4">
-              <Label className="text-[10px] font-black uppercase text-slate-400">プロジェクト名称</Label>
+              <Label className="text-xs font-black uppercase text-slate-400">プロジェクト名称</Label>
               <Input value={newProject.name} onChange={e => setNewProject({name: e.target.value})} className="h-12 rounded-xl font-bold" placeholder="例: 2024年度 新築プロジェクト" />
             </div>
             <DialogFooter><Button onClick={handleAddProject} className="w-full h-12 rounded-xl font-black bg-slate-900 text-white">登録を保存する</Button></DialogFooter>
@@ -225,23 +225,23 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
             <DialogHeader><DialogTitle className="font-black text-slate-800">原価センター情報の編集</DialogTitle></DialogHeader>
             <div className="space-y-6 py-4">
               <div className="space-y-1">
-                <Label className="text-[10px] font-black uppercase text-slate-400">名称 (拠点・部門・案件名)</Label>
+                <Label className="text-xs font-black uppercase text-slate-400">名称 (拠点・部門・案件名)</Label>
                 <Input value={editingCC?.name || ""} onChange={e => setEditingCC({...editingCC, name: e.target.value})} className="h-12 rounded-xl font-bold" />
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-black uppercase text-slate-400">予算上限（合計）</Label>
+                  <Label className="text-xs font-black uppercase text-slate-400">予算上限（合計）</Label>
                   <Input value={formatCurrency(editingCC?.totalValue || 0)} onChange={e => setEditingCC({...editingCC, totalValue: parseCurrency(e.target.value)})} className="h-12 rounded-xl font-bold" />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-black uppercase text-slate-400">警告閾値</Label>
+                  <Label className="text-xs font-black uppercase text-slate-400">警告閾値</Label>
                   <Input value={formatCurrency(editingCC?.budgetLimit || 0)} onChange={e => setEditingCC({...editingCC, budgetLimit: parseCurrency(e.target.value)})} className="h-12 rounded-xl font-bold" />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <Label className="text-[10px] font-black uppercase text-slate-400">ステータス</Label>
+                <Label className="text-xs font-black uppercase text-slate-400">ステータス</Label>
                 <Select value={String(editingCC?.status || 1)} onValueChange={v => setEditingCC({...editingCC, status: Number(v)})}>
                    <SelectTrigger className="h-12 rounded-xl font-bold"><SelectValue /></SelectTrigger>
                    <SelectContent className="rounded-xl">
@@ -251,7 +251,7 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-2"><Users className="w-3 h-3"/> 担当ユーザーの割り当て</Label>
+                <Label className="text-xs font-black uppercase text-slate-400 flex items-center gap-2"><Users className="w-3 h-3"/> 担当ユーザーの割り当て</Label>
                 <div className="border rounded-2xl p-4 bg-slate-50/50">
                   <ScrollArea className="h-40">
                     <div className="space-y-2">
@@ -266,11 +266,11 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
                               setEditingCC({...editingCC, assignedLineUserIds: Array.from(new Set(newIds))});
                             }}
                           />
-                          <Avatar className="w-8 h-8"><AvatarImage src={u.photo}/><AvatarFallback className="text-[10px]">{u.name?.charAt(0)}</AvatarFallback></Avatar>
+                          <Avatar className="w-8 h-8"><AvatarImage src={u.photo}/><AvatarFallback className="text-xs">{u.name?.charAt(0)}</AvatarFallback></Avatar>
                           <Label htmlFor={`u-${u.id}`} className="text-xs font-black text-slate-700 cursor-pointer flex-1 truncate">{u.fullName || u.name}</Label>
                         </div>
                       ))}
-                      {(!lineUsers || lineUsers.filter(u => u.status === 2).length === 0) && <p className="text-[10px] text-slate-400 italic p-4 text-center">利用可能なユーザーはいません</p>}
+                      {(!lineUsers || lineUsers.filter(u => u.status === 2).length === 0) && <p className="text-xs text-slate-400 italic p-4 text-center">利用可能なユーザーはいません</p>}
                     </div>
                   </ScrollArea>
                 </div>
@@ -285,22 +285,22 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
             <DialogHeader><DialogTitle className="font-black">原価センターの新規追加</DialogTitle></DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-1">
-                <Label className="text-[10px] font-black uppercase text-slate-400">名称 (拠点・部門・案件名)</Label>
+                <Label className="text-xs font-black uppercase text-slate-400">名称 (拠点・部門・案件名)</Label>
                 <Input value={newCC.name} onChange={e => setNewCC({...newCC, name: e.target.value})} className="h-12 rounded-xl font-bold" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-black uppercase text-slate-400">予算上限（合計）</Label>
+                  <Label className="text-xs font-black uppercase text-slate-400">予算上限（合計）</Label>
                   <Input value={formatCurrency(newCC.totalValue)} onChange={e => setNewCC({...newCC, totalValue: parseCurrency(e.target.value)})} className="h-12 rounded-xl font-bold" />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-black uppercase text-slate-400">警告閾値</Label>
+                  <Label className="text-xs font-black uppercase text-slate-400">警告閾値</Label>
                   <Input value={formatCurrency(newCC.budgetLimit)} onChange={e => setNewCC({...newCC, budgetLimit: parseCurrency(e.target.value)})} className="h-12 rounded-xl font-bold" />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-slate-400">担当ユーザーの割り当て</Label>
+                <Label className="text-xs font-black uppercase text-slate-400">担当ユーザー의割り当て</Label>
                 <div className="border rounded-2xl p-4 bg-slate-50/50">
                   <ScrollArea className="h-32">
                     <div className="space-y-2">
@@ -311,7 +311,7 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
                             let newIds = checked ? [...ids, u.id, u.lineUserId].filter(Boolean) : ids.filter(id => id !== u.id && id !== u.lineUserId);
                             setNewCC({...newCC, assignedLineUserIds: Array.from(new Set(newIds))});
                           }} />
-                          <Avatar className="w-6 h-6"><AvatarImage src={u.photo}/><AvatarFallback className="text-[8px]">{u.name?.charAt(0)}</AvatarFallback></Avatar>
+                          <Avatar className="w-6 h-6"><AvatarImage src={u.photo}/><AvatarFallback className="text-[10px]">{u.name?.charAt(0)}</AvatarFallback></Avatar>
                           <Label className="text-xs font-bold cursor-pointer flex-1 truncate">{u.name || u.fullName}</Label>
                         </div>
                       ))}
