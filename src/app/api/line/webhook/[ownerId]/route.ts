@@ -230,11 +230,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
         }).catch(() => {});
 
         // Comando especial de debug para o desenvolvedor identificar o ownerId
-        if (text.toUpperCase() === 'DEBUG_ID') {
-          const debugMsg = `Webhook ID: ${webhookId}\nCompany ID: ${companyId}\nUser ID: ${userId}\nUser Status: ${userData.status}`;
-          await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: debugMsg }] }).catch(() => 
-            lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: debugMsg }] }).catch(() => {})
-          );
+        if (text.toUpperCase().trim() === 'DEBUG_ID') {
+          console.log(`[webhook] DEBUG_ID command received. companyId: ${companyId}, userId: ${userId}`);
+          const debugMsg = `SUCESSO: Webhook Ativo!\n\nID do Bot: ${webhookId}\nID da Empresa: ${companyId}\nSeu ID de Usuário: ${userId}\nStatus Interno: ${userData.status}`;
+          await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: debugMsg }] }).catch(err => {
+            console.error('[webhook] Erro ao enviar DEBUG_ID:', err.message);
+          });
           continue;
         }
 
