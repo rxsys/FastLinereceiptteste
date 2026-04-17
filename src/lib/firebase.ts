@@ -20,18 +20,21 @@ function getFirebaseAdmin() {
 
     try {
       if (projectId && clientEmail && privateKey && privateKey.includes('BEGIN PRIVATE KEY')) {
+        console.log(`[firebase] Initializing with Service Account for project: ${projectId}`);
         initializeApp({
           credential: cert({ projectId, clientEmail, privateKey }),
           storageBucket: `${projectId}.firebasestorage.app`,
           ...config
         });
       } else {
+        console.log(`[firebase] Initializing with DEFAULT credentials for project: ${projectId}`);
         initializeApp({ 
           storageBucket: `${projectId}.firebasestorage.app`, 
           ...config 
         });
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error(`[firebase] Initialization error: ${error.message}`);
       if (!getApps().length) initializeApp({ storageBucket: `${projectId}.firebasestorage.app`, ...config });
     }
   }

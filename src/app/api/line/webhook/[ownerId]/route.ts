@@ -17,6 +17,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
   // DIAGNOSTIC: registra o hit do webhook (sem bloquear o fluxo)
   const diagRef = rtdb.ref(`debug_webhook/${webhookId}`).push();
   const diagId = diagRef.key;
+  
+  console.log(`\n--- WEBHOOK HIT: ${webhookId} (diag: ${diagId}) ---`);
+
   await diagRef.set({
     ts: Date.now(),
     stage: 'received',
@@ -27,16 +30,21 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
   try {
     const ownerData = await getOwnerCredentials(webhookId);
     if (!ownerData) {
-      console.warn(`[webhook] Webhook ID not found in pool or owners: ${webhookId}`);
+      console.warn(`[webhook] Webhook ID NOT FOUND: ${webhookId}`);
       await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/stage_no_owner`).set(Date.now()).catch(() => {});
       return new NextResponse('OK', { status: 200 });
     }
 
     const companyId = ownerData.ownerId || ownerData.id;
     const channelAccessToken = ownerData.lineChannelAccessToken;
-    const lineClient = getLineClient(channelAccessToken);
+    
+    if (!channelAccessToken) {
+       console.error(`[webhook] FATAL: No Channel Access Token found for ${companyId}`);
+       return new NextResponse('OK', { status: 200 });
+    }
 
-    console.log(`[webhook] Request for company: ${companyId} (Owner: ${ownerData.name || ownerData.id})`);
+    console.log(`[webhook] RESOLVED: company=${companyId}, bot_token=${channelAccessToken.substring(0, 10)}...`);
+    const lineClient = getLineClient(channelAccessToken);
 
     await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/resolved`).set({
       companyId,
