@@ -166,7 +166,7 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
                   {project.description && <p className="text-sm text-slate-400 font-bold mt-0.5">{project.description}</p>}
                 </div>
                 <div className="flex gap-2">
-                   <Button variant="ghost" size="icon" onClick={() => handleDelete(`projects/${project.id}`)}><Trash2 className="w-4 h-4 text-red-400"/></Button>
+                   <Button variant="ghost" size="icon" onClick={() => setEditingProject(project)}><Edit2 className="w-4 h-4 text-indigo-400"/></Button><Button variant="ghost" size="icon" onClick={() => handleDelete(`projects/${project.id}`)}><Trash2 className="w-4 h-4 text-red-400"/></Button>
                 </div>
              </div>
              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
