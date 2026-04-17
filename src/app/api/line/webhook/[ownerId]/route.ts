@@ -9,6 +9,7 @@ import { processExpenseNtaCheck } from '@/lib/nta-service';
 import { i18n } from '@/ai/i18n';
 import { logAudit } from '@/lib/audit';
 import { handleLineTextMessage, saveUserPreference, learnFromExpense, suggestCcFromPatterns, detectAmountAnomaly, logInteraction } from '@/ai/line-ai-manager';
+import { extractInviteHash } from '@/lib/hash-utils';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ ownerId: string }> }) {
   const { ownerId: webhookId } = await params;
@@ -229,10 +230,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
 
       if (type === 'message') {
         const text = (message.text || "").trim();
-        // Tenta localizar um hash hexadecimal de 8 caracteres na mensagem (A-F, 0-9)
-        const hashMatch = text.match(/([A-F0-9]{8})/i);
-        const hasPotentialHash = hashMatch !== null;
-        const potentialHash = hashMatch ? hashMatch[1].toUpperCase() : null;
+        const potentialHash = extractInviteHash(text);
+        const hasPotentialHash = potentialHash !== null;
 
         await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/msg`).set({
           userId, 
