@@ -442,16 +442,7 @@ export default function LandingPage() {
             <ModuleIcon emoji="📑" id="docs" title={t.modules.docs.title} color="#71717a" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('docs')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.docs.desc}</p>} priceLoading={stripeKeysLoading} />
 
             </div>
-          ) : (
-            <div className="mt-8 mb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
-               <Button 
-                 onClick={() => setIsLoginOpen(true)}
-                 className="h-16 px-12 bg-[#ff6b35] hover:bg-[#ff8555] text-white font-black rounded-2xl shadow-xl shadow-[#ff6b35]/20 text-lg transition-all hover:scale-105 active:scale-95"
-               >
-                 今すぐ始める <ArrowRight className="ml-2 w-5 h-5" />
-               </Button>
-            </div>
-          )}
+          ) : null}
 
           {/* Footer Area Removed */}
 
