@@ -78,6 +78,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
     const lineAiEnabled = !!aiConfig.lineAiEnabled;
 
     for (const event of events) {
+      try {
+
       if (event.type !== 'message' && event.type !== 'follow' && event.type !== 'postback') continue;
       
       const { replyToken, source, type, message } = event;
@@ -231,6 +233,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
 
       if (type === 'message') {
         const text = (message.text || "").trim();
+        if (text.toUpperCase() === 'PING') {
+          await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: 'PONG' }] }).catch(() => {});
+          continue;
+        }
+
         const potentialHash = extractInviteHash(text);
         const hasPotentialHash = potentialHash !== null;
 
@@ -354,6 +361,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
           await lineClient.replyMessage({ replyToken, messages: [{ type: 'text', text: msg }] })
             .catch(() => lineClient.pushMessage({ to: userId, messages: [{ type: 'text', text: msg }] }).catch(() => {}));
         }
+        }
+      } catch (err: any) {
+        console.error(`[webhook] Error processing individual event:`, err);
+        await rtdb.ref(`debug_webhook/${webhookId}/${diagId}/event_error`).set({
+          msg: err.message,
+          stack: err.stack,
+          ts: Date.now()
+        }).catch(() => {});
       }
     }
 
