@@ -411,8 +411,9 @@ export default function LandingPage() {
 
           {/* Infrastructure & Trust Section Removed */}
 
-          <div className="mt-20 opacity-10 select-none pointer-events-none">
-            <p className="text-[12px] font-black tracking-[1em] uppercase text-slate-900">FastLine Intelligence</p>
+          <div className="mt-20 opacity-30 select-none pointer-events-none flex items-center justify-center gap-3">
+            <img src="/logo.png" alt="" className="h-[20px] w-auto grayscale" />
+            <p className="text-[14px] font-black tracking-[0.3em] text-slate-900">田中組業務管理システム</p>
           </div>
         </main>
 
