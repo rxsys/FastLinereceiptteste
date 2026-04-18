@@ -214,15 +214,9 @@ export default function LandingPage() {
   const handleModuleClick = async (moduleId: string, priceId?: string, isActive?: boolean) => {
     if (!isActive) { toast({ title: "近日公開", description: "公開予定です。" }); return; }
     if (!user) { setSelectedModule({ id: moduleId, priceId: priceId || '' }); setIsLoginOpen(true); return; }
-    if (FREE_MODULES.includes(moduleId)) { router.push(MODULE_ROUTES[moduleId] || '/'); return; }
-
-    setSelectedModule({ id: moduleId, priceId: priceId || '' });
-
-    if (role === 'user') { setIsCheckoutOpen(true); return; }
-
-    const snap = await get(ref(database!, `owner/${ownerId || user.uid}`));
-    if (snap.val()?.subscriptions?.[moduleId]?.status === 'active') router.push(MODULE_ROUTES[moduleId] || '/cost');
-    else setIsCheckoutOpen(true);
+    
+    // Stripe disabled, go directly to module
+    router.push(MODULE_ROUTES[moduleId] || '/cost');
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -322,7 +316,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 bg-[#22c55e] rounded-md flex items-center justify-center text-white font-black text-lg shadow-[0_0_15px_rgba(34,197,94,0.4)]">F</div>
               <div className="flex items-center font-black text-xl tracking-tight">
-                <span className="text-slate-900">Fast</span><span className="text-[#22c55e]">Line</span>
+                <span className="text-slate-900">田中組</span><span className="text-[#22c55e]">管理システム</span>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -379,18 +373,7 @@ export default function LandingPage() {
           </div>
         </nav>
 
-        {/* Email Verification Banner */}
-        {user && !user.emailVerified && role !== 'developer' && (
-          <div className="fixed top-0 left-0 right-0 z-[60] bg-[#f59e0b] px-6 py-3 flex items-center justify-between gap-4 shadow-lg border-b border-white/10">
-            <div className="flex items-center gap-3">
-              <div className="bg-white/20 p-1.5 rounded-lg"><Mail className="w-5 h-5 text-white" /></div>
-              <p className="text-[13px] font-black text-white tracking-wide">メールアドレスの確認が必要です。受信ボックスをご確認ください。</p>
-            </div>
-            <button onClick={handleResendVerification} disabled={isLocalLoading} className="text-[12px] font-black text-white border border-white/30 px-5 py-2 rounded-xl hover:bg-black/10 transition-colors whitespace-nowrap bg-black/5">
-              {isLocalLoading ? '...' : '再送信'}
-            </button>
-          </div>
-        )}
+        {/* Email Verification Banner Removed */}
 
         <main className="pt-32 pb-32 px-6 flex flex-col items-center">
           {/* Hero text and categories removed per request */}
@@ -473,114 +456,9 @@ export default function LandingPage() {
             </div>
           )}
 
-          {/* Footer Area with Legal links */}
-          <div className="mt-20 w-full max-w-5xl pt-12 border-t border-slate-200 flex flex-col md:flex-row justify-between items-start gap-8 px-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-[#ff6b35] rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg">F</div>
-                <span className="font-black text-2xl tracking-tight text-slate-900">FastLine Platform</span>
-              </div>
-              <p className="text-[12px] text-slate-500 max-w-[300px] leading-relaxed">
-                © 2024 Fast LINE - 建設業界特化型コスト管理プラットフォーム
-              </p>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-12">
-              <div className="space-y-4">
-                <h4 className="text-[11px] font-black text-slate-400 tracking-widest uppercase">法的情報</h4>
-                <div className="flex flex-col gap-3">
-                  <Link href="/tokushoho" className="text-[12px] text-slate-500 hover:text-[#ff6b35] transition-colors">特定商取引法に基づく表記</Link>
-                  <Link href="/privacy" className="text-[12px] text-slate-500 hover:text-[#ff6b35] transition-colors">プライバシーポリシー</Link>
-                  <Link href="/terms" className="text-[12px] text-slate-500 hover:text-[#ff6b35] transition-colors">利用規約</Link>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <h4 className="text-[11px] font-black text-slate-400 tracking-widest uppercase">サポート</h4>
-                <div className="flex flex-col gap-2 text-[12px] text-slate-500">
-                  <p className="font-bold text-slate-700">RICARDO YUKIO (代表者)</p>
-                  <p>WhatsApp/Tel: 090-3277-7484</p>
-                  <p>Email: rxsys@gmail.com</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Footer Area Removed */}
 
-          {/* Infrastructure & Trust Section */}
-          <div className="mt-24 w-full max-w-5xl px-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              
-              {/* Stripe */}
-              <div className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Secure Payments</span>
-                </div>
-                <h3 className="text-lg font-black text-slate-800 leading-tight">100%安全な決済システム</h3>
-                <p className="text-slate-500 text-[11px] font-medium leading-relaxed flex-1">
-                  世界最高水準のセキュリティを誇る <span className="text-[#635bff] font-bold">Stripe</span> を採用。銀行レベルの暗号化技術で情報を保護します。
-                </p>
-                <div className="pt-2 flex items-center h-8 opacity-60 grayscale hover:grayscale-0 transition-all">
-                  <svg viewBox="0 0 60 25" className="h-6 fill-[#635bff]">
-                    <path d="M59.64 14.28c0-4.59-2.29-8.7-7.44-8.7-5.22 0-8.96 4.16-8.96 10.43 0 6.67 3.86 10.12 9.28 10.12 2.23 0 4.27-.6 5.8-1.59v-3.5c-1.27.76-2.73 1.2-4.33 1.2-2.59 0-4.31-1.31-4.31-3.61h10.03c.01-.15.01-.21.01-.35zm-7.12-3.1c1.92 0 3.03 1.06 3.03 2.94h-6.19c.14-1.88 1.24-2.94 3.16-2.94zM33.26 6.15c-1.14 0-2.64.47-3.4 1.18V6.44h-5.13v18.53l5.51-1.17V17.3c.76.68 2.26 1.15 3.4 1.15 4.38 0 7.16-3.34 7.16-7.99 0-4.62-2.8-8.31-7.54-8.31zm-1.58 8.27c-1.32 0-2.31-.34-2.31-1.63V11.2c0-1.29.99-1.63 2.31-1.63 1.63 0 2.35 1.05 2.35 2.47 0 1.42-.72 2.38-2.35 2.38zM11.48 6.15c-4.43 0-7.39 3.1-7.39 7.63 0 4.54 2.96 7.64 7.39 7.64 2.25 0 4.04-.54 5.37-1.39V15.7c-1.12.63-2.61 1.01-4.14 1.01-1.92 0-2.81-1.02-2.81-2.4V6.44h4.14v-4l-4.14 1.14V6.15zM22.09 6.44h-5.51v12.03h5.51V6.44zM22.09 2.05h-5.51v4.39h5.51V2.05zM0 6.44h5.51v12.03H0V6.44z"/>
-                  </svg>
-                </div>
-              </div>
-
-              {/* Gemini AI */}
-              <div className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
-                <div className="flex items-center gap-2">
-                  <Brain className="w-4 h-4 text-violet-500" />
-                  <span className="text-[10px] font-black text-violet-600 uppercase tracking-widest">Advanced AI</span>
-                </div>
-                <h3 className="text-lg font-black text-slate-800 leading-tight">Google Gemini 1.5 Pro</h3>
-                <p className="text-slate-500 text-[11px] font-medium leading-relaxed flex-1">
-                  世界最高峰のAIエンジンを搭載。領収書の複雑な項目を高精度で自動抽出し、業務効率化を極限まで高めます。
-                </p>
-                <div className="pt-2 flex items-center h-8 opacity-70 grayscale hover:grayscale-0 transition-all">
-                  <div className="flex items-center gap-1">
-                    <div className="w-5 h-5 bg-gradient-to-br from-blue-400 to-violet-600 rounded-full blur-[2px] opacity-80" />
-                    <span className="text-[12px] font-black tracking-tighter text-slate-900">Google Gemini</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Firebase */}
-              <div className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
-                <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-orange-500" />
-                  <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Data Infrastructure</span>
-                </div>
-                <h3 className="text-lg font-black text-slate-800 leading-tight">Real-time Data Sync</h3>
-                <p className="text-slate-500 text-[11px] font-medium leading-relaxed flex-1">
-                  Google Firebaseを採用し、情報の即時同期を実現。強固なGoogleのインフラが24時間体制でデータを保護します。
-                </p>
-                <div className="pt-2 flex items-center h-8 opacity-70 grayscale hover:grayscale-0 transition-all">
-                   <div className="flex items-center gap-1.5">
-                     <svg viewBox="0 0 32 32" className="h-5 fill-[#FFA611]"><path d="M5.442,22.846L3.109,8.586c-0.101-0.613,0.373-1.189,0.992-1.189c0.128,0,0.252,0.025,0.364,0.076L16,13.26L5.442,22.846z"/><path d="M5.442,22.846L2.348,25.66c-0.457,0.416-0.344,1.164,0.224,1.424l12.448,5.659c0.618,0.281,1.332,0.281,1.95,0l12.451-5.659c0.569-0.259,0.686-1.011,0.226-1.427l-3.219-2.909L16,32.001L5.442,22.846z"/><path d="M16,13.26l1.233-0.56L16,12L5.442,22.846L16,13.26L16,13.26z"/><path d="M26.216,22.75l-4.225-18.04c-0.125-0.531-0.688-0.811-1.171-0.582L16,13.261l10.216,9.489L26.216,22.75z"/></svg>
-                     <span className="text-[11px] font-bold text-[#2C3E50]">Firebase</span>
-                   </div>
-                </div>
-              </div>
-
-              {/* LINE Messaging */}
-              <div className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
-                <div className="flex items-center gap-2">
-                  <MessageCircle className="w-4 h-4 text-green-500" />
-                  <span className="text-[10px] font-black text-green-600 uppercase tracking-widest">Smart Communication</span>
-                </div>
-                <h3 className="text-lg font-black text-slate-800 leading-tight">LINE Messaging API</h3>
-                <p className="text-slate-500 text-[11px] font-medium leading-relaxed flex-1">
-                  公式APIを通じた最高水準の機密通信。使い慣れたLINEを、安全かつシームレスにビジネスツールへと進化させます。
-                </p>
-                <div className="pt-2 flex items-center h-8 opacity-70 grayscale hover:grayscale-0 transition-all">
-                   <div className="flex items-center gap-1.5">
-                     <div className="w-6 h-6 bg-[#06C755] rounded-lg flex items-center justify-center font-black text-white text-[10px]">LINE</div>
-                     <span className="text-[10px] font-bold text-slate-900">Official Partner</span>
-                   </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
+          {/* Infrastructure & Trust Section Removed */}
 
           <div className="mt-20 opacity-10 select-none pointer-events-none">
             <p className="text-[12px] font-black tracking-[1em] uppercase text-slate-900">FastLine Intelligence</p>
