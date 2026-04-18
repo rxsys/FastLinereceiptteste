@@ -38,6 +38,8 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
 
   // Sub-form state
   const [showCreditForm, setShowCreditForm] = useState(false);
+  const [creditTab, setCreditTab] = useState<'line' | 'manual'>('line');
+  const [manualCreatedId, setManualCreatedId] = useState<string | null>(null);
   const [creditAmount, setCreditAmount] = useState('');
   const [creditDesc, setCreditDesc] = useState('');
   const [creditFile, setCreditFile] = useState<File | null>(null);
@@ -130,6 +132,7 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
     setCreditDesc('');
     setCreditFile(null);
     setShowCreditForm(false);
+    setManualCreatedId(null);
   };
 
   // Botão A — 手書き領収書で登録 (manual, no LINE)
@@ -143,20 +146,13 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
       const manualPayload = { amount: Number(creditAmount), description: creditDesc, ...(imageUrl ? { imageUrl } : {}), createdAt: new Date().toISOString(), signed: true, status: 'manual' };
       await set(advRef, manualPayload);
       auditAction({ ownerId, actor: { type: 'user', id: authUser?.uid || 'unknown', name: authUser?.displayName || authUser?.email || 'manager', role: 'manager' }, action: 'create', entity: { type: 'advance', id: receiptId || '', path: `owner_data/${ownerId}/lineUsers/${user.id}/wallet/advances/${receiptId}`, label: `¥${Number(creditAmount).toLocaleString()} ${creditDesc} (手書き)` }, after: manualPayload, source: 'dashboard' }).catch(() => {});
-      resetCreditForm();
+      setCreditAmount('');
+      setCreditDesc('');
+      setCreditFile(null);
+      setManualCreatedId(receiptId);
       toast({
         title: '手書き領収書を登録しました',
-        description: '印刷ボタンから印刷できます',
-        action: receiptId ? (
-          <Button
-            size="sm"
-            variant="outline"
-            className="rounded-xl font-black text-[10px]"
-            onClick={() => window.open(`/print/${ownerId}_${user.id}_${receiptId}`, '_blank')}
-          >
-            <Printer className="w-3 h-3 mr-1" /> 印刷
-          </Button>
-        ) : undefined,
+        description: '下の印刷ボタンから印刷できます',
       });
     } catch (e) {
       toast({ variant: 'destructive', title: 'エラー', description: String(e) });
@@ -309,8 +305,27 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
           {/* Credit sub-form */}
           {showCreditForm && (
             <div className="mt-4 bg-white/10 rounded-2xl p-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
-              <p className="text-[10px] font-black text-slate-300 uppercase tracking-tight">新規クレジット追加</p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center justify-between pb-1">
+                <p className="text-[10px] font-black text-slate-300 uppercase tracking-tight">新規クレジット追加</p>
+              </div>
+
+              {/* Tabs */}
+              <div className="flex bg-white/5 p-1 rounded-xl">
+                <button 
+                  onClick={() => { setCreditTab('line'); setManualCreatedId(null); }} 
+                  className={cn("flex-1 text-[11px] font-black rounded-lg py-2 transition-all flex items-center justify-center gap-1.5", creditTab === 'line' ? "bg-emerald-500 text-white shadow-sm" : "text-slate-400 hover:text-white hover:bg-white/5")}
+                >
+                  <FileSignature className="w-3 h-3" /> LINEで署名依頼
+                </button>
+                <button 
+                  onClick={() => setCreditTab('manual')} 
+                  className={cn("flex-1 text-[11px] font-black rounded-lg py-2 transition-all flex items-center justify-center gap-1.5", creditTab === 'manual' ? "bg-slate-100 text-slate-800 shadow-sm" : "text-slate-400 hover:text-white hover:bg-white/5")}
+                >
+                  <PenTool className="w-3 h-3" /> 手書き領収書で登録
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
                 <div className="space-y-1">
                   <Label className="text-[9px] font-black text-slate-400 uppercase">金額</Label>
                   <div className="relative">
@@ -334,35 +349,54 @@ export function UserWalletModal({ isOpen, onClose, user, ownerId, onOpenExpense 
                   />
                 </div>
               </div>
-              <div className="space-y-1">
-                <Label className="text-[9px] font-black text-slate-400 uppercase">証憑ファイル (任意)</Label>
-                <label className="flex items-center gap-2 cursor-pointer bg-white/5 border border-white/20 border-dashed rounded-xl px-4 py-2.5 hover:bg-white/10 transition-colors">
-                  <CloudUpload className="w-4 h-4 text-slate-400" />
-                  <span className="text-[11px] font-bold text-slate-400">
-                    {creditFile ? creditFile.name : 'ファイルを選択...'}
-                  </span>
-                  <input type="file" className="hidden" accept="image/*,application/pdf"
-                    onChange={e => setCreditFile(e.target.files?.[0] || null)} />
-                  {creditFile && (
-                    <button onClick={(e) => { e.preventDefault(); setCreditFile(null); }} className="ml-auto">
-                      <X className="w-3.5 h-3.5 text-slate-400 hover:text-red-400" />
-                    </button>
-                  )}
-                </label>
-              </div>
-              <div className="space-y-2 pt-1">
-                <div className="grid grid-cols-2 gap-2">
-                  <Button onClick={handleSaveManual} disabled={saving || !creditAmount}
-                    className="h-10 rounded-xl font-black text-[11px] bg-slate-100 hover:bg-white text-slate-900 shadow-lg gap-1.5">
-                    {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Printer className="w-3.5 h-3.5" />手書き領収書で登録</>}
-                  </Button>
-                  <Button onClick={handleSaveWithLine} disabled={saving || !creditAmount}
-                    className="h-10 rounded-xl font-black text-[11px] bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 gap-1.5">
-                    {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><FileSignature className="w-3.5 h-3.5" />LINEで署名依頼</>}
-                  </Button>
+              {creditTab === 'line' && (
+                <div className="space-y-1">
+                  <Label className="text-[9px] font-black text-slate-400 uppercase">証憑ファイル (任意)</Label>
+                  <label className="flex items-center gap-2 cursor-pointer bg-white/5 border border-white/20 border-dashed rounded-xl px-4 py-2.5 hover:bg-white/10 transition-colors">
+                    <CloudUpload className="w-4 h-4 text-slate-400" />
+                    <span className="text-[11px] font-bold text-slate-400">
+                      {creditFile ? creditFile.name : 'ファイルを選択...'}
+                    </span>
+                    <input type="file" className="hidden" accept="image/*,application/pdf"
+                      onChange={e => setCreditFile(e.target.files?.[0] || null)} />
+                    {creditFile && (
+                      <button onClick={(e) => { e.preventDefault(); setCreditFile(null); }} className="ml-auto">
+                        <X className="w-3.5 h-3.5 text-slate-400 hover:text-red-400" />
+                      </button>
+                    )}
+                  </label>
                 </div>
-                <Button variant="ghost" onClick={() => setShowCreditForm(false)}
-                  className="w-full h-8 rounded-xl font-black text-[10px] text-slate-400 hover:text-white">
+              )}
+              
+              <div className="space-y-2 pt-2">
+                {creditTab === 'line' ? (
+                  <Button onClick={handleSaveWithLine} disabled={saving || !creditAmount}
+                    className="w-full h-10 rounded-xl font-black text-[11px] bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 gap-1.5">
+                    {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><FileSignature className="w-3.5 h-3.5" />LINEで署名依頼を送信</>}
+                  </Button>
+                ) : (
+                  <>
+                    <Button onClick={handleSaveManual} disabled={saving || !creditAmount}
+                      className="w-full h-10 rounded-xl font-black text-[11px] bg-slate-100 hover:bg-white text-slate-900 shadow-lg gap-1.5 border border-transparent">
+                      {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><PenTool className="w-3.5 h-3.5 text-slate-600" />手書き領収書を作成</>}
+                    </Button>
+                    
+                    {manualCreatedId && (
+                      <div className="mt-4 p-4 rounded-xl bg-white/5 border border-white/10 flex flex-col items-center gap-2 animate-in fade-in duration-300">
+                        <p className="text-[10px] text-emerald-400 font-bold">✅ 領収書が作成されました</p>
+                        <Button 
+                          onClick={() => window.open(`/print/${ownerId}_${user.id}_${manualCreatedId}`, '_blank')}
+                          className="w-full h-12 rounded-xl font-black text-[13px] bg-white text-slate-900 hover:bg-slate-100 border-2 border-white gap-2 shadow-xl"
+                        >
+                          <Printer className="w-4 h-4 text-slate-600" /> 領収書を印刷する
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+                
+                <Button variant="ghost" onClick={resetCreditForm}
+                  className="w-full h-8 rounded-xl font-black text-[10px] text-slate-400 hover:text-white mt-1">
                   キャンセル
                 </Button>
               </div>
