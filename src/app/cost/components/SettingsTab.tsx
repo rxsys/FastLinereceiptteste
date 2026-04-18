@@ -204,16 +204,18 @@ export function SettingsTab({ version, hideUserManagement = false, t, ownerIdOve
                 <div className="space-y-4 py-4">
                    <div className="space-y-1">
                       <Label>氏名</Label>
-                      <Input value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="h-12 rounded-xl" />
+                      <Input placeholder="例: 鈴木一郎 / 株式会社○○" value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="h-12 rounded-xl" />
                       <p className="text-[10px] text-slate-500 mt-1">※この名前は、LINEユーザーへの経費精算通知など、アプリ内の様々なサービスで表示されます。</p>
                    </div>
                    <div className="space-y-1">
                       <Label>メールアドレス</Label>
-                      <Input type="email" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="h-12 rounded-xl" />
+                      <Input type="email" placeholder="例: yamada@example.com" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="h-12 rounded-xl" />
+                      <p className="text-[10px] text-slate-500 mt-1">※システムのログインに使用します。実際の受信可能なアドレスを推奨します。</p>
                    </div>
                    <div className="space-y-1">
                       <Label>パスワード</Label>
-                      <Input type="text" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} className="h-12 rounded-xl" />
+                      <Input type="text" placeholder="6文字以上の半角英数字" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} className="h-12 rounded-xl" />
+                      <p className="text-[10px] text-slate-500 mt-1">※ログイン時に必要です。6文字以上で安全なパスワードを設定してください。</p>
                    </div>
                    <div className="space-y-1">
                       <Label>権限</Label>
@@ -224,6 +226,7 @@ export function SettingsTab({ version, hideUserManagement = false, t, ownerIdOve
                           <SelectItem value="manager">管理者</SelectItem>
                         </SelectContent>
                       </Select>
+                      <p className="text-[10px] text-slate-500 mt-1">※「管理者」は全設定が変更可能です。「一般ユーザー」は自身のデータのみ操作可能です。</p>
                    </div>
                 </div>
                 <DialogFooter><Button onClick={handleAddUser} disabled={isAddingUser} className="w-full h-12 rounded-xl font-black bg-emerald-600">登録を実行する</Button></DialogFooter>
