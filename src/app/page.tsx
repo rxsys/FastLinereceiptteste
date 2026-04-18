@@ -297,14 +297,7 @@ export default function LandingPage() {
 
   const currentPriceId = stripeKeys?.mode === 'test' ? stripeKeys?.testPriceId : stripeKeys?.livePriceId;
 
-  const languages = [
-    { code: 'ja', name: '日本語', flag: '🇯🇵' },
-    { code: 'en', name: 'English', flag: '🇺🇸' },
-    { code: 'pt', name: 'Português', flag: '🇧🇷' },
-    { code: 'es', name: 'Español', flag: '🇪🇸' },
-    { code: 'zh', name: '中文', flag: '🇨🇳' },
-    { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
-  ];
+
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -317,23 +310,7 @@ export default function LandingPage() {
               <img src="/logo.png" alt="田中組管理システム" className="h-[28px] w-auto object-contain" />
             </div>
             <div className="flex items-center gap-4">
-              <Select value={currentLang} onValueChange={handleLangChange}>
-                <SelectTrigger className="w-[110px] h-9 bg-slate-50 border-slate-200 text-slate-600 rounded-xl focus:ring-0 text-[12px] font-bold">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">{languages.find(l => l.code === currentLang)?.flag}</span>
-                    <span>{languages.find(l => l.code === currentLang)?.code.toUpperCase()}</span>
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="bg-white border-slate-200 text-slate-800 rounded-2xl shadow-xl">
-                  {languages.map((lang) => (
-                    <SelectItem key={lang.code} value={lang.code} className="focus:bg-slate-100 focus:text-slate-900 rounded-xl text-[12px] font-bold">
-                      <div className="flex items-center gap-2">
-                        <span className="text-base">{lang.flag}</span><span>{lang.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
 
               {user ? (
                 <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-4 duration-500">
