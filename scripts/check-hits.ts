@@ -2,7 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get, query, limitToLast } from "firebase/database";
 
 const firebaseConfig = {
-  databaseURL: "https://studio-3353968200-c57b0-default-rtdb.firebaseio.com",
+  databaseURL: "https://fastline-app-default-rtdb.asia-southeast1.firebasedatabase.app",
 };
 
 const app = initializeApp(firebaseConfig);

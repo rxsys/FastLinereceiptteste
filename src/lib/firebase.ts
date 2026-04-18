@@ -15,7 +15,7 @@ function getFirebaseAdmin() {
 
     // URL original do projeto
     const config = {
-      databaseURL: "https://fastline-app-default-rtdb.asia-southeast1.firebasedatabase.app"
+      databaseURL: "https://studio-3353968200-c57b0-default-rtdb.firebaseio.com"
     };
 
     try {
