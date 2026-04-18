@@ -344,34 +344,54 @@ export default function LandingPage() {
           {/* Hero text and categories removed per request */}
 
           {user ? (
-            <div className="mt-4 w-full max-w-[1000px] grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-x-8 gap-y-12 pb-24">
-              <ModuleIcon
-                emoji="💴" id="receipt" title={t.modules.receipt.title} color="#22c55e" active
-                priceId={stripeKeys?.receiptPriceId || (stripeKeys?.mode === 'live' ? stripeKeys?.livePriceId : stripeKeys?.testPriceId)}
-                priceLoading={stripeKeysLoading}
-                isSubscribed={activeModules.includes('receipt')}
-                onModuleClick={handleModuleClick}
-                tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">💴 コスト管理</p><div className="space-y-1.5">{[["📱","LINEで写真を送るだけで経費登録"],["🤖","AIが金額・日付・税率を自動抽出"],["🏛️","NTA適格請求書をリアルタイム認証"],["📊","プロジェクト別の予算・実績を管理"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[12px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
-              />
-              <ModuleIcon
-                emoji="🧑‍💼" id="member" title={t.modules.member.title} color="#6366f1" active={false}
-                priceId={stripeKeys?.memberPriceId || (stripeKeys?.mode === 'live' ? stripeKeys?.livePriceId : stripeKeys?.testPriceId)}
-                priceLoading={stripeKeysLoading}
-                isSubscribed={activeModules.includes('member')}
-                onModuleClick={handleModuleClick}
-                tooltip={<div className="space-y-2.5 p-1"><p className="font-black text-[13px] text-slate-800">🧑‍💼 メンバー管理</p><p className="text-[12px] text-amber-600 font-bold bg-amber-50 p-3 rounded-xl border border-amber-100">🚧 このモジュールは現在開発中です。まもなく公開されます。</p></div>}
-              />
-              <ModuleIcon
-                emoji="🪪" id="mypage" title={t.modules.mypage.title} color="#0ea5e9" active
-                priceLoading={stripeKeysLoading}
-                isSubscribed={activeModules.includes('mypage')}
-                onModuleClick={handleModuleClick}
-                tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">🪪 マイページ</p><div className="space-y-1.5">{[["📋","勤怠・給与・書類を一画面で確認"],["🔗","QRコードで複数企業に対応"],["🌐","6言語対応の個人ポータル"],["📄","書類の期限アラートを自己管理"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[12px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
-              />
-              <ModuleIcon emoji="📁" id="project" title={t.modules.project.title} color="#6366f1" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('project')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.project.desc}</p>} priceLoading={stripeKeysLoading} />
+            <div className="mt-4 w-full max-w-[1000px] flex flex-col gap-12 pb-24">
+              
+              {/* 経理 */}
+              <div className="space-y-4">
+                <h3 className="text-[14px] font-black text-slate-400 uppercase tracking-widest pl-3 border-l-4 border-emerald-500">経理</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-x-8 gap-y-8">
+                  <ModuleIcon
+                    emoji="💴" id="receipt" title={t.modules.receipt.title} color="#22c55e" active
+                    priceId={stripeKeys?.receiptPriceId || (stripeKeys?.mode === 'live' ? stripeKeys?.livePriceId : stripeKeys?.testPriceId)}
+                    priceLoading={stripeKeysLoading}
+                    isSubscribed={activeModules.includes('receipt')}
+                    onModuleClick={handleModuleClick}
+                    tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">💴 コスト管理</p><div className="space-y-1.5">{[["📱","LINEで写真を送るだけで経費登録"],["🤖","AIが金額・日付・税率を自動抽出"],["🏛️","NTA適格請求書をリアルタイム認証"],["📊","プロジェクト別の予算・実績を管理"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[12px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
+                  />
+                </div>
+              </div>
 
-              <ModuleIcon emoji="🔧" id="assets" title={t.modules.assets.title} color="#ef4444" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('assets')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.assets.desc}</p>} priceLoading={stripeKeysLoading} />
-              <ModuleIcon emoji="📑" id="docs" title={t.modules.docs.title} color="#71717a" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('docs')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.docs.desc}</p>} priceLoading={stripeKeysLoading} />
+              {/* 総務 */}
+              <div className="space-y-4">
+                <h3 className="text-[14px] font-black text-slate-400 uppercase tracking-widest pl-3 border-l-4 border-sky-500">総務</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-x-8 gap-y-8">
+                  <ModuleIcon
+                    emoji="🧑‍💼" id="member" title={t.modules.member.title} color="#6366f1" active={false}
+                    priceId={stripeKeys?.memberPriceId || (stripeKeys?.mode === 'live' ? stripeKeys?.livePriceId : stripeKeys?.testPriceId)}
+                    priceLoading={stripeKeysLoading}
+                    isSubscribed={activeModules.includes('member')}
+                    onModuleClick={handleModuleClick}
+                    tooltip={<div className="space-y-2.5 p-1"><p className="font-black text-[13px] text-slate-800">🧑‍💼 メンバー管理</p><p className="text-[12px] text-amber-600 font-bold bg-amber-50 p-3 rounded-xl border border-amber-100">🚧 このモジュールは現在開発中です。まもなく公開されます。</p></div>}
+                  />
+                  <ModuleIcon
+                    emoji="🪪" id="mypage" title={t.modules.mypage.title} color="#0ea5e9" active
+                    priceLoading={stripeKeysLoading}
+                    isSubscribed={activeModules.includes('mypage')}
+                    onModuleClick={handleModuleClick}
+                    tooltip={<div className="space-y-2.5"><p className="font-black text-[13px] text-slate-800">🪪 マイページ</p><div className="space-y-1.5">{[["📋","勤怠・給与・書類を一画面で確認"],["🔗","QRコードで複数企業に対応"],["🌐","6言語対応の個人ポータル"],["📄","書類の期限アラートを自己管理"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-1.5 text-[12px] text-slate-600"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
+                  />
+                  <ModuleIcon emoji="🔧" id="assets" title={t.modules.assets.title} color="#ef4444" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('assets')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.assets.desc}</p>} priceLoading={stripeKeysLoading} />
+                  <ModuleIcon emoji="📑" id="docs" title={t.modules.docs.title} color="#71717a" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('docs')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.docs.desc}</p>} priceLoading={stripeKeysLoading} />
+                </div>
+              </div>
+
+              {/* 役員 */}
+              <div className="space-y-4">
+                <h3 className="text-[14px] font-black text-slate-400 uppercase tracking-widest pl-3 border-l-4 border-indigo-500">役員</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-x-8 gap-y-8">
+                  <ModuleIcon emoji="📁" id="project" title={t.modules.project.title} color="#6366f1" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('project')} tooltip={<p className="text-xs font-bold text-slate-500">{t.modules.project.desc}</p>} priceLoading={stripeKeysLoading} />
+                </div>
+              </div>
             </div>
           ) : null}
 
