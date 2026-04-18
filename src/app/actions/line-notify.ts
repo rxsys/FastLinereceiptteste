@@ -2,9 +2,36 @@
 'use server';
 
 import { getLineClient } from '@/lib/line';
-import { db } from '@/lib/firebase';
+import { db, rtdb } from '@/lib/firebase';
 import { getOwnerCredentials } from '@/lib/line-server';
 import { translations } from '@/lib/translations';
+
+/**
+ * Helper para registrar interações
+ */
+async function logInteraction(companyId: string, userId: string, data: { role: 'user' | 'ai' | 'system', text?: string, imageUrl?: string, metadata?: any }) {
+  try {
+    const logRef = rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/interactions`).push();
+    await logRef.set({
+      ...data,
+      ts: Date.now(),
+      createdAt: new Date().toISOString()
+    });
+    
+    // Limits interactions to 100 max length
+    const snap = await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/interactions`).once('value');
+    if (snap.numChildren() > 100) {
+      const keys: string[] = [];
+      snap.forEach(c => { keys.push(c.key!); });
+      const toDelete = keys.slice(0, keys.length - 100);
+      for (const k of toDelete) {
+        await rtdb.ref(`owner_data/${companyId}/lineUsers/${userId}/interactions/${k}`).remove();
+      }
+    }
+  } catch (e) {
+    console.error('[logInteraction action] failed:', e);
+  }
+}
 
 /**
  * Server Action para notificar o usuário quando seu status é aprovado.
@@ -31,6 +58,8 @@ export async function notifyUserApproval(ownerId: string, lineId: string, lang: 
         }
       ]
     });
+
+    await logInteraction(ownerId, lineId, { role: 'system', text: approvalMessage });
 
     // Auditoria
     await db.collection('logs').add({
@@ -197,22 +226,27 @@ export async function notifyWalletCredit(
           ]
         });
         console.log('[NotifyWalletCredit] Flex Message enviada com sucesso');
+        
+        const flexLogText = `[署名のお願い] \n宛名: ${userName}\n金額: ¥${amount.toLocaleString('ja-JP')}\n但し書き: ${description || '—'}\n発行者: ${ownerName}`;
+        await logInteraction(ownerId, lineUserId, { role: 'system', text: flexLogText });
       } catch (flexErr: any) {
         console.error('[NotifyWalletCredit] Erro ao enviar Flex:', flexErr.response?.data || flexErr);
         throw flexErr;
       }
     } else {
       // Fallback para mensagem de texto simples
+      const textMsg = `💰 会社よりお振込みがございました。\n金額：¥${amount.toLocaleString('ja-JP')}${desc}\n\nご不明な点がございましたら、担当者までお問い合わせくださいませ。`;
       await lineClient.pushMessage({
         to: lineUserId,
         messages: [
           {
             type: 'text',
-            text: `💰 会社よりお振込みがございました。\n金額：¥${amount.toLocaleString('ja-JP')}${desc}\n\nご不明な点がございましたら、担当者までお問い合わせくださいませ。`
+            text: textMsg
           }
         ]
       });
       console.log('[NotifyWalletCredit] Texto simples enviado');
+      await logInteraction(ownerId, lineUserId, { role: 'system', text: textMsg });
     }
 
     return { success: true };
@@ -270,13 +304,17 @@ export async function notifyReviewStatus(
       : '';
 
 
+    const fullMessage = `${statusEmoji} 領収書の確認状況が変わりました。\n\nステータス：${statusLabel}\n${statusDetail}\n\n📝 内容：${description || '—'}\n💰 金額：¥${amount.toLocaleString('ja-JP')}${extraInfo}`;
+
     await lineClient.pushMessage({
       to: lineUserId,
       messages: [{
         type: 'text',
-        text: `${statusEmoji} 領収書の確認状況が変わりました。\n\nステータス：${statusLabel}\n${statusDetail}\n\n📝 内容：${description || '—'}\n💰 金額：¥${amount.toLocaleString('ja-JP')}${extraInfo}`
+        text: fullMessage
       }]
     });
+
+    await logInteraction(ownerId, lineUserId, { role: 'system', text: fullMessage });
 
     return { success: true };
   } catch (error) {
@@ -373,6 +411,9 @@ export async function notifySignatureComplete(
         }
       ]
     });
+
+    const textMsg = `✅ 署名完了\n領収書への署名が確認されました\n\n金額: ¥${amount.toLocaleString('ja-JP')}\n摘要: ${description || '—'}\n署名日時: ${dateStr}`;
+    await logInteraction(ownerId, lineUserId, { role: 'system', text: textMsg });
 
     return { success: true };
   } catch (error) {
