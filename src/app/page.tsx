@@ -471,7 +471,6 @@ export default function LandingPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between ml-1">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.password}</Label>
-                  {!isRegister && <button type="button" className="text-[9px] font-black text-[#ff6b35]/80 hover:text-[#ff6b35] transition-colors uppercase tracking-widest">{t.forgot}</button>}
                 </div>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#ff6b35] transition-colors" />
@@ -513,35 +512,7 @@ export default function LandingPage() {
                 )}
               </Button>
 
-              {!isRegister && (
-                <div className="space-y-4 pt-2">
-                  <div className="relative">
-                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-slate-100" />
-                    <span className="relative bg-white px-2 text-[10px] font-black text-slate-300 uppercase tracking-widest mx-auto block w-max">OR</span>
-                  </div>
-                  
-                  <Button 
-                    type="button"
-                    onClick={() => { setIsRegister(true); setAuthError(null); }}
-                    className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-xl shadow-lg shadow-slate-200 group relative overflow-hidden transition-all active:scale-[0.98]"
-                  >
-                    <span className="relative z-10">{t.registerFree}</span>
-                    <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
-                  </Button>
-                </div>
-              )}
 
-              {isRegister && (
-                <div className="pt-4 text-center">
-                  <button
-                    type="button"
-                    onClick={() => { setIsRegister(false); setAuthError(null); }}
-                    className="text-[11px] font-black text-slate-400 hover:text-slate-900 transition-colors tracking-tight uppercase"
-                  >
-                    既にアカウントをお持ちですか？ <span className="text-[#ff6b35]">ログイン</span>
-                  </button>
-                </div>
-              )}
             </form>
           </DialogContent>
         </Dialog>

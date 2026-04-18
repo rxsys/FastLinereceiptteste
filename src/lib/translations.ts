@@ -7,7 +7,7 @@ export const translations = {
     heroTitle: ["すべての", "業務", "を、ここから。"],
     heroDesc: "あらゆる業種の中小企業に対応。アイコンにカーソルを合わせて詳細を確認",
     categories: ["建設業", "飲食業", "小売業", "IT・Web", "サービス業", "製造業", "不動産"],
-    loginTitle: "Access FastLine",
+    loginTitle: "田中組業務管理システム",
     mgmtConsole: "管理コンソール",
     resetPass: "パスワード再設定",
     email: "メールアドレス",
