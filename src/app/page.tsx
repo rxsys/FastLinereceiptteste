@@ -314,10 +314,7 @@ export default function LandingPage() {
         <nav className={`fixed left-1/2 -translate-x-1/2 w-[92%] max-w-5xl z-50 transition-all duration-200 ${user && !user.emailVerified && role !== 'developer' ? 'top-[52px]' : 'top-6'}`}>
           <div className="flex items-center justify-between px-6 py-3 bg-white/80 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-lg">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-[#22c55e] rounded-md flex items-center justify-center text-white font-black text-lg shadow-[0_0_15px_rgba(34,197,94,0.4)]">F</div>
-              <div className="flex items-center font-black text-xl tracking-tight">
-                <span className="text-slate-900">田中組</span><span className="text-[#22c55e]">管理システム</span>
-              </div>
+              <img src="/logo.png" alt="田中組管理システム" className="h-[28px] w-auto object-contain" />
             </div>
             <div className="flex items-center gap-4">
               <Select value={currentLang} onValueChange={handleLangChange}>
@@ -473,14 +470,14 @@ export default function LandingPage() {
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#ff6b35] to-[#ff9f1c]" />
             
             <DialogHeader className="space-y-4 text-center mt-2">
-              <div className="mx-auto w-12 h-12 bg-[#ff6b35] rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg rotate-3">
-                F
+              <div className="mx-auto flex items-center justify-center mb-2">
+                <img src="/logo.png" alt="田中組管理システム" className="h-[32px] w-auto object-contain" />
               </div>
               <DialogTitle className="text-2xl font-black tracking-tight uppercase text-slate-900">
                 {isRegister ? t.registerTitle : t.loginTitle}
               </DialogTitle>
               <DialogDescription className="text-slate-400 text-xs font-bold tracking-widest uppercase">
-                FastLine Platform Access
+                Tanaka-gumi Platform Access
               </DialogDescription>
             </DialogHeader>
 
