@@ -1,4 +1,4 @@
-const HASH_REGEX = /([A-F0-9]{8})/i;
+const HASH_REGEX = /([A-Z0-9]{8})/i;
 
 export function extractInviteHash(text: string): string | null {
   const match = text.match(HASH_REGEX);
