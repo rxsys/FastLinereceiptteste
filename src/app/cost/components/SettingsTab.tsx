@@ -51,9 +51,10 @@ export function SettingsTab({ version, hideUserManagement = false, t, ownerIdOve
   }, [allUsersRaw, selfUser]);
 
   const [isAddingUser, setIsAddingUser] = useState(false);
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [editingUser, setEditingUser] = useState<any | null>(null);
-  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'user' });
+  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'manager' });
 
   const users = useMemo(() => {
     if (!allUsers) return [];
@@ -116,7 +117,8 @@ export function SettingsTab({ version, hideUserManagement = false, t, ownerIdOve
       
       console.log("[Settings] User created successfully:", data.uid);
       setIsAddingUser(false);
-      setNewUser({ name: '', email: '', password: '', role: 'user' });
+      setNewUser({ name: '', email: '', password: '', role: 'manager' });
+      setIsAddUserOpen(false);
       toast({ title: "ユーザーの追加が完了いたしました" });
     } catch (e: any) { 
       console.error("[Settings] Error adding user to RTDB:", e);
@@ -191,7 +193,7 @@ export function SettingsTab({ version, hideUserManagement = false, t, ownerIdOve
               </CardTitle>
               <p className="text-xs text-slate-400 mt-1">システムを利用するユーザーを管理いたします</p>
             </div>
-            <Dialog>
+            <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
               <DialogTrigger asChild>
                 <Button className="rounded-xl gap-2 font-black bg-emerald-600 hover:bg-emerald-700">
                   <UserPlus className="w-4 h-4"/> 新規ユーザーを追加する
@@ -203,6 +205,7 @@ export function SettingsTab({ version, hideUserManagement = false, t, ownerIdOve
                    <div className="space-y-1">
                       <Label>氏名</Label>
                       <Input value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="h-12 rounded-xl" />
+                      <p className="text-[10px] text-slate-500 mt-1">※この名前は、LINEユーザーへの経費精算通知など、アプリ内の様々なサービスで表示されます。</p>
                    </div>
                    <div className="space-y-1">
                       <Label>メールアドレス</Label>
