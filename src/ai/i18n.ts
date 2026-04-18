@@ -350,6 +350,7 @@ const TRANSLATIONS = {
   } as TranslationEntry,
 
   // ── Flex Messages & UI ──
+  chooseSite: { ja: 'レシートの現場を選択してください', pt: 'Selecione de onde é a despesa do recibo', en: 'Please select where the receipt expense is from' },
   headerExpense: { ja: '🔽 経費登録', pt: '🔽 Registro de Despesa', en: '🔽 Expense Recording' },
   headerAmortization: { ja: '🟩 入金登録 (償却)', pt: '🟩 Entrada (Amortização)', en: '🟩 Income (Amortization)' },
   headerAdditive: { ja: '🟦 入金登録 (加算)', pt: '🟦 Entrada (Aditivo)', en: '🟦 Income (Additive)' },

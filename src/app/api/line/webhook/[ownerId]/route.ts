@@ -926,44 +926,15 @@ function buildCcFlexMessage(availableCcs: { pId: string; ccId: string; ccName: s
 
   const bodyContents: any[] = [];
   
-  // Customizações de Cores e Textos baseado no Type
-  let headerText = i18n('headerExpense', lang);
-  let headerColor = '#f43f5e'; // Rose-500
-  let toggleText = i18n('btnToggleAmortization', lang);
-  
-  if (currentType === 'income_amortization') {
-    headerText = i18n('headerAmortization', lang);
-    headerColor = '#10b981'; // Emerald-500
-    toggleText = i18n('btnToggleAdditive', lang);
-  } else if (currentType === 'income_additive') {
-    headerText = i18n('headerAdditive', lang);
-    headerColor = '#3b82f6'; // Blue-500
-    toggleText = i18n('btnToggleExpense', lang);
-  }
-
-  // Header Toggle Button
+  // Header Text
   bodyContents.push({
-    type: 'box',
-    layout: 'vertical',
-    backgroundColor: headerColor,
-    paddingAll: '12px',
-    cornerRadius: '12px',
-    margin: 'sm',
-    contents: [
-      { type: 'text', text: headerText, weight: 'bold', size: 'sm', color: '#ffffff', align: 'center' }
-    ]
-  });
-  
-  bodyContents.push({
-    type: 'button',
-    action: {
-      type: 'postback',
-      label: toggleText,
-      data: `action=toggle_type&expenseId=${expenseId}`,
-      displayText: i18n('typeChanged', lang)
-    },
-    style: 'secondary',
-    height: 'sm',
+    type: 'text',
+    text: i18n('chooseSite', lang) || 'レシートの現場を選択してください',
+    weight: 'bold',
+    size: 'sm',
+    color: '#0ea5e9',
+    align: 'center',
+    wrap: true,
     margin: 'md'
   });
 
