@@ -13,6 +13,7 @@ import { signOut } from 'firebase/auth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 import { ExpensesTab } from './components/ExpensesTab';
 import { LineUsersTab } from './components/LineUsersTab';
@@ -129,18 +130,26 @@ export default function DashboardPage() {
              
              <div className="flex items-center gap-1">
                 {(role === 'manager' || isDeveloper) && (
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => setActiveTab('settings')}
-                    className={cn(
-                      "h-8 w-8 rounded-full transition-all text-slate-400 hover:text-slate-600",
-                      activeTab === 'settings' && "bg-slate-100 text-primary"
-                    )}
-                    title={t.dash?.settings || 'Settings'}
-                  >
-                    <Settings className="w-4 h-4" />
-                  </Button>
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => setActiveTab('settings')}
+                          className={cn(
+                            "h-8 w-8 rounded-full transition-all text-slate-400 hover:text-slate-600",
+                            activeTab === 'settings' && "bg-slate-100 text-primary"
+                          )}
+                        >
+                          <Settings className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" align="end" className="text-[11px] font-black tracking-widest text-slate-600 bg-white shadow-xl border-slate-100 py-2 px-3 rounded-xl mb-1">
+                        システム全体の環境設定
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 )}
                 <Button variant="ghost" size="sm" onClick={() => signOut(auth!)} className="text-slate-400 hover:text-red-500 font-black text-xs">
                   <LogOut className="w-4 h-4 mr-2" />
