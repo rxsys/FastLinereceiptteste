@@ -206,12 +206,20 @@ export default function SignReceiptPage() {
         正しく署名されました。<br />管理画面へ反映されます。
       </p>
       <p className="text-[11px] text-slate-400 mt-4">LINEにも確認メッセージを送信しました。</p>
-      {isInLiff ? (
-        <p className="text-[11px] text-blue-400 font-bold mt-4">まもなく自動で閉じます...</p>
-      ) : (
-        <Button onClick={() => window.close()} className="mt-10 w-full max-w-xs h-14 rounded-2xl bg-slate-900 text-white font-black">
-          閉じる
-        </Button>
+      <Button 
+        onClick={() => {
+          if (window.liff?.isInClient()) {
+            window.liff.closeWindow();
+          } else {
+            window.close();
+          }
+        }} 
+        className="mt-10 w-full max-w-xs h-14 rounded-2xl bg-[#06c755] hover:bg-[#05a646] text-white font-black shadow-xl shadow-emerald-200/50 transition-all active:scale-95"
+      >
+        閉じる
+      </Button>
+      {isInLiff && (
+        <p className="text-[11px] text-emerald-600 font-bold mt-4 animate-pulse">まもなく自動で閉じます...</p>
       )}
     </div>
   );
