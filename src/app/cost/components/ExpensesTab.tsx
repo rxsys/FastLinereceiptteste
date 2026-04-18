@@ -48,7 +48,7 @@ function fmtMonthLabel(key: string) {
   return `${y}年${parseInt(m)}月`;
 }
 
-// ── Selo NTA ─────────────────────────────────────────────────────────────────
+// ── Selo 国税庁 ─────────────────────────────────────────────────────────────────
 function NtaSeal({ status, small = false }: { status?: string; small?: boolean }) {
   if (status === 'verified') return (
     <div className={`flex items-center gap-1 bg-emerald-500 text-white rounded-full font-black shadow-sm shadow-emerald-200 ${small ? 'px-2 py-0.5 text-[8px]' : 'px-3 py-1 text-[10px]'}`}>
@@ -58,12 +58,12 @@ function NtaSeal({ status, small = false }: { status?: string; small?: boolean }
   );
   if (status === 'not_found') return (
     <div className={`flex items-center gap-1 bg-slate-100 text-slate-400 rounded-full font-black ${small ? 'px-2 py-0.5 text-[8px]' : 'px-2 py-0.5 text-[9px]'}`}>
-      <AlertCircle className="w-2.5 h-2.5" /> 未登録
+      <AlertCircle className="w-2.5 h-2.5" /> 国税庁未登録
     </div>
   );
   if (status === 'failed') return (
     <div className={`flex items-center gap-1 bg-red-50 text-red-400 rounded-full font-black ${small ? 'px-2 py-0.5 text-[8px]' : 'px-2 py-0.5 text-[9px]'}`}>
-      <AlertCircle className="w-2.5 h-2.5" /> 確認失敗
+      <AlertCircle className="w-2.5 h-2.5" /> 国税庁確認失敗
     </div>
   );
   return (
@@ -281,9 +281,9 @@ function exportToCSV(expenses: Expense[], projects: any[], costCenters: CostCent
 
   const HEADERS = [
     'No.', '取引日(購入)', '送信日時', '勘定科目コード', '勘定科目',
-    '補助科目', '摘要(内容)', '取引先名称(NTA)', '税区分', '税率(%)',
+    '補助科目', '摘要(内容)', '取引先名称(国税庁/NTA)', '税区分', '税率(%)',
     '税込金額(¥)', '消費税額(¥)', '税抜金額(¥)', '適格請求書番号',
-    'NTA認証状態', '支払方法', '原価センター', 'プロジェクト', '登録者', '承認状態',
+    '国税庁(NTA)認証状態', '支払方法', '原価センター', 'プロジェクト', '登録者', '承認状態',
   ];
   lines.push(HEADERS.join(','));
 
@@ -712,7 +712,7 @@ export function ExpensesTab({ ownerIdOverride, t }: { expenses: Expense[], owner
                         {/* ⑥ NTA pending badge */}
                         {group.ntaPending > 0 && (
                           <span className="flex items-center gap-1 bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-0.5 rounded-full shrink-0">
-                            <AlertCircle className="w-2.5 h-2.5" /> NTA未確認 {group.ntaPending}件
+                            <AlertCircle className="w-2.5 h-2.5" /> 国税庁未確認 {group.ntaPending}件
                           </span>
                         )}
                         <span className="text-[10px] text-slate-400 font-bold shrink-0 hidden sm:block">
@@ -746,14 +746,7 @@ export function ExpensesTab({ ownerIdOverride, t }: { expenses: Expense[], owner
                             </div>
                           );
                         })()}
-                        <Button size="sm" onClick={(e) => {
-                          e.stopPropagation();
-                          const cc = costCenters.find(c => c.id === group.costcenterId);
-                          setManualCc(cc ? { id: cc.id, name: cc.name, projectId: cc.projectId || group.projectId || '' } : null);
-                          setIsManualDialogOpen(true);
-                        }} className="rounded-xl h-9 text-xs font-black gap-1.5 bg-slate-900 text-white shrink-0">
-                          <span>＋</span> 新規登録
-                        </Button>
+
                       </div>
                     </div>
                   </CardHeader>

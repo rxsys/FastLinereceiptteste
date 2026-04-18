@@ -309,13 +309,15 @@ export const EditExpenseDialog = ({
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           {(expense as any).ntaStatus === 'verified' ? (
-                            <div className="flex items-center gap-1.5 bg-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-black shadow-sm shadow-emerald-200">
-                              <ShieldCheck className="w-4 h-4"/> 適格請求書発行事業者 — NTA認証済
+                            <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-emerald-50 border border-emerald-100">
+                              <span className="flex items-center gap-1.5 text-[11px] font-black text-emerald-800">
+                                <ShieldCheck className="w-4 h-4"/> 適格請求書発行事業者 — 国税庁(NTA)認証済
+                              </span>
                             </div>
                           ) : (expense as any).ntaStatus === 'not_found' ? (
-                            <div className="flex items-center gap-1.5 bg-slate-200 text-slate-500 px-3 py-1 rounded-full text-xs font-black">
-                              <AlertCircle className="w-3.5 h-3.5"/> NTA未登録
-                            </div>
+                            <span className="flex items-center gap-1.5 px-3 py-2 text-[11px] font-black text-slate-500 bg-slate-50 rounded-xl border border-slate-100">
+                              <AlertCircle className="w-3.5 h-3.5"/> 国税庁(NTA)未登録
+                            </span>
                           ) : (
                             <div className="flex items-center gap-1.5 bg-amber-100 text-amber-600 px-3 py-1 rounded-full text-xs font-black">
                               <AlertCircle className="w-3.5 h-3.5"/> 確認中
