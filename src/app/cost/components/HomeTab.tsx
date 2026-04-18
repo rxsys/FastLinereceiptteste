@@ -51,10 +51,7 @@ export function HomeTab({
 
       {/* Launcher Grid */}
       <TooltipProvider delayDuration={0}>
-        <div className={cn(
-          "grid gap-10 w-full max-w-6xl px-8",
-          allowedModules.length <= 4 ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-5"
-        )}>
+        <div className="flex flex-wrap justify-center gap-10 w-full max-w-6xl px-8">
           {allowedModules.map((mod) => {
             const isUpcoming = !mod.ready;
 
