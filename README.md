@@ -152,6 +152,13 @@ You are FastLine AI Assistant — smart, friendly, creative.
 | `承認: [nome]` / `aprovar: [nome]` | Aprova usuário |
 | `全社レポート` / `relatório geral` | Relatório de toda a empresa |
 
+### Deploy Sincronizado
+Para manter a base de testes sempre em sincronia com a produção, utilize o script:
+```bash
+./scripts/deploy-all.sh
+```
+Este script realiza o push para a produção, sincroniza os arquivos para a pasta de teste (preservando configurações específicas de ambiente) e faz o push para o repositório de testes.
+
 ---
 
 ## Estrutura RTDB

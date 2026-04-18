@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "FastLinereceipt (prod) — porta 9002",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 9002
+    },
+    {
+      "name": "FastLinereceiptteste (test) — porta 9003",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd FastLinereceiptteste && npm run dev"],
+      "port": 9003
+    },
+    {
+      "name": "Genkit AI (test)",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd FastLinereceiptteste && npm run genkit:dev"],
+      "port": 4000
+    }
+  ]
+}

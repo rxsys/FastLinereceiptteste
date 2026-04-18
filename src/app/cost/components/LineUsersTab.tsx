@@ -154,7 +154,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
       })
       .catch(() => {});
   }, [effectiveOwnerId]);
-  const botId = resolvedBotId;
+  const botId = resolvedBotId || (owner?.lineBasicId ? (owner.lineBasicId.startsWith('@') ? owner.lineBasicId : `@${owner.lineBasicId}`) : null);
 
   const qrData = useMemo(() => {
     if (!botId || !generatedHash) return '';
@@ -416,7 +416,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                      <div className="py-8 animate-in zoom-in-95 duration-500">
                         <div className="flex flex-col items-center justify-center p-6 bg-emerald-50/50 rounded-[2.5rem] border border-emerald-100 gap-6">
                             <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col items-center w-full">
-                                <img src={qrUrl} className="w-52 h-52 mb-6 shadow-sm rounded-2xl" alt="Invite QR" />
+                                {qrUrl && <img src={qrUrl} className="w-52 h-52 mb-6 shadow-sm rounded-2xl" alt="Invite QR" />}
                                 {qrData && (
                                   <div className="bg-slate-50 px-5 py-4 rounded-2xl mb-4 border border-slate-200 w-full break-all text-center">
                                     <p className="text-[10px] text-slate-400 font-bold mb-1 uppercase tracking-widest text-center">招待リンク</p>
