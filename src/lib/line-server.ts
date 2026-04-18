@@ -32,8 +32,10 @@ export async function getOwnerCredentials(webhookId: string) {
     const candidates = Array.from(new Set([webhookId, webhookId.toLowerCase()]));
     for (const key of candidates) {
       const snap = await poolRef.child(key).get();
-      if (snap.exists() && snap.val()?.ownerId) {
-        poolData = snap.val();
+      if (snap.exists()) {
+        const val = snap.val();
+        // Garante que temos um ownerId, usando a chave como fallback
+        poolData = { ...val, ownerId: val?.ownerId || key };
         break;
       }
     }

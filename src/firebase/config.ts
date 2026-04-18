@@ -5,5 +5,5 @@ export const firebaseConfig = {
   "authDomain": "studio-3353968200-c57b0.firebaseapp.com",
   "measurementId": "",
   "messagingSenderId": "706162159259",
-  "databaseURL": "https://studio-3353968200-c57b0-default-rtdb.firebaseio.com"
+  "databaseURL": "https://fastline-app-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
