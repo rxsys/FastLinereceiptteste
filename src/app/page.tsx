@@ -325,16 +325,7 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {activeModules.includes('receipt') && role !== 'user' && (
-                      <button 
-                        onClick={() => router.push('/cost')} 
-                        className="flex items-center px-4 h-9 rounded-xl bg-[#ff6b35]/10 border border-[#ff6b35]/20 hover:bg-[#ff6b35]/20 hover:scale-105 active:scale-95 transition-all shadow-sm"
-                      >
-                        <span className="text-base">📄</span>
-                        <span className="text-[11px] font-black tracking-tight text-[#ff6b35] ml-2">FastLineコスト管理</span>
-                        <ArrowRight className="w-3 h-3 ml-2 text-[#ff6b35]" />
-                      </button>
-                    )}
+
                     <button onClick={() => signOut(auth!)} className="p-2.5 text-slate-400 hover:text-red-500 transition-colors" title="Logout"><LogOut className="w-5 h-5" /></button>
                   </div>
                 </div>
