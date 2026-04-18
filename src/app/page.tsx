@@ -411,9 +411,9 @@ export default function LandingPage() {
 
           {/* Infrastructure & Trust Section Removed */}
 
-          <div className="mt-20 opacity-30 select-none pointer-events-none flex items-center justify-center gap-3">
-            <img src="/logo.png" alt="" className="h-[20px] w-auto grayscale" />
-            <p className="text-[14px] font-black tracking-[0.3em] text-slate-900">田中組業務管理システム</p>
+          <div className="mt-32 pb-10 opacity-[0.15] select-none pointer-events-none flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8 overflow-hidden w-full">
+            <img src="/logo.png" alt="" className="h-[48px] md:h-[80px] w-auto grayscale" />
+            <p className="text-[28px] md:text-[56px] font-black tracking-[0.15em] text-slate-900 text-center whitespace-nowrap">田中組業務管理システム</p>
           </div>
         </main>
 
