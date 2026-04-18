@@ -78,20 +78,43 @@ export function SettingsTab({ version, hideUserManagement = false, t, ownerIdOve
       console.error("[Settings] Missing required data for add user:", { hasDb: !!database, ownerId, email: newUser.email });
       return;
     }
+    if (!newUser.password || newUser.password.length < 6) {
+      toast({ variant: 'destructive', title: 'エラー', description: 'パスワードは6文字以上で設定してください。' });
+      return;
+    }
+
     setIsAddingUser(true);
     try {
-      console.log("[Settings] Attempting to create user record in RTDB for owner:", ownerId);
-      const newRef = push(ref(database, 'users'));
+      console.log("[Settings] Attempting to create user record in Auth and RTDB for owner:", ownerId);
+      
+      const res = await fetch('/api/admin/users/upsert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: newUser.email,
+          password: newUser.password,
+          fullName: newUser.name,
+          role: newUser.role,
+          ownerId: ownerId
+        })
+      });
+      
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+
       const payload = {
-        ...newUser,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        passwordHint: newUser.password,
         ownerId,
         status: 'active',
         createdAt: new Date().toISOString()
       };
       
-      await set(newRef, payload);
+      await set(ref(database, `users/${data.uid}`), payload);
       
-      console.log("[Settings] User created successfully:", newRef.key);
+      console.log("[Settings] User created successfully:", data.uid);
       setIsAddingUser(false);
       setNewUser({ name: '', email: '', password: '', role: 'user' });
       toast({ title: "ユーザーの追加が完了いたしました" });
@@ -106,11 +129,38 @@ export function SettingsTab({ version, hideUserManagement = false, t, ownerIdOve
     if (!database || !editingUser) return;
     setIsUpdating(true);
     try {
+      const passwordToSave = editingUser.password || editingUser.passwordHint || "";
+      
+      if (editingUser.password && editingUser.password !== editingUser.passwordHint) {
+         try {
+           const res = await fetch('/api/admin/users/upsert', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({
+               userId: editingUser.id,
+               email: editingUser.email,
+               password: passwordToSave,
+               fullName: editingUser.name,
+               role: editingUser.role
+             })
+           });
+           const data = await res.json();
+           if (!data.success) console.warn("Failed to update auth:", data.error);
+         } catch (e) {
+           console.error("Auth sync error:", e);
+         }
+      }
+
       await update(ref(database, `users/${editingUser.id}`), {
         name: editingUser.name,
         role: editingUser.role,
-        password: editingUser.password || editingUser.passwordHint || ""
+        passwordHint: passwordToSave
       });
+      // Removes raw password if it exists
+      if (editingUser.password !== undefined) {
+         await update(ref(database, `users/${editingUser.id}`), { password: null });
+      }
+
       setEditingUser(null);
       toast({ title: "設定の保存が完了いたしました" });
     } catch (e) { toast({ variant: "destructive", title: "保存に失敗いたしました" }); }
@@ -120,6 +170,10 @@ export function SettingsTab({ version, hideUserManagement = false, t, ownerIdOve
   const handleDeleteUser = async (id: string) => {
     if (!database || !confirm("このユーザーを削除してもよろしいでしょうか？")) return;
     try {
+      const userToDelete = users.find(u => u.id === id);
+      if (userToDelete && userToDelete.email) {
+         fetch(`/api/admin/users/upsert?id=${id}&email=${encodeURIComponent(userToDelete.email)}`, { method: 'DELETE' }).catch(() => {});
+      }
       await remove(ref(database, `users/${id}`));
       toast({ title: "ユーザーの削除が完了いたしました" });
     } catch (e) { toast({ variant: "destructive", title: "削除に失敗いたしました" }); }
