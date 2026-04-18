@@ -68,13 +68,13 @@ function UserBalanceBadge({ userId, lineUserId, ownerId }: { userId: string; lin
       "bg-emerald-50 border-emerald-100 text-emerald-600"
     )}>
       <div className="flex items-center gap-2">
-        <span className="text-[9px] uppercase tracking-wider opacity-70">差引残高</span>
-        <span className="text-sm">
+        <span className="text-[11px] uppercase tracking-wider opacity-70">差引残高</span>
+        <span className="text-base">
           {balance < 0 ? '-' : ''}¥{Math.abs(balance).toLocaleString()}
         </span>
       </div>
       <Badge className={cn(
-        "text-[8px] border-none",
+        "text-[10px] border-none px-2 py-0.5",
         isUserPositive ? "bg-red-500 text-white" : 
         isCompanyPositive ? "bg-blue-500 text-white" :
         "bg-emerald-500 text-white"
@@ -288,7 +288,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center bg-white p-6 rounded-[2.5rem] border shadow-sm">
-        <h2 className="text-xl font-black flex items-center gap-3"><Users className="text-primary" /> {t.dash?.users || 'LINE ユーザー'}</h2>
+        <h2 className="text-2xl font-black flex items-center gap-3"><Users className="text-primary w-6 h-6" /> {t.dash?.users || 'LINE ユーザー'}</h2>
         <div className="flex gap-2 relative">
            {isEmpty && (
              <GuideBalloon 
@@ -475,10 +475,10 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                 <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 shadow-sm"><Send className="w-7 h-7" /></div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <CardTitle className="text-base font-black text-slate-700">{invite.inviteName}</CardTitle>
-                    <Badge variant="secondary" className="text-[8px] font-black bg-indigo-100 text-indigo-700 border-none uppercase tracking-tighter">承認待ち</Badge>
+                    <CardTitle className="text-lg font-black text-slate-700">{invite.inviteName}</CardTitle>
+                    <Badge variant="secondary" className="text-[10px] font-black bg-indigo-100 text-indigo-700 border-none uppercase tracking-tighter px-2 py-0.5">承認待ち</Badge>
                   </div>
-                  <p className="text-[10px] font-mono font-black text-indigo-400 tracking-widest uppercase">{invite.hash}</p>
+                  <p className="text-[12px] font-mono font-black text-indigo-400 tracking-widest uppercase">{invite.hash}</p>
                 </div>
               </div>
               <Button variant="ghost" size="icon" onClick={() => handleDeleteInvite(invite.id)} className="opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-4 h-4 text-red-400"/></Button>
@@ -486,7 +486,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
             <CardContent className="px-6 pb-6 pt-2">
                <div className="flex flex-wrap gap-1">
                   {invite.projectIds?.map((pid: string) => (
-                    <Badge key={pid} variant="outline" className="text-[8px] font-black border-indigo-100 text-indigo-500 bg-white">
+                    <Badge key={pid} variant="outline" className="text-[11px] font-black border-indigo-100 text-indigo-500 bg-white px-2 py-0.5">
                       {projects?.find(p => p.id === pid)?.name}
                     </Badge>
                   ))}
@@ -508,17 +508,17 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                   {luser.status === 2 && <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full" />}
                 </div>
                 <div>
-                  <CardTitle className="text-base font-black text-slate-800">{luser.name || luser.fullName}</CardTitle>
+                  <CardTitle className="text-lg font-black text-slate-800">{luser.name || luser.fullName}</CardTitle>
                   {(luser.displayName || luser.fullName) && (luser.displayName || luser.fullName) !== luser.name && (
-                     <p className="text-[10px] text-slate-400 font-bold mt-0.5">LINE ID: {luser.displayName || luser.fullName}</p>
+                     <p className="text-xs text-slate-500 font-bold mt-1">LINE ID: {luser.displayName || luser.fullName}</p>
                   )}
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <Badge className={cn("text-[8px] font-black border-none", luser.status === 2 ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700")}>
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    <Badge className={cn("text-[10px] px-2 py-0.5 font-black border-none", luser.status === 2 ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700")}>
                       {luser.status === 2 ? "承認済み" : "未承認"}
                     </Badge>
-                    <span className="text-base" title={luser.language}>{luser.language === 'pt' ? '🇧🇷' : luser.language === 'en' ? '🇺🇸' : '🇯🇵'}</span>
-                    {luser.aiContext?.behavior?.autonomyLevel === 'elevated' && <Badge className="text-[8px] font-black bg-violet-100 text-violet-700 border-none gap-1"><Sparkles className="w-2.5 h-2.5"/>管理者</Badge>}
-                    {luser.aiContext?.behavior?.autonomyLevel === 'developer' && <Badge className="text-[8px] font-black bg-slate-900 text-white border-none gap-1"><ShieldCheck className="w-2.5 h-2.5"/>Dev</Badge>}
+                    <span className="text-lg" title={luser.language}>{luser.language === 'pt' ? '🇧🇷' : luser.language === 'en' ? '🇺🇸' : '🇯🇵'}</span>
+                    {luser.aiContext?.behavior?.autonomyLevel === 'elevated' && <Badge className="text-[10px] px-2 py-0.5 font-black bg-violet-100 text-violet-700 border-none gap-1"><Sparkles className="w-3 h-3"/>管理者</Badge>}
+                    {luser.aiContext?.behavior?.autonomyLevel === 'developer' && <Badge className="text-[10px] px-2 py-0.5 font-black bg-slate-900 text-white border-none gap-1"><ShieldCheck className="w-3 h-3"/>Dev</Badge>}
                   </div>
                 </div>
               </div>
@@ -530,14 +530,14 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
             <CardContent className="px-6 pb-6 pt-0">
                <div className="space-y-3">
                   <div className="h-px bg-slate-50 w-full" />
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1.5">
                     {allCostCenters.filter(cc => cc.assignedLineUserIds?.includes(luser.id) || cc.assignedLineUserIds?.includes(luser.lineUserId)).map(cc => (
-                      <Badge key={cc.id} className="text-[8px] font-black bg-slate-100 text-slate-500 border-none uppercase tracking-tighter">
+                      <Badge key={cc.id} className="text-[10px] px-2 py-0.5 font-black bg-slate-100 text-slate-500 border-none uppercase tracking-tighter">
                         {cc.name}
                       </Badge>
                     ))}
                     {allCostCenters.filter(cc => cc.assignedLineUserIds?.includes(luser.id) || cc.assignedLineUserIds?.includes(luser.lineUserId)).length === 0 && (
-                      <span className="text-[9px] font-bold text-slate-300 italic">原価センター未設定</span>
+                      <span className="text-[11px] font-bold text-slate-400 italic">原価センター未設定</span>
                     )}
                   </div>
                   <UserBalanceBadge userId={luser.id} lineUserId={luser.lineUserId} ownerId={effectiveOwnerId!} />
@@ -550,11 +550,11 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                         <Wallet className="w-3.5 h-3.5 text-white" />
                       </div>
                       <div className="text-left">
-                        <p className="text-[11px] font-black text-emerald-800">立替・精算管理</p>
-                        <p className="text-[9px] font-bold text-emerald-500">クレジット追加 / 取引履歴を表示</p>
+                        <p className="text-[13px] font-black text-emerald-800">立替・精算管理</p>
+                        <p className="text-[11px] font-bold text-emerald-600">クレジット追加 / 取引履歴を表示</p>
                       </div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-emerald-400 group-hover/wallet:translate-x-0.5 transition-transform" />
+                    <ChevronRight className="w-5 h-5 text-emerald-400 group-hover/wallet:translate-x-0.5 transition-transform" />
                   </button>
 
                   <button
@@ -566,11 +566,11 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                         <History className="w-3.5 h-3.5 text-white" />
                       </div>
                       <div className="text-left">
-                        <p className="text-[11px] font-black text-indigo-800">Bot インタラクション履歴</p>
-                        <p className="text-[9px] font-bold text-indigo-500">Log de Interações detalhado</p>
+                        <p className="text-[13px] font-black text-indigo-800">Bot インタラクション履歴</p>
+                        <p className="text-[11px] font-bold text-indigo-600">Log de Interações detalhado</p>
                       </div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-indigo-400 group-hover/interaction:translate-x-0.5 transition-transform" />
+                    <ChevronRight className="w-5 h-5 text-indigo-400 group-hover/interaction:translate-x-0.5 transition-transform" />
                   </button>
                </div>
             </CardContent>
