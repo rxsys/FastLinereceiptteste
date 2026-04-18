@@ -59,8 +59,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ own
       ownerDataId: ownerData.id,
       ownerDataOwnerId: ownerData.ownerId || null,
       hasToken: !!channelAccessToken,
-      forcedTest: true,
-      originalWebhookId: webhookIdFromParams
+      webhookId
     }).catch(() => {});
 
     const payload = JSON.parse(body);
