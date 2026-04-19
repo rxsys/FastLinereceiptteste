@@ -60,6 +60,7 @@ export default function DashboardPage() {
     { 
       id: 'expenses', 
       title: t.dash?.expenses || 'Despesas', 
+      desc: '経費・収支の記録管理',
       icon: <Receipt />, 
       color: 'bg-orange-500', 
       role: 'all',
@@ -68,6 +69,7 @@ export default function DashboardPage() {
     { 
       id: 'management', 
       title: t.dash?.projects || 'Projetos', 
+      desc: '現場・プロジェクト管理',
       icon: <Building2 />, 
       color: 'bg-blue-600', 
       role: 'manager',
@@ -76,6 +78,7 @@ export default function DashboardPage() {
     { 
       id: 'lineUsers', 
       title: t.dash?.users || 'LINE Usuários', 
+      desc: 'LINEアカウント・権限管理',
       icon: <Users />, 
       color: 'bg-emerald-500', 
       role: 'all',
@@ -112,9 +115,9 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex justify-between items-center print:hidden">
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => setActiveTab('home')}>
-            <div className="bg-white border border-slate-100 p-2 rounded-2xl shadow-sm"><Image src="/logo.png" alt="Logo" width={32} height={32} /></div>
+            <div className="bg-white border border-slate-100 p-2.5 rounded-2xl shadow-sm"><Image src="/logo.png" alt="Logo" width={48} height={48} /></div>
             <div className="flex flex-col">
-              <h1 className="text-xl font-black">{t.dash?.system || 'FastLine System'}</h1>
+              <h1 className="text-xl font-black">(株)田中組業務管理システム</h1>
               <span className="text-[10px] text-slate-400 font-bold uppercase">v{APP_VERSION}</span>
             </div>
           </div>
@@ -135,14 +138,15 @@ export default function DashboardPage() {
                       <TooltipTrigger asChild>
                         <Button 
                           variant="ghost" 
-                          size="icon" 
+                          size="sm"
                           onClick={() => setActiveTab('settings')}
                           className={cn(
-                            "h-8 w-8 rounded-full transition-all text-slate-400 hover:text-slate-600",
-                            activeTab === 'settings' && "bg-slate-100 text-primary"
+                            "h-9 px-3 gap-2 rounded-full transition-all text-slate-500 hover:text-slate-800",
+                            activeTab === 'settings' && "bg-slate-100 text-[#1d4ed8]"
                           )}
                         >
                           <Settings className="w-4 h-4" />
+                          <span className="text-[11px] font-black">設定</span>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" align="end" className="text-[11px] font-black tracking-widest text-slate-600 bg-white shadow-xl border-slate-100 py-2 px-3 rounded-xl mb-1">

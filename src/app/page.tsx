@@ -81,7 +81,7 @@ const ModulePrice = ({ priceId }: { priceId: string }) => {
 };
 
 const ModuleIcon = ({
-  emoji, title, color, badge, badgeColor, active, tooltip, id, priceId, onModuleClick, isSubscribed, priceLoading
+  emoji, title, desc, color, badge, badgeColor, active, tooltip, id, priceId, onModuleClick, isSubscribed, priceLoading
 }: any) => (
   <Tooltip>
     <TooltipTrigger asChild>
@@ -102,9 +102,9 @@ const ModuleIcon = ({
           <div className="absolute inset-0 overflow-hidden rounded-[24px] pointer-events-none">
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
           </div>
-        </div>
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-1">
           <p className="text-[15px] font-black text-slate-700 group-hover:text-[#1d4ed8] transition-colors tracking-tight whitespace-nowrap">{title}</p>
+          {desc && <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{desc}</p>}
           {active ? (
             isSubscribed ? (
               <p className="text-[14px] font-bold text-[#00c48c] drop-shadow-[0_0_8px_rgba(0,196,140,0.2)] flex items-center justify-center gap-1">
@@ -376,7 +376,7 @@ export default function LandingPage() {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-8 gap-y-10 px-2">
                   <ModuleIcon
-                    emoji="💴" id="receipt" title={t.modules.receipt.title} color="#22c55e" active
+                    emoji="💴" id="receipt" title={t.modules.receipt.title} desc="経費・収支の記録管理" color="#22c55e" active
                     priceId={stripeKeys?.receiptPriceId || (stripeKeys?.mode === 'live' ? stripeKeys?.livePriceId : stripeKeys?.testPriceId)}
                     priceLoading={stripeKeysLoading}
                     isSubscribed={activeModules.includes('receipt')}
@@ -394,7 +394,7 @@ export default function LandingPage() {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-12 gap-y-12 px-2">
                   <ModuleIcon
-                    emoji="🧑‍💼" id="member" title={t.modules.member.title} color="#6366f1" active={false}
+                    emoji="🧑‍💼" id="member" title={t.modules.member.title} desc="従業員・権限の管理" color="#6366f1" active={false}
                     priceId={stripeKeys?.memberPriceId || (stripeKeys?.mode === 'live' ? stripeKeys?.livePriceId : stripeKeys?.testPriceId)}
                     priceLoading={stripeKeysLoading}
                     isSubscribed={activeModules.includes('member')}
@@ -402,14 +402,14 @@ export default function LandingPage() {
                     tooltip={<div className="space-y-3 p-1"><p className="font-black text-[15px] text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2"><span>🧑‍💼</span> {t.modules.member.title}</p><div className="bg-amber-50 p-4 rounded-2xl border border-amber-100/50 mt-1"><p className="text-[13px] text-amber-700 font-bold flex gap-2"><span>🚧</span> 開発中：まもなく公開予定</p></div></div>}
                   />
                   <ModuleIcon
-                    emoji="🪪" id="mypage" title={t.modules.mypage.title} color="#0ea5e9" active
+                    emoji="🪪" id="mypage" title={t.modules.mypage.title} desc="個人ポータル・勤怠確認" color="#0ea5e9" active={false}
                     priceLoading={stripeKeysLoading}
                     isSubscribed={activeModules.includes('mypage')}
                     onModuleClick={handleModuleClick}
                     tooltip={<div className="space-y-3"><p className="font-black text-[15px] text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2"><span>🪪</span> {t.modules.mypage.title}</p><div className="space-y-2">{[["📋","勤怠・給与・書類を一画面で確認"],["🔗","QRコードで複数企業に対応"],["🌐","6言語対応の個人ポータル"],["📄","書類の期限アラートを自己管理"]].map(([ic,tx])=><p key={String(tx)} className="flex gap-2.5 text-[13px] text-slate-600 leading-relaxed font-bold"><span>{ic}</span><span>{tx}</span></p>)}</div></div>}
                   />
-                  <ModuleIcon emoji="🔧" id="assets" title={t.modules.assets.title} color="#ef4444" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('assets')} tooltip={<p className="text-sm font-bold text-slate-600">{t.modules.assets.desc}</p>} priceLoading={stripeKeysLoading} />
-                  <ModuleIcon emoji="📑" id="docs" title={t.modules.docs.title} color="#71717a" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('docs')} tooltip={<p className="text-sm font-bold text-slate-600">{t.modules.docs.desc}</p>} priceLoading={stripeKeysLoading} />
+                  <ModuleIcon emoji="🔧" id="assets" title={t.modules.assets.title} desc="備品・資産の統合管理" color="#ef4444" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('assets')} tooltip={<p className="text-sm font-bold text-slate-600">{t.modules.assets.desc}</p>} priceLoading={stripeKeysLoading} />
+                  <ModuleIcon emoji="📑" id="docs" title={t.modules.docs.title} desc="社内書類・電子保存管理" color="#71717a" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('docs')} tooltip={<p className="text-sm font-bold text-slate-600">{t.modules.docs.desc}</p>} priceLoading={stripeKeysLoading} />
                 </div>
               </div>
 
@@ -420,7 +420,7 @@ export default function LandingPage() {
                   <div className="h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent" />
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-12 gap-y-12 px-2">
-                  <ModuleIcon emoji="📁" id="project" title={t.modules.project.title} color="#6366f1" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('project')} tooltip={<p className="text-sm font-bold text-slate-600">{t.modules.project.desc}</p>} priceLoading={stripeKeysLoading} />
+                  <ModuleIcon emoji="📁" id="project" title={t.modules.project.title} desc="事業計画・収支分析" color="#6366f1" onModuleClick={handleModuleClick} isSubscribed={activeModules.includes('project')} tooltip={<p className="text-sm font-bold text-slate-600">{t.modules.project.desc}</p>} priceLoading={stripeKeysLoading} />
                 </div>
               </div>
             </div>

@@ -42,10 +42,7 @@ export function HomeTab({
           <Sparkles className="w-3.5 h-3.5 mr-2 inline" /> Executive Dashboard
         </Badge>
         <div className="space-y-2">
-          <h2 className="text-4xl md:text-5xl font-[1000] text-slate-900 tracking-tight leading-none uppercase">
-            {(t.dash && t.dash.welcome) || "Welcome "}<span className="text-primary">{ownerName}</span>
-          </h2>
-          <p className="text-slate-400 font-bold text-base">{(t.dash && t.dash.selectModule) || "Select a module to continue"}</p>
+          <p className="text-slate-500 font-bold text-lg">{(t.dash && t.dash.selectModule) || "Select a module to continue"}</p>
         </div>
       </div>
 
@@ -79,6 +76,7 @@ export function HomeTab({
                     {/* Label */}
                     <div className="space-y-2 text-center">
                       <h4 className="text-lg font-[1000] text-slate-800 tracking-tight whitespace-nowrap">{mod.title}</h4>
+                      {mod.desc && <p className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">{mod.desc}</p>}
                       {isUpcoming && <p className="text-[10px] font-black text-slate-400">EM BREVE</p>}
                       <div className={cn(
                         "h-1.5 w-8 bg-slate-100 rounded-full mx-auto transition-all duration-500",
