@@ -461,6 +461,8 @@ export default function LandingPage() {
                       value={userName}
                       onChange={(e) => setUserName(e.target.value)}
                       required
+                      onInvalid={(e: any) => e.target.setCustomValidity("氏名または会社名を入力してください。")}
+                      onInput={(e: any) => e.target.setCustomValidity("")}
                     />
                   </div>
                 </div>
@@ -477,6 +479,13 @@ export default function LandingPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    onInvalid={(e: any) => {
+                      const v = e.target.validity;
+                      if (v.valueMissing) e.target.setCustomValidity("メールアドレスを入力してください。");
+                      else if (v.typeMismatch) e.target.setCustomValidity("有効なメールアドレスを入力してください。");
+                      else e.target.setCustomValidity("メールアドレスの形式が正しくありません。");
+                    }}
+                    onInput={(e: any) => e.target.setCustomValidity("")}
                   />
                 </div>
               </div>
@@ -493,6 +502,8 @@ export default function LandingPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    onInvalid={(e: any) => e.target.setCustomValidity("パスワードを入力してください。")}
+                    onInput={(e: any) => e.target.setCustomValidity("")}
                   />
                   <button
                     type="button"
