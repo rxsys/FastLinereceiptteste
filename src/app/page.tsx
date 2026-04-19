@@ -315,11 +315,16 @@ export default function LandingPage() {
         
         {/* Navbar */}
         <nav className={`fixed left-1/2 -translate-x-1/2 w-[92%] max-w-5xl z-50 transition-all duration-200 ${user && !user.emailVerified && role !== 'developer' ? 'top-[52px]' : 'top-6'}`}>
-          <div className="flex items-center justify-between px-6 py-3 bg-white/80 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-lg">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between px-6 py-3 bg-white/80 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-lg relative">
+            <div className="flex items-center gap-2 z-10">
               <img src="/logo.png" alt="田中組管理システム" className="h-[28px] w-auto object-contain" />
             </div>
-            <div className="flex items-center gap-4">
+            
+            <div className="absolute left-1/2 -translate-x-1/2 hidden sm:block">
+              <span className="text-[15px] font-black text-slate-500 tracking-widest">社内専用システム</span>
+            </div>
+
+            <div className="flex items-center gap-4 z-10">
 
 
               {user ? (
@@ -340,7 +345,7 @@ export default function LandingPage() {
                   </div>
                 </div>
               ) : (
-                <button onClick={() => setIsLoginOpen(true)} className="text-[13px] font-bold text-slate-600 hover:text-slate-900 shadow-sm transition-colors px-4 border border-slate-200 rounded-xl py-2 bg-white">
+                <button onClick={() => setIsLoginOpen(true)} className="text-[13px] font-bold text-white border-transparent hover:bg-slate-800 shadow-md transition-all px-5 rounded-xl py-2 bg-slate-900">
                   {t.login}
                 </button>
               )}
