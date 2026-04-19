@@ -102,6 +102,7 @@ const ModuleIcon = ({
           <div className="absolute inset-0 overflow-hidden rounded-[24px] pointer-events-none">
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
           </div>
+        </div>
         <div className="text-center space-y-1">
           <p className="text-[15px] font-black text-slate-700 group-hover:text-[#1d4ed8] transition-colors tracking-tight whitespace-nowrap">{title}</p>
           {desc && <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{desc}</p>}
