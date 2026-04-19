@@ -86,25 +86,25 @@ const ModuleIcon = ({
   <Tooltip>
     <TooltipTrigger asChild>
       <div 
-        className="group flex flex-col items-center gap-6 transition-all duration-500 hover:-translate-y-2 cursor-pointer"
+        className="group flex flex-col items-center gap-4 transition-all duration-500 hover:-translate-y-2 cursor-pointer"
         onClick={() => onModuleClick(id, priceId, active)}
       >
         <div 
           className={cn(
-            "relative w-[100px] h-[100px] rounded-[32px] flex items-center justify-center bg-white transition-all duration-500 border-2 border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] group-hover:border-slate-200",
+            "relative w-[80px] h-[80px] rounded-[24px] flex items-center justify-center bg-white transition-all duration-500 border-2 border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] group-hover:border-slate-200",
             active ? "border-[#1d4ed8]/20 shadow-[0_0_25px_rgba(29,78,216,0.1)] group-hover:border-[#1d4ed8]/40" : "opacity-70 group-hover:opacity-100"
           )}
         >
-          <span className="text-5xl transform transition-transform duration-500 group-hover:scale-110">{emoji}</span>
+          <span className="text-4xl transform transition-transform duration-500 group-hover:scale-110">{emoji}</span>
           {badge && <div className={cn("absolute -top-3 -right-3 px-3 py-1 rounded-full text-[12px] font-black text-white shadow-xl animate-bounce", badgeColor)}>{badge}</div>}
           
           {/* Shine effect */}
-          <div className="absolute inset-0 overflow-hidden rounded-[32px] pointer-events-none">
+          <div className="absolute inset-0 overflow-hidden rounded-[24px] pointer-events-none">
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
           </div>
         </div>
         <div className="text-center space-y-2">
-          <p className="text-[18px] font-black text-slate-700 group-hover:text-[#1d4ed8] transition-colors tracking-tight whitespace-nowrap">{title}</p>
+          <p className="text-[15px] font-black text-slate-700 group-hover:text-[#1d4ed8] transition-colors tracking-tight whitespace-nowrap">{title}</p>
           {active ? (
             isSubscribed ? (
               <p className="text-[14px] font-bold text-[#00c48c] drop-shadow-[0_0_8px_rgba(0,196,140,0.2)] flex items-center justify-center gap-1">
@@ -359,7 +359,7 @@ export default function LandingPage() {
           {/* Hero text and categories removed per request */}
 
           {user ? (
-            <div className="mt-8 w-full max-w-[1100px] flex flex-col gap-20 pb-24 relative z-10">
+            <div className="mt-8 w-full max-w-[1100px] flex flex-col gap-12 pb-24 relative z-10">
               
               {/* 経理 */}
               <div className="space-y-8">
@@ -367,7 +367,7 @@ export default function LandingPage() {
                   <h3 className="text-[20px] font-black text-slate-800 uppercase tracking-widest pl-4 border-l-[6px] border-emerald-500 py-1">経理</h3>
                   <div className="h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent" />
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-12 gap-y-12 px-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-8 gap-y-10 px-2">
                   <ModuleIcon
                     emoji="💴" id="receipt" title={t.modules.receipt.title} color="#22c55e" active
                     priceId={stripeKeys?.receiptPriceId || (stripeKeys?.mode === 'live' ? stripeKeys?.livePriceId : stripeKeys?.testPriceId)}
