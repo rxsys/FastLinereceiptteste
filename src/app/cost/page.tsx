@@ -136,18 +136,20 @@ export default function DashboardPage() {
                   <TooltipProvider delayDuration={0}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => setActiveTab('settings')}
-                          className={cn(
-                            "h-9 px-3 gap-2 rounded-full transition-all text-slate-500 hover:text-slate-800",
-                            activeTab === 'settings' && "bg-slate-100 text-[#1d4ed8]"
-                          )}
-                        >
-                          <Settings className="w-4 h-4" />
-                          <span className="text-[11px] font-black">設定</span>
-                        </Button>
+                         <Button 
+                           variant="ghost" 
+                           size="sm"
+                           onClick={() => setActiveTab('settings')}
+                           className={cn(
+                             "h-9 px-4 gap-2 rounded-full transition-all font-black text-xs",
+                             activeTab === 'settings' 
+                               ? "bg-slate-900 text-white shadow-lg" 
+                               : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                           )}
+                         >
+                           <Settings className="w-4 h-4" />
+                           <span>設定</span>
+                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" align="end" className="text-[11px] font-black tracking-widest text-slate-600 bg-white shadow-xl border-slate-100 py-2 px-3 rounded-xl mb-1">
                         システム全体の環境設定
@@ -155,36 +157,41 @@ export default function DashboardPage() {
                     </Tooltip>
                   </TooltipProvider>
                 )}
-                <Button variant="ghost" size="sm" onClick={() => signOut(auth!)} className="text-slate-400 hover:text-red-500 font-black text-xs">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  {t.dash?.logout || 'Logout'}
-                </Button>
+                 <Button 
+                   variant="ghost" 
+                   size="sm" 
+                   onClick={() => signOut(auth!)} 
+                   className="h-9 px-4 rounded-full bg-slate-900 text-white hover:bg-slate-800 font-black text-xs gap-2 shadow-sm transition-all"
+                 >
+                   <LogOut className="w-4 h-4" />
+                   {t.dash?.logout || 'Logout'}
+                 </Button>
              </div>
           </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-12">
-          <TabsList className={cn(
-            "p-1.5 h-auto rounded-[2rem] bg-white border shadow-sm mx-auto w-fit flex justify-center gap-1",
-            activeTab === 'home' && "hidden"
-          )}>
-            <TabsTrigger value="home" className="rounded-2xl h-11 px-6 font-black gap-2 transition-all">
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Home</span>
-            </TabsTrigger>
-            <TabsTrigger value="expenses" className="rounded-2xl h-11 px-6 font-black gap-2 transition-all">
-              <Receipt className="w-4 h-4" />
-              <span>{t.dash?.expenses || 'Despesas'}</span>
-            </TabsTrigger>
-            <TabsTrigger value="management" className="rounded-2xl h-11 px-6 font-black gap-2 transition-all">
-              <Building2 className="w-4 h-4" />
-              <span>{t.dash?.projects || 'Projetos'}</span>
-            </TabsTrigger>
-            <TabsTrigger value="lineUsers" className="rounded-2xl h-11 px-6 font-black gap-2 transition-all">
-              <Users className="w-4 h-4" />
-              <span>{t.dash?.users || 'LINE Usuários'}</span>
-            </TabsTrigger>
-          </TabsList>
+           <TabsList className={cn(
+             "p-1.5 h-auto rounded-[2.2rem] bg-white border border-slate-100 shadow-sm mx-auto w-fit flex justify-center gap-1",
+             activeTab === 'home' && "hidden"
+           )}>
+             <TabsTrigger value="home" className="rounded-2xl h-11 px-6 font-black gap-2 transition-all data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-lg">
+               <LayoutDashboard className="w-4 h-4" />
+               <span>Home</span>
+             </TabsTrigger>
+             <TabsTrigger value="expenses" className="rounded-2xl h-11 px-6 font-black gap-2 transition-all data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-lg">
+               <Receipt className="w-4 h-4" />
+               <span>{t.dash?.expenses || 'Despesas'}</span>
+             </TabsTrigger>
+             <TabsTrigger value="management" className="rounded-2xl h-11 px-6 font-black gap-2 transition-all data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-lg">
+               <Building2 className="w-4 h-4" />
+               <span>{t.dash?.projects || 'Projetos'}</span>
+             </TabsTrigger>
+             <TabsTrigger value="lineUsers" className="rounded-2xl h-11 px-6 font-black gap-2 transition-all data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-lg">
+               <Users className="w-4 h-4" />
+               <span>{t.dash?.users || 'LINE Usuários'}</span>
+             </TabsTrigger>
+           </TabsList>
 
           <TabsContent value="home" className="mt-0">
              <HomeTab t={t} expenses={[]} user={user} ownerId={ownerId} role={role || 'user'} ownerName={ownerName} subscriptionStatus={subscriptionStatus || 'trial'} validUntil={validUntil} onTabChange={setActiveTab} allowedModules={allowedModules} />

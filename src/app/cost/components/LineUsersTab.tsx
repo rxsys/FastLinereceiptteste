@@ -301,7 +301,7 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
               setIsInviteDialogOpen(open);
               if (!open) resetInviteForm();
             }}>
-              <DialogTrigger asChild><Button onClick={() => setIsInviteDialogOpen(true)} variant="outline" className="rounded-2xl gap-2 font-black"><Plus /> QR招待コード発行</Button></DialogTrigger>
+              <DialogTrigger asChild><Button onClick={() => setIsInviteDialogOpen(true)} variant="default" className="rounded-2xl gap-2 font-black bg-[#1d4ed8] hover:bg-[#1e40af] shadow-lg shadow-blue-100 border-none transition-all px-6"><Plus className="w-5 h-5" /> QR招待コード発行</Button></DialogTrigger>
               <DialogContent className="rounded-[2.5rem] max-w-lg max-h-[95vh] flex flex-col p-0 overflow-hidden">
                  <div className="px-8 pt-8 pb-3 shrink-0">
                    <DialogHeader><DialogTitle className="font-black text-xl text-slate-800 tracking-tight">{generatedHash ? '招待コードの発行完了' : '新規招待の発行'}</DialogTitle></DialogHeader>

@@ -6,7 +6,7 @@ import { ref, query, push, set, update, remove, get } from 'firebase/database';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Trash2, Edit2, Plus, Loader2, Users } from "lucide-react";
+import { Trash2, Edit2, Plus, Loader2, Users, LayoutDashboard, Search } from "lucide-react";
 import { useState, useMemo, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
@@ -49,6 +49,7 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
   const [newCC, setNewCC] = useState({ name: '', status: 2, totalValue: '', budgetLimit: '', assignedLineUserIds: [] as string[], projectId: '' });
   const [editingProject, setEditingProject] = useState<any>(null);
   const [editingCC, setEditingCC] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const projectsRef = useMemoFirebase(() => effectiveOwnerId && database ? ref(database, `owner_data/${effectiveOwnerId}/projects`) : null, [database, effectiveOwnerId]);
   const usersRef = useMemoFirebase(() => effectiveOwnerId && database ? ref(database, `owner_data/${effectiveOwnerId}/lineUsers`) : null, [database, effectiveOwnerId]);
@@ -137,28 +138,38 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
 
   const isEmpty = !isProjectsLoading && (!projects || projects.length === 0);
 
+  const filteredProjects = useMemo(() => {
+    if (!projects) return [];
+    return projects.filter((p: any) => 
+      p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [projects, searchTerm]);
+
   if (isProjectsLoading) {
     return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-primary" /></div>;
   }
 
-  return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-20">
-       {/* Botão novo projeto */}
-       <div className="flex justify-end relative">
-         {isEmpty && (
-           <GuideBalloon 
-             message="ここをクリックして最初のプロジェクトを作成しましょう。現場管理の第一歩です！" 
-             position="left" 
-             className="hidden md:block"
-           />
-         )}
-         <Button onClick={() => setIsAddProjectDialogOpen(true)} className="h-12 rounded-2xl gap-2 font-black bg-slate-900 shadow-lg shadow-slate-200 px-6">
-           <Plus className="w-4 h-4"/> 新規プロジェクト
-         </Button>
+       <div className="flex justify-between items-center bg-white p-6 rounded-[2.5rem] border shadow-sm">
+         <h2 className="text-2xl font-black flex items-center gap-3"><LayoutDashboard className="text-primary w-6 h-6" /> {t.tabs?.management?.title || 'プロジェクト'}</h2>
+         <div className="flex gap-2 items-center">
+           <div className="relative">
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+             <Input 
+               placeholder="プロジェクトを検索..." 
+               value={searchTerm} 
+               onChange={e => setSearchTerm(e.target.value)} 
+               className="w-64 rounded-2xl h-11 pl-10 border-slate-200" 
+             />
+           </div>
+           <Button onClick={() => setIsAddProjectDialogOpen(true)} className="h-11 rounded-2xl gap-2 font-black bg-[#1d4ed8] hover:bg-[#1e40af] shadow-lg shadow-blue-100 transition-all px-6 border-none">
+             <Plus className="w-5 h-5"/> 新規プロジェクト
+           </Button>
+         </div>
        </div>
 
        <div className="space-y-6">
-         {projects?.map(project => (
+         {filteredProjects?.map(project => (
            <div key={project.id} className="bg-white rounded-[2.5rem] border shadow-sm overflow-hidden">
              <div className="bg-slate-50 px-8 py-5 border-b flex justify-between items-center">
                  <div className="flex-1">
