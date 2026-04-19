@@ -51,23 +51,23 @@ function fmtMonthLabel(key: string) {
 // ── Selo 国税庁 ─────────────────────────────────────────────────────────────────
 function NtaSeal({ status, small = false }: { status?: string; small?: boolean }) {
   if (status === 'verified') return (
-    <div className={`flex items-center gap-1 bg-emerald-500 text-white rounded-full font-black shadow-sm shadow-emerald-200 ${small ? 'px-2 py-0.5 text-[8px]' : 'px-3 py-1 text-[10px]'}`}>
+    <div className={`flex items-center gap-1 bg-emerald-500 text-white rounded-full font-black shadow-sm shadow-emerald-200 ${small ? 'px-2 py-0.5 text-[10px]' : 'px-3 py-1 text-[12px]'}`}>
       <ShieldCheck className={small ? 'w-2.5 h-2.5' : 'w-3.5 h-3.5'} />
       適格請求書
     </div>
   );
   if (status === 'not_found') return (
-    <div className={`flex items-center gap-1 bg-slate-100 text-slate-400 rounded-full font-black ${small ? 'px-2 py-0.5 text-[8px]' : 'px-2 py-0.5 text-[9px]'}`}>
+    <div className={`flex items-center gap-1 bg-slate-100 text-slate-400 rounded-full font-black ${small ? 'px-2 py-0.5 text-[10px]' : 'px-2 py-0.5 text-[11px]'}`}>
       <AlertCircle className="w-2.5 h-2.5" /> 国税庁未登録
     </div>
   );
   if (status === 'failed') return (
-    <div className={`flex items-center gap-1 bg-red-50 text-red-400 rounded-full font-black ${small ? 'px-2 py-0.5 text-[8px]' : 'px-2 py-0.5 text-[9px]'}`}>
+    <div className={`flex items-center gap-1 bg-red-50 text-red-400 rounded-full font-black ${small ? 'px-2 py-0.5 text-[10px]' : 'px-2 py-0.5 text-[11px]'}`}>
       <AlertCircle className="w-2.5 h-2.5" /> 国税庁確認失敗
     </div>
   );
   return (
-    <div className={`flex items-center gap-1 bg-amber-50 text-amber-400 rounded-full font-black ${small ? 'px-2 py-0.5 text-[8px]' : 'px-2 py-0.5 text-[9px]'}`}>
+    <div className={`flex items-center gap-1 bg-amber-50 text-amber-400 rounded-full font-black ${small ? 'px-2 py-0.5 text-[10px]' : 'px-2 py-0.5 text-[11px]'}`}>
       <AlertCircle className="w-2.5 h-2.5" /> NTA確認待ち
     </div>
   );
@@ -138,22 +138,22 @@ function ExpenseRow({
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-bold text-slate-700">{exp.description?.substring(0, 45)}</span>
             {isRejected
-              ? <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 font-bold shrink-0 border border-red-200">❌ 否認</span>
+              ? <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 font-bold shrink-0 border border-red-200">❌ 否認</span>
               : exp.reviewStatus === 'approved'
-              ? <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold shrink-0 border border-emerald-200">✅ 受取済み</span>
-              : <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold shrink-0 border border-amber-200">🔍 審査中</span>
+              ? <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold shrink-0 border border-emerald-200">✅ 受取済み</span>
+              : <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold shrink-0 border border-amber-200">🔍 審査中</span>
             }
             {isRejected && (
-              <span className="text-[9px] px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 font-black shrink-0">集計対象外</span>
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 font-black shrink-0">集計対象外</span>
             )}
             {((exp as any).duplicateFlag || isDuplicate) && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-bold shrink-0 border border-orange-300">⚠️ 重複要確認</span>
+              <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-bold shrink-0 border border-orange-300">⚠️ 重複要確認</span>
             )}
             {exp.paymentType === 'company' && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded-sm bg-blue-100 text-blue-700 font-bold shrink-0" title="会社カードまたは口座から直接支払済み">🏢 会社負担</span>
+              <span className="text-[11px] px-1.5 py-0.5 rounded-sm bg-blue-100 text-blue-700 font-bold shrink-0" title="会社カードまたは口座から直接支払済み">🏢 会社負担</span>
             )}
             {exp.paymentType === 'reimbursement' && (
-              <span className={cn('text-[9px] px-1.5 py-0.5 rounded-sm font-bold shrink-0 border',
+              <span className={cn('text-[11px] px-1.5 py-0.5 rounded-sm font-bold shrink-0 border',
                 (exp as any).reimbursementPaid
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                   : 'bg-purple-100 text-purple-700 border-purple-200'
@@ -163,14 +163,14 @@ function ExpenseRow({
             )}
           </div>
           {exp.registrationNumber && (
-            <span className="text-[9px] font-mono text-slate-400">{exp.registrationNumber}</span>
+            <span className="text-[11px] font-mono text-slate-400">{exp.registrationNumber}</span>
           )}
         </div>
       </TableCell>
 
       {/* Datas */}
       <TableCell className="py-4 hidden md:table-cell" onClick={onClick}>
-        <div className="flex flex-col gap-1 text-[10px] text-slate-400">
+        <div className="flex flex-col gap-1 text-[12px] text-slate-400">
           <span className="flex items-center gap-1"><Calendar className="w-3 h-3 text-slate-300"/> {fmtDate(exp.date)}</span>
           <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-slate-300"/> {fmtDateTime(exp.createdAt)}</span>
         </div>
@@ -547,7 +547,7 @@ export function ExpensesTab({ ownerIdOverride, t }: { expenses: Expense[], owner
           {/* Linha 1: busca + mês + view mode */}
           <div className="flex flex-col md:flex-row gap-3">
             <div className="flex-1 flex flex-col gap-1">
-              <span className="text-[10px] font-bold text-slate-400 ml-1">キーワード・内容で検索</span>
+              <span className="text-[12px] font-bold text-slate-400 ml-1">キーワード・内容で検索</span>
               <Input
                 value={searchKeyword}
                 onChange={e => setSearchKeyword(e.target.value)}
@@ -557,7 +557,7 @@ export function ExpensesTab({ ownerIdOverride, t }: { expenses: Expense[], owner
             </div>
             
             <div className="flex flex-col gap-1 w-full md:w-[150px]">
-              <span className="text-[10px] font-bold text-slate-400 ml-1">ステータス</span>
+              <span className="text-[12px] font-bold text-slate-400 ml-1">ステータス</span>
               <select
                 value={selectedStatus}
                 onChange={e => setSelectedStatus(e.target.value)}
@@ -570,20 +570,20 @@ export function ExpensesTab({ ownerIdOverride, t }: { expenses: Expense[], owner
             </div>
 
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold text-slate-400 ml-1">期間 (開始 〜 終了)</span>
+              <span className="text-[12px] font-bold text-slate-400 ml-1">期間 (開始 〜 終了)</span>
               <div className="flex items-center gap-2">
                 <Input
                   type="date"
                   value={startDate}
                   onChange={e => setStartDate(e.target.value)}
-                  className="h-11 rounded-xl w-full md:w-[140px] text-xs font-bold"
+                  className="h-11 rounded-xl w-full md:w-[140px] text-[12px] font-bold"
                 />
                 <span className="text-slate-300 text-sm">〜</span>
                 <Input
                   type="date"
                   value={endDate}
                   onChange={e => setEndDate(e.target.value)}
-                  className="h-11 rounded-xl w-full md:w-[140px] text-xs font-bold"
+                  className="h-11 rounded-xl w-full md:w-[140px] text-[12px] font-bold"
                 />
               </div>
             </div>
@@ -592,7 +592,7 @@ export function ExpensesTab({ ownerIdOverride, t }: { expenses: Expense[], owner
           {/* Linha 2: Projeto + CC + View mode */}
           <div className="flex flex-col md:flex-row gap-3">
             <div className="flex flex-col gap-1 flex-1">
-              <span className="text-[10px] font-bold text-slate-400 ml-1">プロジェクトで絞り込み</span>
+              <span className="text-[12px] font-bold text-slate-400 ml-1">プロジェクトで絞り込み</span>
               <select
                 value={selectedProjectId}
                 onChange={e => {
@@ -609,7 +609,7 @@ export function ExpensesTab({ ownerIdOverride, t }: { expenses: Expense[], owner
             </div>
 
             <div className="flex flex-col gap-1 flex-1">
-              <span className="text-[10px] font-bold text-slate-400 ml-1">原価センターで絞り込み</span>
+              <span className="text-[12px] font-bold text-slate-400 ml-1">原価センターで絞り込み</span>
               <select
                 value={selectedCcId}
                 onChange={e => setSelectedCcId(e.target.value)}
@@ -711,11 +711,11 @@ export function ExpensesTab({ ownerIdOverride, t }: { expenses: Expense[], owner
                         <CardTitle className="text-lg font-black truncate">{costCenterName}</CardTitle>
                         {/* ⑥ NTA pending badge */}
                         {group.ntaPending > 0 && (
-                          <span className="flex items-center gap-1 bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-0.5 rounded-full shrink-0">
+                          <span className="flex items-center gap-1 bg-amber-100 text-amber-700 text-[11px] font-black px-2 py-0.5 rounded-full shrink-0">
                             <AlertCircle className="w-2.5 h-2.5" /> 国税庁未確認 {group.ntaPending}件
                           </span>
                         )}
-                        <span className="text-[10px] text-slate-400 font-bold shrink-0 hidden sm:block">
+                        <span className="text-[12px] text-slate-400 font-bold shrink-0 hidden sm:block">
                           {group.items.length}件
                         </span>
                       </div>
@@ -783,18 +783,18 @@ export function ExpensesTab({ ownerIdOverride, t }: { expenses: Expense[], owner
                         </div>
                         <div>
                           <p className="text-base font-black text-slate-900">{userName}</p>
-                          <p className="text-[10px] text-slate-400 font-bold">{group.items.length}件</p>
+                          <p className="text-[12px] text-slate-400 font-bold">{group.items.length}件</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         {group.totalIncome > 0 && (
                           <div className="text-center hidden sm:block">
-                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-tight">入金</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-tight">入金</p>
                             <p className="text-sm font-black text-emerald-600">¥{group.totalIncome.toLocaleString()}</p>
                           </div>
                         )}
                         <div className="text-center">
-                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-tight">支出</p>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-tight">支出</p>
                           <p className="text-sm font-black text-slate-800">¥{group.totalExpense.toLocaleString()}</p>
                         </div>
                       </div>
