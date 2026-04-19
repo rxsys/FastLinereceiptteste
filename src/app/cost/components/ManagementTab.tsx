@@ -149,7 +149,8 @@ export function ManagementTab({ ownerIdOverride, t }: { ownerIdOverride?: string
   if (isProjectsLoading) {
     return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-primary" /></div>;
   }
-
+  return (
+    <div className="space-y-8 max-w-5xl mx-auto pb-20">
        <div className="flex justify-between items-center bg-white p-6 rounded-[2.5rem] border shadow-sm">
          <h2 className="text-2xl font-black flex items-center gap-3"><LayoutDashboard className="text-primary w-6 h-6" /> {t.tabs?.management?.title || 'プロジェクト'}</h2>
          <div className="flex gap-2 items-center">
