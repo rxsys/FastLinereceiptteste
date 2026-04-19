@@ -528,6 +528,11 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                     <span className="text-lg" title={luser.language}>{luser.language === 'pt' ? '🇧🇷' : luser.language === 'en' ? '🇺🇸' : '🇯🇵'}</span>
                     {luser.aiContext?.behavior?.autonomyLevel === 'elevated' && <Badge className="text-[10px] px-2 py-0.5 font-black bg-violet-100 text-violet-700 border-none gap-1"><Sparkles className="w-3 h-3"/>管理者</Badge>}
                     {luser.aiContext?.behavior?.autonomyLevel === 'developer' && <Badge className="text-[10px] px-2 py-0.5 font-black bg-slate-900 text-white border-none gap-1"><ShieldCheck className="w-3 h-3"/>Dev</Badge>}
+                    {luser.paypayImageUrl && (
+                      <div className="w-5 h-5 rounded bg-[#ff0033] flex items-center justify-center shrink-0 shadow-sm" title="PayPay QR登録済み">
+                        <span className="text-white font-black text-[7px]">Pay</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -637,6 +642,25 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                         <SelectItem value="en" className="font-bold">English 🇺🇸</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-2 border-t border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-[#ff0033] flex items-center justify-center shrink-0 shadow-sm">
+                    <span className="text-white font-black text-[10px]">Pay</span>
+                  </div>
+                  <Label className="font-black text-sm text-slate-800">PayPay受取用QRコード (任意)</Label>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-black uppercase text-slate-400">QRコードの画像URL</Label>
+                  <Input 
+                    value={editing?.paypayImageUrl || ''} 
+                    onChange={e => setEditing({...editing, paypayImageUrl: e.target.value})} 
+                    placeholder="例: https://example.com/paypay-qr.jpg"
+                    className="h-11 rounded-xl bg-slate-50 border-slate-200 font-bold" 
+                  />
+                  <p className="text-[10px] text-slate-400 font-bold">※ 本人精算時に管理者がコードを読み取って送金するために使用します。</p>
                 </div>
               </div>
 
