@@ -105,7 +105,6 @@ const ModuleIcon = ({
         </div>
         <div className="text-center space-y-1">
           <p className="text-[15px] font-black text-slate-700 group-hover:text-[#1d4ed8] transition-colors tracking-tight whitespace-nowrap">{title}</p>
-          {desc && <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{desc}</p>}
           {active ? (
             isSubscribed ? (
               <p className="text-[14px] font-bold text-[#00c48c] drop-shadow-[0_0_8px_rgba(0,196,140,0.2)] flex items-center justify-center gap-1">

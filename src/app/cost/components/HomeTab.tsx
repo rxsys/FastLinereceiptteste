@@ -36,16 +36,6 @@ export function HomeTab({
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-24 animate-in fade-in duration-1000 pb-20">
 
-      {/* Centered Welcome Message */}
-      <div className="flex flex-col items-center space-y-6 text-center pt-10">
-        <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] font-black tracking-[0.2em] uppercase py-1.5 px-6 rounded-full shadow-sm">
-          <Sparkles className="w-3.5 h-3.5 mr-2 inline" /> Executive Dashboard
-        </Badge>
-        <div className="space-y-2">
-          <p className="text-slate-500 font-bold text-lg">{(t.dash && t.dash.selectModule) || "Select a module to continue"}</p>
-        </div>
-      </div>
-
       {/* Launcher Grid */}
       <TooltipProvider delayDuration={0}>
         <div className="flex flex-wrap justify-center gap-10 w-full max-w-6xl px-8">
@@ -76,7 +66,6 @@ export function HomeTab({
                     {/* Label */}
                     <div className="space-y-2 text-center">
                       <h4 className="text-lg font-[1000] text-slate-800 tracking-tight whitespace-nowrap">{mod.title}</h4>
-                      {mod.desc && <p className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">{mod.desc}</p>}
                       {isUpcoming && <p className="text-[10px] font-black text-slate-400">EM BREVE</p>}
                       <div className={cn(
                         "h-1.5 w-8 bg-slate-100 rounded-full mx-auto transition-all duration-500",
@@ -141,7 +130,6 @@ export function HomeTab({
                </div>
                <div className="space-y-4">
                  <h4 className="text-lg font-[1000] text-slate-900 group-hover:text-primary transition-colors">{step.title}</h4>
-                 <p className="text-xs font-bold text-slate-400 leading-relaxed group-hover:text-slate-500 transition-colors">{step.desc}</p>
                  <div className="pt-4 flex items-center text-primary/0 group-hover:text-primary transition-all duration-500 font-black text-[10px] uppercase tracking-widest gap-2">
                     GO TO MODULE <ArrowRight className="w-3 h-3" />
                  </div>

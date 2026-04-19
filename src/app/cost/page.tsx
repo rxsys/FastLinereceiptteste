@@ -115,7 +115,7 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex justify-between items-center print:hidden">
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => setActiveTab('home')}>
-            <div className="bg-white border border-slate-100 p-2.5 rounded-2xl shadow-sm"><Image src="/logo.png" alt="Logo" width={48} height={48} /></div>
+            <div className="bg-white border border-slate-100 p-3 rounded-2xl shadow-sm"><Image src="/logo.png" alt="Logo" width={64} height={64} /></div>
             <div className="flex flex-col">
               <h1 className="text-xl font-black">(株)田中組業務管理システム</h1>
               <span className="text-[10px] text-slate-400 font-bold uppercase">v{APP_VERSION}</span>
