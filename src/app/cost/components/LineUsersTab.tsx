@@ -434,9 +434,18 @@ export function LineUsersTab({ ownerIdOverride, t }: { ownerIdOverride?: string,
                                   <LinkIcon className="w-4 h-4" /> 招待リンクをコピー
                                 </Button>
                             </div>
-                            <div className="text-center space-y-2 px-6">
+                            <div className="text-center space-y-3 px-6">
                                 <p className="text-sm font-black text-slate-900">QRコードまたはリンクを送信</p>
-                                <p className="text-[10px] text-slate-500 font-medium leading-relaxed">LINEでリンクを開くかQRを読み取ると登録が完了します。</p>
+                                <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl space-y-2 text-left">
+                                  <p className="text-[11px] font-black text-amber-800 flex items-center gap-2">
+                                    <AlertCircle className="w-3.5 h-3.5" /> 招待者への重要な案内
+                                  </p>
+                                  <p className="text-[10px] text-amber-700 font-bold leading-relaxed">
+                                    1. QRを読み取るかリンクをクリックしてLINEを開く。<br />
+                                    2. メッセージ欄に表示される<span className="text-red-500 underline mx-1">コードを消去・変更せず</span>、そのまま送信ボタンを押すよう伝えてください。
+                                  </p>
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-medium leading-relaxed italic">※ そのまま送信することで登録が完了します。</p>
                             </div>
                         </div>
                      </div>
