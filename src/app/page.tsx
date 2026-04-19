@@ -341,7 +341,14 @@ export default function LandingPage() {
                   </div>
                   <div className="flex items-center gap-2">
 
-                    <button onClick={() => signOut(auth!)} className="p-2.5 text-slate-400 hover:text-red-500 transition-colors" title="Logout"><LogOut className="w-5 h-5" /></button>
+                    <button 
+                      onClick={() => signOut(auth!)} 
+                      className="flex items-center gap-2 px-3 py-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" 
+                      title="Logout"
+                    >
+                      <span className="text-[12px] font-bold uppercase tracking-tight">ログアウト</span>
+                      <LogOut className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               ) : (
