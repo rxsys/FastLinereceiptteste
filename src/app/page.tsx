@@ -120,7 +120,7 @@ const ModuleIcon = ({
               <p className="text-[14px] font-bold text-slate-400">無料</p>
             )
           ) : (
-            <p className="text-[11px] font-black text-slate-300 tracking-[0.2em] uppercase">Coming Soon</p>
+            <p className="text-[11px] font-black text-slate-300 tracking-[0.1em] uppercase">近日公開</p>
           )}
         </div>
       </div>
