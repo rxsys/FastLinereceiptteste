@@ -92,7 +92,7 @@ const ModuleIcon = ({
         <div 
           className={cn(
             "relative w-[100px] h-[100px] rounded-[32px] flex items-center justify-center bg-white transition-all duration-500 border-2 border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] group-hover:border-slate-200",
-            active ? "border-[#ff6b35]/20 shadow-[0_0_25px_rgba(255,107,53,0.1)] group-hover:border-[#ff6b35]/40" : "opacity-70 group-hover:opacity-100"
+            active ? "border-[#1d4ed8]/20 shadow-[0_0_25px_rgba(29,78,216,0.1)] group-hover:border-[#1d4ed8]/40" : "opacity-70 group-hover:opacity-100"
           )}
         >
           <span className="text-5xl transform transition-transform duration-500 group-hover:scale-110">{emoji}</span>
@@ -104,16 +104,16 @@ const ModuleIcon = ({
           </div>
         </div>
         <div className="text-center space-y-2">
-          <p className="text-[18px] font-black text-slate-700 group-hover:text-[#ff6b35] transition-colors tracking-tight whitespace-nowrap">{title}</p>
+          <p className="text-[18px] font-black text-slate-700 group-hover:text-[#1d4ed8] transition-colors tracking-tight whitespace-nowrap">{title}</p>
           {active ? (
             isSubscribed ? (
-               <p className="text-[14px] font-bold text-[#00c48c] drop-shadow-[0_0_8px_rgba(0,196,140,0.2)] flex items-center justify-center gap-1">
+              <p className="text-[14px] font-bold text-[#00c48c] drop-shadow-[0_0_8px_rgba(0,196,140,0.2)] flex items-center justify-center gap-1">
                 <span className="text-[12px]">●</span> 利用中
               </p>
             ) : priceLoading ? (
               <p className="text-[14px] font-bold text-slate-300 animate-pulse">...</p>
             ) : priceId ? (
-              <p className="text-[14px] font-bold text-[#ff6b35] bg-[#ff6b35]/5 px-3 py-0.5 rounded-full">
+              <p className="text-[14px] font-bold text-[#1d4ed8] bg-[#1d4ed8]/5 px-3 py-0.5 rounded-full">
                 <ModulePrice priceId={priceId} />
               </p>
             ) : (
@@ -309,8 +309,8 @@ export default function LandingPage() {
       <div className="min-h-screen bg-[#fafbfc] text-slate-900 font-sans antialiased overflow-x-hidden relative">
         
         {/* Background Decorative Elements */}
-        <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-[#ff6b35]/5 to-transparent pointer-events-none" />
-        <div className="absolute top-[-200px] right-[-100px] w-[600px] h-[600px] bg-[#ff6b35]/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-[#1d4ed8]/5 to-transparent pointer-events-none" />
+        <div className="absolute top-[-200px] right-[-100px] w-[600px] h-[600px] bg-[#1d4ed8]/5 blur-[120px] rounded-full pointer-events-none" />
         <div className="absolute bottom-[200px] left-[-100px] w-[500px] h-[500px] bg-emerald-500/5 blur-[100px] rounded-full pointer-events-none" />
         
         {/* Navbar */}
@@ -331,7 +331,7 @@ export default function LandingPage() {
                 <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-4 duration-500">
                   <div className="hidden lg:flex flex-col items-end pr-4 border-r border-slate-200">
                     <div className="flex items-center gap-2">
-                      <span className="text-[12px] font-black text-[#ff6b35] uppercase tracking-widest">{role || 'User'}</span>
+                      <span className="text-[12px] font-black text-[#1d4ed8] uppercase tracking-widest">{role || 'User'}</span>
                       <span className="text-[14px] font-bold text-slate-700">{user.email}</span>
                     </div>
                     <div className="flex items-center gap-3">
@@ -435,7 +435,7 @@ export default function LandingPage() {
         {/* Login/Register Modal */}
         <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
           <DialogContent className="sm:max-w-[400px] bg-white border border-slate-200 text-slate-900 rounded-3xl p-8 overflow-hidden shadow-2xl">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#ff6b35] to-[#ff9f1c]" />
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#1d4ed8] to-[#3b82f6]" />
             
             <DialogHeader className="space-y-4 text-center mt-2">
               <div className="mx-auto flex items-center justify-center mb-2">
@@ -454,10 +454,10 @@ export default function LandingPage() {
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">会社名またはお名前</Label>
                   <div className="relative group">
-                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#ff6b35] transition-colors" />
+                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#1d4ed8] transition-colors" />
                     <Input
                       placeholder="株式会社○○ / 山田太郎"
-                      className="bg-slate-50 border-slate-200 h-12 pl-11 rounded-xl focus:border-[#ff6b35]/50 focus:ring-0 transition-all placeholder:text-slate-300 text-slate-900"
+                      className="bg-slate-50 border-slate-200 h-12 pl-11 rounded-xl focus:border-[#1d4ed8]/50 focus:ring-0 transition-all placeholder:text-slate-300 text-slate-900"
                       value={userName}
                       onChange={(e) => setUserName(e.target.value)}
                       required
@@ -469,11 +469,11 @@ export default function LandingPage() {
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t.email}</Label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#ff6b35] transition-colors" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#1d4ed8] transition-colors" />
                   <Input
                     type="email"
                     placeholder="email@example.com"
-                    className="bg-slate-50 border-slate-200 h-12 pl-11 rounded-xl focus:border-[#ff6b35]/50 focus:ring-0 transition-all placeholder:text-slate-300 text-slate-900"
+                    className="bg-slate-50 border-slate-200 h-12 pl-11 rounded-xl focus:border-[#1d4ed8]/50 focus:ring-0 transition-all placeholder:text-slate-300 text-slate-900"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -486,10 +486,10 @@ export default function LandingPage() {
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.password}</Label>
                 </div>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#ff6b35] transition-colors" />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#1d4ed8] transition-colors" />
                   <Input
                     type={showPassword ? "text" : "password"}
-                    className="bg-slate-50 border-slate-200 h-12 pl-11 pr-11 rounded-xl focus:border-[#ff6b35]/50 focus:ring-0 transition-all text-slate-900"
+                    className="bg-slate-50 border-slate-200 h-12 pl-11 pr-11 rounded-xl focus:border-[#1d4ed8]/50 focus:ring-0 transition-all text-slate-900"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -513,7 +513,7 @@ export default function LandingPage() {
               <Button 
                 type="submit" 
                 disabled={isLocalLoading}
-                className="w-full h-12 bg-[#ff6b35] hover:bg-[#ff8555] text-white font-black rounded-xl shadow-lg shadow-[#ff6b35]/20 group relative overflow-hidden transition-all active:scale-[0.98]"
+                className="w-full h-12 bg-[#1d4ed8] hover:bg-[#2563eb] text-white font-black rounded-xl shadow-lg shadow-[#1d4ed8]/20 group relative overflow-hidden transition-all active:scale-[0.98]"
               >
                 {isLocalLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
